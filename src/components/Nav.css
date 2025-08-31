@@ -1,0 +1,325 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar colapsable */
+.sidebar {
+  width: 220px;
+  padding: 20px;
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
+  color: #333;
+  position: fixed;
+  /* Mantiene el sidebar en su lugar */
+  height: 100vh;
+  /* Ocupa toda la altura de la ventana */
+  overflow-y: auto;
+  /* Permite scroll si el contenido es largo */
+  transition: all 0.3s ease;
+  /* Transición suave para colapsar/expandir */
+  z-index: 1000;
+  /* Asegura que esté por encima de otros elementos */
+  box-sizing: border-box;
+  /* Incluye padding y border en el width */
+}
+
+.sidebar.collapsed {
+  width: 60px;
+  /* Ancho reducido al colapsar */
+  padding: 20px 10px;
+  /* Ajuste de padding */
+  overflow-x: hidden;
+  /* Oculta el contenido horizontal al colapsar */
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  /* Cuando el menú está colapsado, centramos el botón del menú */
+  /* Esto se aplica en la regla .sidebar.collapsed .sidebar-header */
+}
+
+.sidebar-header img {
+  margin: 0;
+  /* Elimina margen predeterminado del h3 */
+  width: 100px;
+  margin-bottom: -20px;
+}
+
+.toggle-menu-btn {
+  background: none;
+  border: none;
+  color: #c89b3c;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  /* Para centrar el icono si es necesario */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilos para los items del menú dentro del sidebar */
+.sidebar-menu-items p {
+  padding: 10px 0;
+  margin: 0;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: 4px;
+}
+
+.sidebar-menu-items p:hover {
+  color: #c89b3c;
+  background-color: #f0f0f0;
+}
+
+.sidebar-menu-items p strong {
+  color: #333;
+  /* Color más oscuro para las categorías */
+  margin-top: 15px;
+  display: block;
+  /* Para que ocupen su propia línea */
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-menu-items .logout {
+  margin-top: 40px;
+  /* Más espacio antes de "Cerrar Sesión" */
+  color: #c89b3c;
+  /* Color distintivo para cerrar sesión */
+  font-weight: bold;
+}
+
+.sidebar-menu-items .logout:hover {
+  color: #b08c33;
+  background-color: #ffe0b2;
+  /* Un fondo sutil al pasar el mouse */
+}
+/* Estilo para los íconos de flecha dentro del menú */
+.menu-header svg {
+  color: #c89b3c; /* Color dorado para las flechas */
+  transition: transform 0.3s ease; /* Añade una transición si la flecha cambia de dirección */
+}
+
+/* Main content ajustable */
+.main {
+  margin-left: 220px;
+  /* Empuja el contenido principal para que el sidebar tenga espacio */
+  padding: 40px;
+  width: calc(100% - 220px);
+  /* Ajusta el ancho para llenar el espacio restante */
+  background-color: #fff;
+  min-height: 100vh;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  /* Incluye padding y border en el width */
+}
+
+.main.expanded {
+  margin-left: 60px;
+  /* Ajusta el margen cuando el sidebar está colapsado */
+  width: calc(100% - 60px);
+  /* Ocupa más ancho cuando el sidebar está colapsado */
+}
+
+/* Botón de menú para móviles (oculto por defecto en desktop) */
+.mobile-menu-btn {
+  display: none;
+  /* Oculto en pantallas grandes */
+  background: none;
+  border: none;
+  color: #c89b3c;
+  font-size: 1.5rem;
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #c89b3c;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.actions button {
+  font-size: 1rem;
+  padding: 12px 24px;
+  background-color: #000;
+  color: #c89b3c;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.search-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.actions input {
+  font-size: 1rem;
+  padding: 12px 16px 12px 40px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+.table-container {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+/* Estilos para todos los enlaces del menú */
+.link-menu {
+  color: #000; /* Color del texto negro */
+  font-family: DM Sans, sans-serif;
+  text-decoration: none; /* Elimina el subrayado por defecto */
+  padding: 10px; /* Aumenta el padding para separar los enlaces */
+  display: block; /* Hace que cada enlace ocupe toda la línea */
+  margin: 0;
+  transition: color 0.3s ease; /* Transición suave para el cambio de color */
+}
+
+
+.link-menu:hover {
+  color: #c89b3c; 
+}
+@media (max-width: 992px) {
+  .sidebar {
+    /* Por defecto, el sidebar está fuera de la pantalla en móviles */
+    transform: translateX(-100%);
+    width: 250px;
+    /* Ancho más generoso cuando se despliega en móvil */
+    position: fixed;
+    /* Sigue siendo fixed */
+    height: 100vh;
+  }
+
+  .sidebar.collapsed {
+    /* Este estado ahora significa "sidebar visible" en móvil */
+    transform: translateX(0);
+    /* Lo mueve a la vista */
+    width: 250px;
+    /* Ancho completo del sidebar desplegado */
+    padding: 20px;
+    /* Padding normal */
+    overflow-x: auto;
+    /* Permite scroll si el contenido es demasiado ancho para el sidebar */
+  }
+
+  .sidebar.collapsed .toggle-menu-btn {
+    display: block;
+    /* Asegura que el botón de cerrar menú esté visible */
+  }
+
+  /* Cuando el sidebar está "colapsado" (es decir, visible en móvil), los elementos se muestran */
+  .sidebar.collapsed .sidebar-header h3,
+  .sidebar.collapsed .sidebar-menu-items p,
+  .sidebar.collapsed .logout {
+    display: block;
+    /* Muestra el texto cuando el menú está abierto en móvil */
+  }
+
+  /* El main content siempre ocupa el 100% del ancho en móviles */
+  .main {
+    margin-left: 0;
+    /* No hay margen izquierdo en móviles */
+    width: 100%;
+    padding: 20px;
+    /* Ajusta el padding para móviles */
+  }
+
+  .mobile-menu-btn {
+    display: block;
+    /* Muestra el botón de menú móvil en la barra superior */
+  }
+
+  .toggle-menu-btn {
+    /* El botón dentro del sidebar-header. 
+       Queremos que se vea en el sidebar en móviles para cerrar el menú. */
+    display: block;
+    /* Asegura que esté visible en móviles */
+  }
+
+  /* Ajustes para el header en móvil */
+  .header {
+    flex-direction: row;
+    /* Mantener en fila */
+    justify-content: flex-start;
+    /* Alinear a la izquierda */
+    align-items: center;
+  }
+}
+
+/* Estilos para cuando el menú está colapsado (en desktop) */
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  /* Centra el LOGO/botón cuando el menú está colapsado */
+}
+
+/* Ocultar el texto de los items cuando el menú está colapsado en desktop */
+.sidebar.collapsed .sidebar-menu-items p {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-header h3 {
+  display: none;
+  /* Oculta el LOGO cuando está colapsado */
+}
+
+.sidebar.collapsed .logout {
+  display: none;
+  /* Oculta el botón de cerrar sesión */
+}
+
+/* Cuando el sidebar está colapsado, asegura que solo se vean los iconos (si los tuvieras) */
+.sidebar.collapsed .sidebar-menu-items p strong {
+  display: none;
+  /* Oculta también los títulos de sección */
+}
+
+/* Pequeño ajuste para el padding del botón toggle en modo colapsado para que se vea centrado */
+.sidebar.collapsed .toggle-menu-btn {
+  padding: 0;
+  font-size: 1.5rem;
+  /* Icono más grande */
+}

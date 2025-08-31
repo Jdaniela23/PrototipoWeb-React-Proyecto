@@ -1,0 +1,121 @@
+.role-form-container {
+  display: flex;
+  height: 100vh;
+}
+
+.formulario-rol-main-content-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background-color: #fff;
+  margin-left: -25%;
+}
+
+.formulario-roles {
+  width: 50%;
+  margin-left: 25%;
+}
+
+.form-title {
+  font-size: 2.2em;
+  color: #c89b3c;
+  margin-bottom: 5px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.form-info {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.role-form .form-group {
+  margin-bottom: 20px;
+}
+
+.label-heading {
+  display: block;
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Reducimos el ancho de los inputs a un 65% */
+.role-form .input-field {
+  width: 65%;
+  padding: 10px 16px;
+  border: 1px solid #9d6d28;
+  border-radius: 30px;
+  font-size: 1.05em;
+  background-color: #fff;
+  color: #000;
+  font-family: 'DM Sans', sans-serif;
+  box-sizing: border-box;
+}
+
+.role-form .input-field:focus {
+  border-color: #c89b3c;
+  box-shadow: 0 0 0 2px rgba(153, 153, 153, 0.2);
+}
+
+.role-form .textarea-field {
+  width: 65%;
+  padding: 10px 16px;
+  min-height: 80px;
+  border: 1px solid #9d6d28;
+  border-radius: 20px;
+  font-size: 1.05em;
+  line-height: 1.5;
+}
+
+/* Botones "sí/no" de domicilio */
+.role-form .input-field.selected {
+  background-color: #f0f0f0;
+}
+
+/* Botón guardar / actualizar */
+.save-button {
+  width: 65%;
+  padding: 12px 0;
+  background-color: #9d6d28;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.save-button:hover {
+  background-color: #c89b3c;
+}
+
+/* Botón volver */
+.cancel-button {
+  background-color: transparent;
+  color: #9d6d28;
+  text-decoration: none;
+  font-size: 1em;
+  margin-bottom: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+  .formulario-roles {
+    width: 80%;
+    margin-left: 10%;
+  }
+
+  .role-form .input-field,
+  .role-form .textarea-field,
+  .save-button {
+    width: 100%;
+  }
+}

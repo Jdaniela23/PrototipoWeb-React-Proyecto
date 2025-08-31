@@ -1,0 +1,116 @@
+.adjustments-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.adjustments-main-content-area {
+    padding: 40px;
+    background-color: #f8f8f8;
+    flex-grow: 1;
+    box-sizing: border-box;
+    margin-right: 10%; 
+    transition: margin-left 0.3s ease;
+    width: 150%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+      
+}
+
+
+
+/* --- CONTENEDOR AJUSTADO Y CENTRADO --- */
+.adjustments-settings-page {
+    max-width: 1000px; /* Hacemos el contenedor más ancho */
+    margin: 0 auto; /* Centra el contenedor horizontalmente */
+    color: #333;
+  
+}
+
+/* --- Títulos y Descripciones --- */
+.adjustments-page-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #c89b3c;
+    margin-bottom: 10px;
+}
+
+.adjustments-page-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 40px;
+}
+
+/* --- Estilos de las Tarjetas de Opciones (El Grid) --- */
+.adjustments-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.adjustments-option-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #eee;
+}
+
+.adjustments-option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: #c89b3c;
+}
+
+/* Estilo para los iconos dentro de las tarjetas */
+.card-icon-wrapper {
+    color: #c89b3c; 
+    flex-shrink: 0;
+}
+
+.card-content {
+    flex-grow: 1;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.card-description {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* --- Media Queries para Responsive Design --- */
+@media (max-width: 768px) {
+    .adjustments-main-content-area {
+        padding: 20px;
+    }
+
+    .adjustments-page-title {
+        font-size: 2.2rem;
+    }
+
+    .adjustments-options-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .adjustments-option-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .card-icon-wrapper {
+        margin-bottom: 10px;
+    }
+}

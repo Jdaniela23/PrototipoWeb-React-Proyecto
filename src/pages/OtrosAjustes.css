@@ -1,0 +1,133 @@
+.otros-ajustes-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.back-arrow {
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #c89b3c;
+    margin-right: 15px;
+    transition: transform 0.2s ease;
+}
+
+.back-arrow:hover {
+    transform: translateX(-5px);
+}
+
+.ajuste-seccion {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.ajuste-seccion:last-child {
+    border-bottom: none;
+}
+
+.seccion-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.seccion-icon {
+    font-size: 1.5rem;
+    color: #c89b3c;
+    margin-right: 10px;
+}
+
+.seccion-title {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.ajuste-opcion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0f0f0;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.opcion-label {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+/* Estilos para el Switch (toggle) */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #c89b3c;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Estilos de la lista de historial */
+.historial-lista {
+    list-style-type: none;
+    padding: 0;
+}
+
+.historial-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #555;
+}
+
+.historial-evento {
+    font-weight: 600;
+}
+
+.historial-fecha {
+    font-style: italic;
+    color: #777;
+}

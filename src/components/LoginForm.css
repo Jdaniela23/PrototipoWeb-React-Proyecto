@@ -1,0 +1,169 @@
+.layout-principal-split {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: #3e3938; 
+    color: black;
+}
+/* Contenedor para la imagen (lado izquierdo) */
+.boton-login {
+    height: 50px;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+    padding: 5px;
+}
+.boton-login a {
+    background-color: #9d6d28;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.boton-login a:hover {
+    background-color: #81571f; /* Un tono más oscuro al pasar el mouse */
+}
+
+.izquierda-con-imagen {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /*  Apila los elementos verticalmente */
+  justify-content: center; /* Centra los elementos a lo largo del eje principal (vertical ahora) */
+  align-items: center; /* Centra los elementos a lo largo del eje transversal (horizontal ahora) */
+  background-color: #3e3938; /* Fondo negro */
+  text-align: center; /* Asegura que el texto dentro de h2 se centre */
+  
+}
+
+
+.izquierda-con-imagen img {
+  max-width: 75%; /* Imagen grande dentro de su mitad */
+  height: auto; /* Mantiene la proporción */
+
+}
+
+
+/* Contenedor para el formulario (lado derecho) */
+.derecha-con-formulario {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #3e3938;
+}
+
+/* Estilos para el contenedor del formulario */
+.login-form-container {
+  width: 100%;
+  max-width: 500px;
+  padding: 40px;
+  background-color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  text-align: center;
+
+  /* Evita márgenes que desalinean */
+  margin: 0 auto;
+}
+
+
+/* Estilos de los elementos del formulario (sin cambios) */
+.login-form-container h4{
+  color: black;
+  font-size: 25px;
+}
+
+
+
+.login-form-container div {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.login-form-container label {
+  display: block;
+  margin-bottom: 8px;
+  color: black;
+  margin-left: 20px;
+}
+
+.login-form-container input[type="email"],
+.login-form-container input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+
+.login-form-container button {
+  width: 100%;
+  padding: 15px;
+  background-color: #9d6d28;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+
+.login-form-container button:hover {
+  background-color: #cd9e45;
+}
+.logo-form{
+    width: 100px;
+    margin-right: 100%;
+}
+
+.password-input-container {
+  position: relative; /* Muy importante para que el icono se posicione RELATIVAMENTE a este div */
+  margin-bottom: 15px; /* Ajusta el espacio debajo del campo de contraseña si es necesario */
+  display: flex;
+  flex-direction: column;
+}
+
+.password-input-container input[type="password"],
+.password-input-container input[type="text"] { 
+  padding-right: 40px;
+
+}
+
+/* Estilos para el icono de alternar visibilidad */
+.password-toggle-icon-login {
+  position: absolute; /* Posiciona el icono de forma absoluta dentro de .password-input-container */
+  right: 10px; /* Distancia desde el borde derecho del contenedor */
+  top: 10%; /* Intenta centrar verticalmenta */
+  transform: translateY(-50%); /* Ajuste fino para centrado vertical */
+  cursor: pointer; /* Cambia el cursor a una mano para indicar que es clickeable */
+  color: #888; /* Un color sutil para el icono, ajústalo a tu diseño */
+  font-size: 18px; /* Tamaño del icono */
+  z-index: 2; /* Asegura que el icono esté por encima del input */
+  margin-top: 330px;
+  margin-right: 120px;
+ 
+ 
+}
+
+/* Opcional: Estilo para cuando el ratón pasa por encima del icono */
+.password-toggle-icon:hover {
+  color: #555; /* Un color ligeramente más oscuro al pasar el ratón */
+}
+.link-pass{
+  color: #cd9e45;
+}
+.link-pass:hover{
+  color: #9d6d28;
+}

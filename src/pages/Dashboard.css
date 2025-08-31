@@ -1,0 +1,143 @@
+.Boton-año {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    margin: 5px;
+}
+
+.Boton-mes {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    margin: 4px;
+}
+
+.Boton-seleccionado {
+    background-color: #c89b3c;
+    color: white;
+}
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.dashboard-container {
+
+    width: 80%;
+    padding: 20px;
+    margin-right: 10%;
+
+
+}
+
+.dashboard-container h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #c89b3c;
+
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.date-range {
+    text-align: center;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+
+.metrics-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-top: 2%;
+}
+
+.metric-card {
+    flex: 1;
+    min-width: 250px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+}
+
+.metric-card h2 {
+    color: #c89b3c;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.data-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.data-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #ecf0f1;
+}
+
+.data-list li:last-child {
+    border-bottom: none;
+}
+
+.category {
+    font-weight: 600;
+    color: #34495e;
+}
+
+.value {
+    font-weight: 500;
+    color: #000;
+}
+
+.positive {
+    color: #27ae60;
+}
+
+.negative {
+    color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    .dashboard-container {
+        margin-left: 0;
+        margin-top: 60px;
+        /* Ajusta según la altura de tu sidebar en móvil */
+    }
+
+    .metrics-container {
+        flex-direction: column;
+    }
+
+    .metric-card {
+        width: 100%;
+    }
+}
+
+.filtros-meses {
+    padding-top: 2%;
+}
+
+.contenedor-cartas {
+    padding-top: 2%;
+}
+
+.size-a {
+    width: 100%;
+    height: 100%;
+}

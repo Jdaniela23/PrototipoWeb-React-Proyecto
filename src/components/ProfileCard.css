@@ -1,0 +1,103 @@
+.profile-card-container {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    max-width: 400px;
+    margin: 50px auto;
+    gap: 25px;
+    margin-top: 5px;
+    margin-left: 60%;
+}
+
+/* Sección de la izquierda: la imagen de perfil */
+.profile-card-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #eee;
+}
+
+/* Sección central: nombre de usuario y correo electrónico */
+.profile-card-center {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile-card-username {
+    font-size: 1em;
+    font-weight: bold;
+    color: #333333;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.profile-card-email {
+    font-size: 1em;
+    color: #666666;
+    margin: 0;
+}
+
+/* Sección de la derecha: iconos de acción */
+.profile-card-right {
+    display: flex;
+    gap: 10px;
+}
+
+/* Contenedor individual de cada icono y su tooltip */
+.profile-card-icon-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.profile-card-icon-wrapper:hover {
+    background-color: #e0e0e0;
+}
+
+/* Estilos para el tooltip (el texto "Editar" / "Opciones") */
+.icon-tooltip {
+    position: absolute; /* Posicionamiento absoluto respecto a .profile-card-icon-wrapper */
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro semitransparente */
+    color: white; /* Texto blanco */
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
+    z-index: 10; /* Asegura que esté por encima de otros elementos */
+
+    /* Posicionamiento inicial (oculto y fuera de la vista) */
+    opacity: 0; /* Totalmente transparente */
+    visibility: hidden; /* Oculto para lectores de pantalla y eventos de ratón */
+    transform: translateX(-50%) translateY(10px); /* Ligeramente desplazado para el efecto de aparición */
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s; /* Transición suave */
+
+    /* Ajusta la posición para que aparezca debajo o al lado del icono */
+    bottom: -35px; /* Aparece debajo del wrapper del icono (ajústalo según necesites) */
+    left: 50%; /* Centra horizontalmente */
+}
+
+/* Estado al hacer hover en el contenedor del icono */
+.profile-card-icon-wrapper:hover .icon-tooltip {
+    opacity: 1; /* Hace el tooltip visible */
+    visibility: visible; /* Lo hace interactivo */
+    transform: translateX(-50%) translateY(0); /* Vuelve a su posición original, creando el efecto de "subir" */
+}

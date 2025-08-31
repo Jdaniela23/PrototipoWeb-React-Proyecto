@@ -1,0 +1,252 @@
+/* --- Capa de Superposición Oscura (Overlay) --- */
+.two-fa-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+/* --- Contenedor Principal del Modal --- */
+.two-fa-modal-content {
+    background-color: #1d1c1c;
+    color: #f8f8f8;
+    padding: 30px 40px;
+    border-radius: 12px;
+    position: relative;
+    max-width: 550px;
+    width: 95%;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    height: 100%;
+    max-height: 90vh;
+    /* Define la altura máxima del modal */
+    overflow-y: auto;
+    /* ⭐ Permite el desplazamiento vertical si el contenido es más alto que el modal ⭐ */
+
+    flex-direction: column;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    margin: 20px auto;
+    border: 2px solid #c89b3c;
+    box-shadow: 0 0 15px rgba(200, 155, 60, 0.7);
+}
+
+.two-fa-modal-content.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* --- Encabezado del Modal --- */
+.two-fa-modal-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.two-fa-icon {
+    margin-bottom: 10px;
+    color: #c89b3c;
+}
+
+.two-fa-modal-title {
+    font-size: 1.8rem;
+    color: #c89b3c;
+    margin-bottom: 5px;
+}
+
+.two-fa-modal-subtitle {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 0;
+}
+
+/* --- Botón de Cerrar (X) --- */
+.two-fa-modal-close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #c89b3c;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+    padding: 5px;
+}
+
+.two-fa-modal-close-button:hover {
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+/* --- Contenido del Modal --- */
+.two-fa-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.two-fa-enable-button {
+    background-color: #c89b3c;
+    color: #1d1c1c;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 1rem;
+    margin-top: 20px;
+}
+
+.two-fa-enable-button:hover {
+    background-color: #a87e2f;
+    color: #fff;
+}
+
+.two-fa-config-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-code-container {
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 15px 0;
+}
+
+.two-fa-info-step {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.95rem;
+    margin-top: 10px;
+}
+
+.two-fa-secret-code {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #c89b3c;
+    margin-top: 10px;
+}
+
+.two-fa-verification-field {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.two-fa-input-field {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.two-fa-verify-button {
+    background-color: #c89b3c;
+    color: #1d1c1c;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 1rem;
+}
+
+.two-fa-verify-button:hover {
+    background-color: #a87e2f;
+    color: #fff;
+}
+
+/* Mensajes de estado */
+.status-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.status-message.success {
+    color: #4CAF50;
+}
+
+.status-message.error {
+    color: #ff5252;
+}
+
+.status-icon {
+    font-size: 1.2rem;
+}
+
+/* Contenedor de botones inferior */
+.two-fa-modal-buttons-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.two-fa-cancel-button {
+    background-color: #555;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+}
+
+.two-fa-cancel-button:hover {
+    background-color: #777;
+}
+
+/* --- Media Queries para Responsive Design --- */
+@media (max-width: 600px) {
+    .two-fa-modal-content {
+        padding: 20px;
+    }
+
+    .two-fa-modal-title {
+        font-size: 1.6rem;
+    }
+
+    .two-fa-modal-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .two-fa-info-step,
+    .two-fa-secret-code,
+    .status-message {
+        font-size: 0.9rem;
+    }
+
+    .two-fa-verification-field {
+        flex-direction: column;
+    }
+
+    .two-fa-input-field,
+    .two-fa-verify-button {
+        width: 100%;
+    }
+}

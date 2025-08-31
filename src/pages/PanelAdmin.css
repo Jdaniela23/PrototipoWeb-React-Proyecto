@@ -1,0 +1,161 @@
+.admin-container {
+    display: flex;
+    /* Habilita Flexbox para colocar los hijos en fila */
+    height: 100vh;
+}
+
+.admin-main-content-area {
+    flex-grow: 1;
+    /* Permite que este div ocupe todo el espacio horizontal restante */
+    overflow-y: auto;
+    /* Permite el scroll vertical si el contenido es largo */
+    padding: 20px;
+    /* Un poco de espacio interno para el contenido */
+    background-color: white;
+    /* Para que el fondo del contenido sea visible */
+    margin-left: -25%;
+}
+
+.admin-titulo {
+    color: black;
+    margin-top: 0;
+    /* Para evitar un espacio extra en la parte superior */
+    font-size: 3.5em;
+    margin-bottom: 10px;
+    /* Espacio entre el título y el subtítulo */
+    text-align: center;
+}
+
+.admin-subtitulo {
+    color: black;
+    font-size: 1.1em;
+    margin-bottom: 60px;
+    /* Espacio debajo del subtítulo */
+    text-align: center;
+}
+
+.admin-boton {
+    background-color: #3e3e3e;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    /* Transición suave al pasar el ratón */
+    margin-left: 110px;
+}
+
+/* --- Estilos para la tarjeta del proveedor --- */
+.admin-proveedor-card {
+    display: flex;
+    /* Convierte la tarjeta en un contenedor Flexbox */
+    flex-wrap: wrap;
+    /* Permite que los ítems se envuelvan a la siguiente línea si no hay espacio */
+    justify-content: center;
+    /* Centra horizontalmente los ítems en el contenedor */
+    align-items: center;
+    /* Centra verticalmente los ítems (si tienen diferentes alturas) */
+    gap: 20px;
+    /* Espacio entre los elementos hijos directos (texto, imagen, botón) */
+
+    border: 1px solid #ddd;
+    /* Borde visible */
+    border-radius: 8px;
+    /* Bordes redondeados */
+    background-color: #f9f9f9;
+    /* Fondo claro */
+    padding: 20px;
+    /* Espacio interno */
+
+    width: 50%;
+    /* Ancho de la tarjeta (ajusta según necesites) */
+    max-width: 700px;
+    /* Ancho máximo para que no sea demasiado grande */
+    margin: 50px auto;
+    /* Centra la tarjeta en la página y le da margen superior */
+    margin-left: 45%;
+    margin-top: -40%;
+}
+
+/* Contenedor del texto (h4 y p) */
+.admin-proveedor-text-content {
+    flex-basis: 50%;
+    /* Ocupa el 50% del ancho del padre */
+    max-width: 50%;
+    /* Asegura que no crezca más allá del 50% */
+    /* Para apilar el título y el subtítulo si el ancho es limitado */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    /* Alinea el texto a la izquierda dentro de su propio contenedor */
+    text-align: left;
+    /* Asegura el texto alineado a la izquierda */
+}
+
+.card-titulo-admin {
+    font-size: large;
+    color: #c89b3c;
+    font-weight: bold;
+    /* text-align: center; */
+    /* Quítalo si quieres que el texto esté a la izquierda dentro de su contenedor */
+    margin: 0 0 5px 0;
+    /* Ajusta márgenes */
+}
+
+.card-subtitulo-admin {
+    color: black;
+    margin: 0;
+    /* Elimina márgenes por defecto */
+}
+
+/* Estilos para la imagen del proveedor */
+.imagen-proveedores {
+    width: 40%;
+    /* La imagen toma el 40% del ancho del padre */
+    max-width: 200px;
+    /* Tamaño máximo para la imagen (ajústalo) */
+    height: auto;
+    /* Mantiene la proporción */
+    border-radius: 8px;
+    margin: 0;
+}
+
+
+/* --- Estilos para el botón de proveedores --- */
+.admin-boton-proveedores {
+    background-color: #3e3e3e;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+    flex-basis: 40%;
+    text-decoration: none;
+}
+
+.admin-boton-proveedores:hover {
+    background-color: #555555;
+    color: white;
+}
+
+.admin-boton:hover {
+    background-color: #555555;
+    color: white;
+}
+
+.admin-titulo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #c89b3c;
+    margin: 0;
+}
+
+.imagen-dashboard {
+    width: 40%;
+}

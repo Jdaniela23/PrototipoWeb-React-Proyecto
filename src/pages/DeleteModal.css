@@ -1,0 +1,186 @@
+
+:root {
+    --bg-dark: #faf6f6;
+    /* Fondo negro */
+    --modal-bg: #111111;
+    /* Fondo del modal casi negro */
+    --glow-color: #D4AF37;
+    /* Dorado principal */
+    --text-light: #ffffff;
+    /* Blanco puro */
+    --text-dark: #cccccc;
+    /* Gris claro para descripciones */
+    --delete-red: #ec1d43;
+    /* Rojo de eliminación profundo y elegante */
+    --delete-red-hover: #9b001c;
+    /* Rojo de eliminación más oscuro al pasar el ratón */
+    --info-bg: #1a1a1a;
+    /* Fondo para la caja de información */
+}
+
+/* Overlay para oscurecer y desenfocar el fondo */
+.delete-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Fondo más claro (menos opacidad) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(8px);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Contenedor principal del modal con efecto de "glow" */
+.delete-content {
+    background-color: var(--modal-bg);
+    border-radius: 12px;
+    padding: 2.5rem 3rem;
+    width: 60%;
+    max-width: 650px;
+    min-width: 450px;
+    color: var(--text-light);
+    box-shadow:
+        0 0 15px rgba(0, 0, 0, 0.5),
+        0 0 40px var(--glow-color);
+   
+    text-align: center;
+    animation: fadeInGlow 0.4s ease-out forwards;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animación de entrada con brillo dorado */
+@keyframes fadeInGlow {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow:
+            0 0 15px rgba(0, 0, 0, 0.5),
+            0 0 40px var(--glow-color);
+    }
+}
+
+/* Título de confirmación */
+.delete-content h2 {
+    color: var(--glow-color);
+    /* Título en color dorado */
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+/* Subtítulo / Mensaje */
+.delete-message {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+/* Detalles del ítem a eliminar */
+.delete-info-summary {
+    background-color: var(--info-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.delete-info-summary p {
+    margin: 0.6rem 0;
+    font-size: 0.95rem;
+    color: var(--text-light);
+}
+
+.delete-info-summary strong {
+    color: var(--glow-color);
+    /* Las etiquetas fuertes en dorado */
+    min-width: 120px;
+    display: inline-block;
+    font-weight: 600;
+}
+
+/* Contenedor de botones */
+.delete-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+/* Estilos base para todos los botones */
+.delete-buttons button {
+    padding: 0.8rem 1.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón Cancelar */
+.delete-buttons .cancel-button {
+    background-color: #333333;
+    /* Gris oscuro para cancelar */
+    color: var(--text-light);
+}
+
+.delete-buttons .cancel-button:hover {
+    background-color: #444444;
+    transform: translateY(-3px) scale(1.02);
+}
+
+/* Botón Eliminar */
+.delete-buttons .confirm-delete-button {
+    background-color: var(--delete-red);
+    /* Rojo de eliminación elegante */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.delete-buttons .confirm-delete-button:hover {
+    background-color: var(--delete-red-hover);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 5px 20px rgba(176, 0, 32, 0.4);
+    /* Sombra roja sutil */
+}
+
+/* Media query para pantallas más pequeñas */
+@media (max-width: 768px) {
+    .delete-content {
+        width: 95%;
+        padding: 2rem 1.5rem;
+    }
+
+    .delete-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .delete-message {
+        font-size: 1rem;
+    }
+
+    .delete-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .delete-buttons button {
+        width: 100%;
+    }
+}

@@ -1,0 +1,111 @@
+.main-footer {
+  background-color: white; /* Color de fondo del footer como en la imagen */
+  color: #333; /* Color de texto general para el footer */
+  padding: 40px 20px; /* Padding interno para que el contenido no pegue a los bordes */
+ 
+  font-family: 'DM Sans', sans-serif; /* O la fuente que uses en tu proyecto */
+}
+
+.footer-top {
+  text-align: center;
+  margin-bottom: 20px;
+
+}
+
+.footer-brand {
+  font-size: 1.5em; /* Tamaño del título/logo */
+  margin-bottom: 10px;
+  color:  #c89b3c;
+  
+}
+
+.footer-divider {
+  border: none;
+  border-top: 1px solid #ccc; /* Estilo de la línea divisoria */
+  width: 80%; /* Ancho de la línea */
+  margin: 20px auto; /* Centrar la línea */
+}
+
+.footer-columns {
+  display: flex;
+  justify-content: space-around; /* Distribuye las columnas uniformemente */
+  flex-wrap: wrap; /* Permite que las columnas se envuelvan en pantallas pequeñas */
+  gap: 30px; /* Espacio entre las columnas */
+  max-width: 1200px; /* Ancho máximo del contenido del footer */
+  margin: 0 auto; /* Centrar las columnas */
+}
+
+.footer-column {
+  flex: 1; /* Permite que las columnas crezcan y ocupen el espacio disponible */
+  min-width: 250px; /* Ancho mínimo para cada columna antes de envolverse */
+  padding: 15px; /* Padding interno para las columnas */
+}
+
+.contact-column {
+    border-left: 1px solid #ccc; /* Línea vertical como en tu diseño */
+    border-right: 1px solid #ccc; /* Línea vertical como en tu diseño */
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.column-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333 /* Asegura que los títulos de columna sean negros */
+}
+
+.footer-list {
+  list-style: none; /* Quita los puntos de la lista */
+  padding: 0;
+  margin: 0;
+}
+
+.footer-list li {
+  margin-bottom: 8px;
+}
+
+.footer-list a {
+  color: #333; /* Color de los enlaces */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-list a:hover {
+  color: #007bff; /* Color de los enlaces al pasar el mouse */
+}
+
+.footer-column p {
+    margin-bottom: 8px; /* Espacio debajo de los párrafos de info */
+    color: #555; /* Color del texto de información */
+}
+
+/* Estilos para el texto "[whatsapp]" que es un enlace dentro de un párrafo */
+.footer-column p a {
+    color: #25D366; /* Un verde WhatsApp */
+    font-weight: bold;
+}
+.footer-column p a:hover {
+    text-decoration: underline;
+}
+
+/* Media Queries para responsividad (ajusta según tus necesidades) */
+@media (max-width: 768px) {
+  .footer-columns {
+    flex-direction: column; /* Apila las columnas en pantallas más pequeñas */
+    align-items: center; /* Centra las columnas apiladas */
+  }
+
+  .footer-column {
+    width: 100%; /* Las columnas ocupan todo el ancho */
+    text-align: center; /* Centra el texto */
+    margin-bottom: 20px;
+  }
+
+  .contact-column {
+    border-left: none; /* Quita las líneas verticales en modo columna */
+    border-right: none;
+    padding-left: 15px; /* Ajusta el padding */
+    padding-right: 15px;
+  }
+}

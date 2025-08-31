@@ -1,0 +1,78 @@
+.recuperar-contrasena-page-container {
+    display: flex;             /* Habilita Flexbox para centrar a sus hijos */
+    justify-content: center;   /* Centra horizontalmente el contenido */
+    align-items: center;       /* Centra verticalmente el contenido */
+    min-height: 100vh;         /* Asegura que ocupe toda la altura del viewport */
+    width: 100vw;              /* Asegura que ocupe todo el ancho del viewport */
+    margin: 0;                 /* Elimina cualquier margen externo por defecto del navegador */
+    padding: 0;                /* Elimina cualquier padding externo por defecto del navegador */
+    flex-direction: column;
+    margin-top: 60px;
+}
+
+
+.recuperar-card{
+    display: grid;
+    place-items: center;
+    max-width: 900px;
+    width: 200%;
+    min-height: 500px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    padding: 10px;
+    color: #333;
+    margin-top: 20px;
+
+  
+}
+.titulo-recuperar-contrasena{
+    color: #c89b3c;
+    margin-bottom: 0;
+}
+.instrucciones {
+    text-align: center; /* ESTO CENTRARÁ EL TEXTO DENTRO DE ESTE PÁRRAFO */
+    line-height: 1.5;
+}
+
+.strong-recuperar-contrasena {
+ font-size: large;
+}
+.email-input-contrasena {
+    width: 100%;
+    height: 45px;
+    padding: 10px 15px;
+    border: 1px solid #ccc; /* Borde normal, gris claro */
+    border-radius: 10px;
+    font-size: 1em;
+    box-sizing: border-box;
+    margin-top: 5px;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Agrega una transición suave */
+}
+
+/* Estilo para el estado HOVER (cuando el mouse está sobre el input) */
+.email-input-contrasena:hover {
+    border-color: #DAA520; 
+}
+
+/* Estilo para el estado FOCUS (cuando el input está activo/seleccionado para escribir) */
+.email-input-contrasena:focus {
+    border-color: #DAA520; /* Color dorado (Goldenrod) */
+    outline: none; /* Remueve el outline por defecto del navegador */
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.5); /*  Agrega una sombra sutil dorada para mejor feedback visual */
+}
+
+.btn-enviar-correo{
+    background-color: #c89b3c;
+    color: white;
+}
+
+.btn-enviar-correo:Hover{
+    background-color: #9d6d28; /* Grey background when checked */
+  
+}
+.my-footer { 
+    width: 100%; 
+    
+}

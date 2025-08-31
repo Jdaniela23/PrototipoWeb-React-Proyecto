@@ -1,0 +1,90 @@
+/* Importa los estilos base de RecuperarPass.css */
+@import url('./RecuperarPass.css');
+
+.password-input-container {
+    position: relative; /* Esencial para posicionar el icono */
+    width: 100%; /* Hereda de .input-group si lo usas como padre, o define aquí */
+    max-width: 400px; /* Limita el ancho como los otros inputs */
+    margin-bottom: 15px; /* Espacio debajo del input de contraseña */
+   
+}
+
+/* Estilos para los inputs de contraseña */
+.password-input {
+    width: 400px; /* Ocupa todo el ancho de su contenedor (.password-input-container) */
+    height: 45px;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px; /* Bordes redondeados como en RecuperarPass */
+    font-size: 1em;
+    box-sizing: border-box;
+    margin-top: 5px;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Estilos para el icono de mostrar/ocultar contraseña */
+.password-toggle-icon {
+    position: absolute;
+    right: 10px; /* Ajusta la posición del icono desde la derecha */
+    top: 50%; /* Centra verticalmente */
+    transform: translateY(-50%); /* Ajuste fino para centrado vertical */
+    cursor: pointer;
+    color: #888; /* Color del icono */
+    font-size: 1.2em; /* Tamaño del icono */
+    z-index: 10; /* Asegura que el icono esté por encima del input */
+    margin-top: 1px;
+    
+}
+
+/* Estilos de hover y focus para los inputs de contraseña (igual que en RecuperarPass) */
+.password-input:hover {
+    border-color: #DAA520; /* Dorado */
+}
+
+.password-input:focus {
+    border-color: #DAA520; /* Dorado */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.5);
+}
+
+
+/* Estilo para el botón de "Guardar nueva contraseña" */
+.btn-guardar-contrasena {
+    /* Hereda las propiedades de .btn-primary-golden que esta en RecuperarPass.css */
+
+    background-color: #c89b3c; /* Dorado/Marrón */
+    color: white;
+    padding: 12px 15px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%; /* Para que se alinee con el ancho de los inputs */
+    max-width: 400px; /* Mismo max-width que los inputs */
+    margin-top: 20px; /* Espacio para separarlo de los mensajes/inputs */
+    box-sizing: border-box;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-guardar-contrasena:hover {
+    background-color: #9d6d28; /* Dorado más oscuro en hover */
+}
+
+/* Estilo para el enlace "Volver a Iniciar sesión" */
+.boton2-restablecer {
+    color: #c89b3c; /* Dorado/Marrón para el texto */
+    text-decoration: none; /* Quita el subrayado por defecto */
+    margin-top: 15px; /* Espacio entre el botón y el enlace */
+    font-size: 0.95em;
+    transition: color 0.3s ease;
+}
+
+.boton2-restablecer:hover {
+    color: #9d6d28; /* Dorado más oscuro en hover */
+    text-decoration: underline; /* Subraya en hover si lo deseas */
+}
+

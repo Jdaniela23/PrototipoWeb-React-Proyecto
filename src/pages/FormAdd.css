@@ -1,0 +1,602 @@
+.role-form-container {
+  display: flex;
+  height: 100vh;
+}
+
+.formulario-rol-main-content-area {
+  flex-grow: 1;
+  /* Permite que este div ocupe todo el espacio horizontal restante */
+  overflow-y: auto;
+  /* Permite el scroll vertical si el contenido es largo */
+  padding: 20px;
+  /* Un poco de espacio interno para el contenido */
+  background-color: white;
+  /* Para que el fondo del contenido sea visible */
+  margin-left: -25%;
+}
+
+
+
+/* --- ESTILOS GENERALES DEL FORMULARIO --- */
+
+.formulario-roles {
+  width: 60%;
+  margin-left: 16%;
+  padding: 30px;
+  /* Añade un poco de padding para que el contenido no pegue al borde */
+  border-radius: 15px;
+  /* Bordes ligeramente redondeados para un look suave */
+  background-color: #fff;
+  /* Asegura un fondo blanco para el formulario */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  /* Sombra suave y elegante por defecto */
+  transition: box-shadow 0.3s ease-in-out;
+  /* Transición para el efecto de hover/focus */
+  margin-top: 40px;
+}
+
+/* Título del formulario */
+.form-title {
+  font-size: 2.2em;
+  color: #c89b3c;
+  font-weight: 800;
+  text-align: left;
+}
+
+/* Información adicional */
+.form-info {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: -30px;
+  text-align: left;
+}
+
+/* Grupos de formulario (label + input) */
+.form-group {
+  margin-bottom: 25px;
+  width: 100%;
+  /* Asegúrate de que los form-group ocupen todo el ancho disponible */
+  text-align: center;
+}
+
+.label-heading {
+  display: block;
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.placeholder {
+  font-family: 'DM Sans', sans-serif;
+}
+
+
+
+/* Estilo específico para el textarea */
+.textarea-field {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+/* Grupo de radio buttons */
+.radio-group div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.radio-group input[type="radio"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #c89b3c;
+  border-radius: 50%;
+  margin-right: 10px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+
+}
+
+.input-field-categoria-producto {
+  width: 65%;
+  padding: 5px 15px;
+  border: 2px solid #9d6d28;
+  border-radius: 30px;
+  font-size: 1.1em;
+  box-sizing: border-box;
+  outline: none;
+  background-color: white;
+  font-family: 'DM Sans', sans-serif;
+  height: 50px;
+
+}
+
+.remove-variation-button-producto {
+  background-color: #9d6d28;
+  /* Igual que add-more-variation-button */
+  color: white;
+  /* Igual que add-more-variation-button */
+  margin-bottom: 6px;
+  /* Igual que add-more-variation-button */
+  /* Añadir el hover si no lo tiene */
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Para una transición suave */
+}
+
+.remove-variation-row-button-producto:hover {
+  background-color: #c89b3c;
+  /* Igual que add-more-variation-button:hover */
+  color: white;
+  /* Igual que add-more-variation-button:hover */
+}
+
+.radio-group input[type="radio"]:checked {
+  background-color: #c89b3c;
+  border-color: #c89b3c;
+}
+
+/* El punto blanco dentro del radio button seleccionado */
+.radio-group input[type="radio"]:checked::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radio-group label {
+  font-size: 1.1em;
+  color: #555;
+  cursor: pointer;
+}
+
+/* Botón "Guardar Rol" */
+.save-button {
+  width: 40%;
+  text-align: center;
+  padding: 10px 15px;
+  background-color: #9d6d28;
+  color: #fff;
+  border: 1px solid #9d6d28;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin-top: 30px;
+  margin-left: 200px;
+
+}
+
+.save-button:hover {
+  background-color: #c89b3c;
+  border-color: #c89b3c;
+}
+
+.save-button-compra {
+  width: 40%;
+  text-align: center;
+  padding: 10px 15px;
+  background-color: #9d6d28;
+  color: #fff;
+  border: 1px solid #9d6d28;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin-top: 30px;
+  margin-left: 200px;
+  text-decoration: none;
+}
+
+.save-button-compra:hover {
+  color: #fff;
+  background-color: #c89b3c;
+}
+
+.add-image-button {
+  background-color: #9d6d28;
+  color: #fff;
+  margin-bottom: 15px;
+}
+
+.add-image-button:hover {
+
+  background-color: #c89b3c;
+}
+
+/*Tamaño de la iamgen seleccionada*/
+.product-thumbnail {
+  width: 300px;
+}
+
+.remove-image-button {
+  background-color: #9d6d28;
+  color: white;
+}
+
+.remove-image-button:hover {
+  background-color: #c89b3c;
+  color: white;
+}
+
+.form-subtitle {
+  color: #c89b3c;
+
+}
+
+.remove-variation-button-producto {
+  /* ** Propiedades para que parezca un link ** */
+  background-color: transparent;
+  /* Fondo transparente, típico de un link */
+  color: #9d6d28;
+  /* Color azul, típico de un link (puedes ajustar el color) */
+  text-decoration: underline;
+  /* Subrayado, típico de un link */
+  cursor: pointer;
+  /* Indica que es clickeable */
+  display: inline;
+  /* Asegura que se comporte como un elemento en línea */
+  padding: 0;
+  /* Elimina padding que dan los botones */
+  border: none;
+  /* Elimina cualquier borde de botón */
+  font-family: inherit;
+  /* Hereda la fuente del texto circundante */
+  font-size: inherit;
+  /* Hereda el tamaño de fuente del texto circundante */
+  text-align: left;
+  /* Alinea el texto a la izquierda, como un link */
+  height: 10px;
+  /* ** Propiedades para hover (opcional, para simular interacción de link) ** */
+  transition: color 0.3s ease;
+  /* Transición suave del color */
+
+}
+
+.titulo-permisos {
+  color: black;
+  font-weight: bold;
+  /* opcional, para que resalte */
+  margin-bottom: 0.5rem;
+}
+
+.lista-permisos {
+  color: black;
+  list-style-type: disc;
+  margin-left: 1.5rem;
+}
+
+.label-heading-producto {
+  color: #000;
+}
+
+.boton-editar-color {
+  background-color: #c89b3c;
+  color: #fff;
+}
+
+.boton-editar-color:hover {
+  background-color: #9d6d28;
+  color: #fff;
+}
+
+.custom-file-upload {
+  background-color: #c89b3c;
+  color: #fff;
+  width: 150px;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-button-producto {
+  background-color: transparent;
+  margin-left: 50%;
+  /* Fondo transparente, típico de un link */
+  color: #9d6d28;
+  /* Color azul, típico de un link (puedes ajustar el color) */
+  text-decoration: underline;
+  /* Subrayado, típico de un link */
+  cursor: pointer;
+  /* Indica que es clickeable */
+  display: inline;
+  /* Asegura que se comporte como un elemento en línea */
+  padding: 0;
+  /* Elimina padding que dan los botones */
+  border: none;
+  /* Elimina cualquier borde de botón */
+  font-family: inherit;
+  /* Hereda la fuente del texto circundante */
+  font-size: inherit;
+  /* Hereda el tamaño de fuente del texto circundante */
+  text-align: left;
+  font-size: 0.9em;
+  transition: color 0.3s ease;
+  /* Transición suave del color */
+}
+
+
+/* Contenedor para las dos columnas de permisos */
+.permisos-columns-container {
+  display: grid;
+  /* ¡Cambio clave: Usamos CSS Grid! */
+  grid-template-columns: 1fr 1fr;
+  /* Crea dos columnas de igual ancho */
+  gap: 20px;
+  /* Espacio más generoso entre las columnas y filas */
+  padding: 10px;
+  /* Un poco de padding interno para la rejilla */
+  /* justify-content: center; */
+  /* Si lo tenías para Flexbox, quítalo. Grid maneja su propia alineación. */
+}
+
+.categoria-permisos-seccion {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+
+.checkbox-label {
+  display: flex;
+  /* Asegura que el checkbox y el texto estén en línea y alineados */
+  align-items: center;
+  /* Centra verticalmente */
+  margin-bottom: 8px;
+  /* Espacio vertical entre cada permiso */
+  color: #555;
+  font-size: 1em;
+
+}
+
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 8px;
+  /* Espacio entre el checkbox y el texto */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #c89b3c;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  flex-shrink: 0;
+
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background-color: #c89b3c;
+  border-color: #c89b3c;
+}
+
+.checkbox-label input[type="checkbox"]:checked::before {
+  content: '\2713';
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  line-height: 18px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
+.required-asterisk {
+  color: red;
+  margin-left: 5px;
+  /* Un pequeño espacio entre el texto de la etiqueta y el asterisco */
+  font-weight: bold;
+  /* Para que el asterisco sea más visible */
+}
+
+.cancel-button {
+  background-color: rgb(10, 10, 10);
+  color: #f5f1f1;
+  font-family: 'DM Sans', sans-serif;
+  border-radius: 10px;
+
+}
+
+.color-picker {
+  margin-left: 45%;
+}
+
+/* Add this to your CSS file (e.g., App.css or a dedicated component CSS file) */
+
+.variation-fields-row {
+  display: flex;
+  /* Enables flexbox for horizontal layout */
+  gap: 15px;
+  /* Adds space between the items */
+  flex-wrap: wrap;
+  /* Allows items to wrap to the next line if space is limited */
+  align-items: flex-end;
+  /* Aligns items to the bottom of the container, useful if labels have different heights */
+  margin-bottom: 20px;
+  /* Adds space below this row */
+}
+
+.variation-fields-row .form-group {
+  flex: 1;
+  /* Allows each form group to grow and shrink, distributing space */
+  min-width: 120px;
+  /* Minimum width for each input group to prevent them from becoming too small */
+}
+
+
+/* Optional: Adjust label spacing if needed */
+.label-heading {
+  margin-bottom: 5px;
+  /* Reduce space below labels */
+  display: block;
+  /* Ensures label takes up its own line */
+}
+
+/* For the image upload section, if you want it below the horizontal inputs */
+.form-group.image-upload-section {
+  margin-top: 20px;
+  /* Add some space above the image section */
+}
+
+.add-image-button {
+  padding: 8px 15px;
+  font-size: 0.9em;
+}
+
+.product-thumbnail {
+  width: 80px;
+  /* Smaller thumbnail size */
+  height: 80px;
+  object-fit: cover;
+}
+
+.image-preview-item {
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.remove-image-button {
+  top: -5px;
+  right: -5px;
+  padding: 2px 6px;
+  font-size: 0.7em;
+}
+
+.no-images-text {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 145px;
+  /* Ajusta este valor para mover el icono a la derecha */
+  top: 55%;
+  /* Mueve el icono verticalmente al centro del input */
+  transform: translateY(-5%);
+  /* Ajuste fino para centrarlo verticalmente */
+  cursor: pointer;
+  font-size: 1.2em;
+  color: #9d6d28;
+  /* Color del icono */
+}
+
+/* Estilos básicos para todos los campos de entrada */
+.input-field {
+  width: 80%;
+  /* O el ancho que desees */
+  padding: 10px 15px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: block;
+  /* Asegura que el padding no afecte el ancho total */
+  font-size: 1em;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.3s ease;
+}
+
+/*Css para la tabla que hay en el formulario de agregar compra*/
+.compra-product-table-container {
+  width: 100%;
+  border-radius: 8px;
+
+}
+
+.compra-product-table {
+
+  background-color: #f7f5f5;
+  /* Fondo negro */
+
+  border-radius: 8px;
+
+}
+
+.compra-product-table th,
+.compra-product-table td {
+  padding: 1rem;
+  text-align: left;
+
+}
+
+.compra-product-table th {
+  background-color: #000;
+  /* Negro más claro para el encabezado */
+  font-weight: 70;
+  color: white;
+  width: 100%;
+
+}
+
+/* Estilo para los td que tienen el texto negro */
+.compra-product-table .negro {
+  color: #070707;
+}
+
+.compra-product-table .cancel-button {
+  background-color: #e53e3e;
+  color: #fff;
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.cancel-button-pedido {
+  background-color: #e53e3e;
+  color: #fff;
+}
+
+.compra-product-table .cancel-button:hover {
+  background-color: #c53030;
+}
+
+/* Estilos para el resumen de la compra */
+.compra-summary {
+  background-color: #f8f8f8;
+}
+
+.compra-summary-row {
+  display: flex;
+  justify-content: space-between;
+  max-width: 200px;
+  margin-bottom: 0.75rem;
+}
+
+.compra-summary-row span.negro {
+  color: #333;
+}
+
+.compra-summary-divider {
+  width: 50%;
+  height: 1px;
+  background-color: #e2e8f0;
+
+}
+
+.compra-total {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
