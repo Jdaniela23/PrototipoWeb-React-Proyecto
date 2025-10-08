@@ -14,9 +14,6 @@
   /* Para que el fondo del contenido sea visible */
   margin-left: -25%;
 }
-
-
-
 /* --- ESTILOS GENERALES DEL FORMULARIO --- */
 
 .formulario-roles {
@@ -116,7 +113,18 @@
   height: 50px;
 
 }
-
+.form-subtitle{
+  text-align: center;
+  background-color: #000;
+  color: #000;
+  border-radius: 10px;
+  box-shadow: 0 0 20px 5px rgba(207, 181, 30, 0.75);
+}
+.form-title-products{
+  text-align: center;
+  font-size: 250%;
+  color:  #c89b3c;
+}
 .remove-variation-button-producto {
   background-color: #9d6d28;
   /* Igual que add-more-variation-button */
@@ -527,31 +535,24 @@
 }
 
 .compra-product-table {
-
   background-color: #f7f5f5;
-  /* Fondo negro */
-
   border-radius: 8px;
-
 }
 
 .compra-product-table th,
 .compra-product-table td {
   padding: 1rem;
   text-align: left;
-
 }
 
 .compra-product-table th {
   background-color: #000;
-  /* Negro más claro para el encabezado */
   font-weight: 70;
   color: white;
   width: 100%;
-
 }
 
-/* Estilo para los td que tienen el texto negro */
+
 .compra-product-table .negro {
   color: #070707;
 }
@@ -596,7 +597,146 @@
 
 }
 
+.add-button{
+     box-shadow: 0 0 20px 5px rgba(170, 168, 165, 0.75);
+}
+.add-button:hover {
+    transform: scale(1.08) translateY(-2px); 
+    box-shadow: 0 15px 25px 5px rgba(157, 109, 40, 0.6);
+}
+
 .compra-total {
   font-size: 1.25rem;
   font-weight: 700;
+}
+/* Contenedor de busqueda */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    max-width: 380px; 
+    width: 100%;
+}
+
+/* Input de búsqueda: Blanco y Negro con detalles Dorados */
+.search-container input {
+    width: 100%;
+    height: 42px;
+    padding: 10px 50px 10px 45px;
+    /* Borde sutil dorado */
+    border: 2px solid rgba(157, 109, 40, 0.3); 
+    border-radius: 16px;
+    font-size: 14px;
+    color:#000; /* Texto negro */
+    background: var(--color-white); /* Fondo blanco sólido */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    /* Sombra sutil */
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Placeholder negro */
+.search-container input::placeholder {
+    color: #333333; /* Tono de gris oscuro */
+    font-weight: 400;
+}
+
+/* Hover del input: Borde más definido en Dorado */
+.search-container input:hover {
+    border-color: rgba(157, 109, 40, 0.8); /* Dorado más opaco */
+
+    box-shadow: 
+        0 10px 15px -3px rgba(157, 109, 40, 0.15),
+        0 4px 6px -2px rgba(157, 109, 40, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Focus del input: Borde sólido Dorado y anillo exterior */
+.search-container input:focus {
+    border-color: var(--color-gold); /* Dorado sólido */
+    background: var(--color-black);
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.05),
+        0 0 0 4px rgba(157, 109, 40, 0.3), /* Anillo de enfoque dorado */
+        inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+/* Ícono de búsqueda a la izquierda - Color Dorado */
+.search-container::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    width: 18px;
+    height: 18px;
+    background-size: contain;
+    pointer-events: none;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.search-container:hover::before {
+    transform: scale(1.1);
+}
+
+/* Sombra del ícono en focus */
+.search-container input:focus ~ ::before {
+    filter: drop-shadow(0 0 2px rgba(157, 109, 40, 0.5));
+}
+
+.search-container .search-button {
+    position: absolute;
+    background: #333; 
+    right: 6px;
+    height: 32px;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    /* Sombra dorada */
+    box-shadow: 
+        0 4px 6px -1px rgba(157, 109, 40, 0.4),
+        0 2px 4px -1px rgba(157, 109, 40, 0.3),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Hover del botón: Gradiente más oscuro */
+.search-container .search-button:hover {
+    background: linear-gradient(135deg, #7d5720 0%, #5d4218 50%, #3e2d10 100%);
+    transform: scale(1.08) translateY(-1px);
+    box-shadow: 
+        0 12px 20px -5px rgba(157, 109, 40, 0.5),
+        0 6px 10px -3p rgba(157, 109, 40, 0.4);
+}
+.search-button{
+  background-color: #3e2d10;
+}
+/* El icono SVG dentro del botón ya es blanco por defecto, se ve bien sobre el dorado/negro */
+.search-container .search-button svg {
+    color: var(--color-white); 
+}
+
+/* --- ALINEACIÓN A LA IZQUIERDA --- */
+.main-content-wrapper {
+    /* Asegura que el contenido empiece en el borde izquierdo del viewport */
+    width: 100%;
+    display: flex;
+    justify-content: flex-start; /* Clave para la alineación a la izquierda */
+    padding: 0 1rem; /* Padding si es necesario, pero manteniendo flex-start */
+}
+.subtitle-variacion{
+  color: #000;
+  
+}
+.subototal-addcompra{
+  color: #000;
 }

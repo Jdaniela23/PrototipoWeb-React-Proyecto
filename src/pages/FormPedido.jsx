@@ -1,99 +1,127 @@
-import React, { useState } from 'react';
-import './FormAdd.css';
-import Nav from '../components/Nav.jsx';
+// src/pages/FormPedido.jsx
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaSave, FaPlus } from 'react-icons/fa';
+import Nav from '../components/Nav';
+import { createPedido } from '../api/pedidosService';
+import { getDetalleProductos } from '../api/detalleProductosService';
+import { getAllUsers } from '../api/usersService';
+import './Page.css';
 
-
-// Fuente de datos para los productos y sus precios
-const PRODUCTOS_PRECIOS = {
-  "Camisas": "35.000",
-  "Chanclas": "25.000",
-  "Boxer": "15.000",
-  "Pantalones": "60.000",
-  "Zapatos": "80.000",
-  "Medias": "10.000",
-  "Gorras": "20.000",
-  "Cinturones": "30.000",
-  // Puedes añadir más productos aquí con sus precios correspondientes
-};
-
-function AgregarPedido() {
-  const [menuCollapsed, setMenuCollapsed] = useState(false);
+export default function FormPedido() {
   const navigate = useNavigate();
+  const [menuCollapsed, setMenuCollapsed] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [usuarios, setUsuarios] = useState([]);
+  const [detalleProductos, setDetalleProductos] = useState([]);
+  const [productosSeleccionados, setProductosSeleccionados] = useState([{ id_Detalle_Producto: '', cantidad: 1 }]);
+
+  const [formData, setFormData] = useState({
+    id_Usuario: '',
+    metodo_Pago: '',
+    domicilio: false,
+    fecha_Entrega_Estimada: '',
+    hora_Entrega_Estimada: ''
+  });
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
-  const [pedido, setPedido] = useState({
-    idPedido: '',
-    fechaPedido: '',
-    documentoCliente: '',
-    metodoPago: '',
-    domicilio: 'No',
-    diaEntrega: '',
-    horaEntrega: '',
-    estadoPago: '',
-    // ¡AHORA ES UN ARRAY DE OBJETOS PARA PRODUCTOS!
-    productosSeleccionados: [{ nombre: '', cantidad: '', precio: '' }] // Un producto inicial por defecto
-  });
+  useEffect(() => {
+    const fetchDetalleProductos = async () => {
+      try {
+        const data = await getDetalleProductos();
+        setDetalleProductos(data);
+      } catch (error) {
+        console.error('Error cargando detalle productos:', error);
+      }
+    };
+    fetchDetalleProductos();
+  }, []);
 
-  // Manejador de cambios para los campos del pedido (que no son productos)
+  useEffect(() => {
+    const fetchUsuarios = async () => {
+      try {
+        const data = await getAllUsers();
+        setUsuarios(data);
+      } catch (error) {
+        console.error('Error cargando usuarios:', error);
+      }
+    };
+    fetchUsuarios();
+  }, []);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setPedido({ ...pedido, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
-  // Manejador de cambios para los campos individuales de un producto
-  const handleProductChange = (index, e) => {
-    const { name, value } = e.target;
-    const list = [...pedido.productosSeleccionados];
-
-    if (name === 'nombre') {
-      // Si el campo que cambió es 'nombre' del producto
-      const precioAsociado = PRODUCTOS_PRECIOS[value] || '';
-      list[index] = { ...list[index], [name]: value, precio: precioAsociado };
-    } else if (name === 'cantidad' || name === 'precio') {
-      // Asegurar que cantidad y precio sean números
-      const sanitizedValue = value.replace(/[^0-9.]/g, '');
-      list[index] = { ...list[index], [name]: sanitizedValue };
-    } else {
-      list[index] = { ...list[index], [name]: value };
-    }
-
-    setPedido({ ...pedido, productosSeleccionados: list });
+  const handleProductoChange = (index, idDetalle) => {
+    const nuevos = [...productosSeleccionados];
+    nuevos[index] = { ...nuevos[index], id_Detalle_Producto: idDetalle };
+    setProductosSeleccionados(nuevos);
   };
 
-  // Función para añadir una nueva fila de producto
-  const handleAddProduct = () => {
-    setPedido({
-      ...pedido,
-      productosSeleccionados: [
-        ...pedido.productosSeleccionados,
-        { nombre: '', cantidad: '', precio: '' }
-      ]
-    });
+  const handleCantidadChange = (index, cantidad) => {
+    const nuevos = [...productosSeleccionados];
+    const detalle = detalleProductos.find(p => p.id_Detalle_Producto === parseInt(nuevos[index].id_Detalle_Producto));
+    const maxStock = detalle?.stock || 999;
+    let cant = parseInt(cantidad) || 1;
+    if (cant > maxStock) cant = maxStock;
+    if (cant < 1) cant = 1;
+    nuevos[index].cantidad = cant;
+    setProductosSeleccionados(nuevos);
   };
 
-  // Función para eliminar una fila de producto
-  const handleRemoveProduct = (index) => {
-    const list = [...pedido.productosSeleccionados];
-    list.splice(index, 1);
-    setPedido({ ...pedido, productosSeleccionados: list });
+  const agregarProducto = () => {
+    setProductosSeleccionados([...productosSeleccionados, { id_Detalle_Producto: '', cantidad: 1 }]);
   };
 
-  const handleDomicilioChange = (value) => {
-    setPedido((prev) => ({
-      ...prev,
-      domicilio: value,
-      diaEntrega: value === 'Sí' ? prev.diaEntrega : '',
-      horaEntrega: value === 'Sí' ? prev.horaEntrega : ''
-    }));
+  const eliminarProducto = (index) => {
+    setProductosSeleccionados(productosSeleccionados.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  // Convierte hora 24h -> 12h con AM/PM
+  function convertir24a12h(hora24) {
+    if (!hora24) return null;
+    let [hours, minutes] = hora24.split(':').map(Number);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    return `${hours}:${minutes.toString().padStart(2,'0')} ${ampm}`;
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Pedido guardado:', pedido);
-    alert('Pedido registrado correctamente');
-    setTimeout(() => navigate('/pedidos'), 1000);
+    const productosValidos = productosSeleccionados.filter(p => p.id_Detalle_Producto !== '' && p.cantidad > 0);
+    if (productosValidos.length === 0) { alert('Debes seleccionar al menos un producto'); return; }
+    if (!formData.id_Usuario) { alert('Debes seleccionar un usuario'); return; }
+
+    try {
+      setSaving(true);
+      const pedidoData = {
+        id_Usuario: parseInt(formData.id_Usuario),
+        metodo_Pago: formData.metodo_Pago,
+        domicilio: formData.domicilio,
+        fecha_Entrega_Estimada: formData.domicilio ? formData.fecha_Entrega_Estimada : null,
+        hora_Entrega_Estimada: formData.domicilio ? convertir24a12h(formData.hora_Entrega_Estimada) : null,
+        productos: productosValidos.map(p => ({
+          id_Detalle_Producto: parseInt(p.id_Detalle_Producto),
+          cantidad: p.cantidad
+        }))
+      };
+
+      console.log("📦 Pedido a enviar:", pedidoData);
+
+      await createPedido(pedidoData);
+      alert('✅ Pedido creado correctamente');
+      navigate('/pedidos');
+    } catch (error) {
+      console.error('Error creando pedido:', error);
+      alert('❌ Error al crear el pedido');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -102,178 +130,176 @@ function AgregarPedido() {
 
       <div className={`formulario-rol-main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
         <div className="formulario-roles">
-          <h1 className="form-title">Registro de Pedido</h1>
-          <p className="form-info">Complete la información del pedido 🧾</p><br /><br></br>
+          <h1 className="form-title">Agregar Pedido</h1>
 
-          <form onSubmit={handleSubmit} className="role-form two-column-form">
-            <div className="form-group">
-              <label htmlFor="idPedido" className="label-heading">Id del Pedido: <span className="required-asterisk">*</span></label>
-              <input type="text" id="idPedido" name="idPedido" value={pedido.idPedido} onChange={handleChange} required className="input-field" />
-            </div>
+          <form onSubmit={handleSubmit} className="role-form">
 
+            {/* Usuario */}
             <div className="form-group">
-              <label htmlFor="fechaPedido" className="label-heading">Fecha del Pedido: <span className="required-asterisk">*</span></label>
-              <input type="date" id="fechaPedido" name="fechaPedido" value={pedido.fechaPedido} onChange={handleChange} required className="input-field" />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="documentoCliente" className="label-heading">Documento del Cliente: <span className="required-asterisk">*</span></label>
-              <input type="text" id="documentoCliente" name="documentoCliente" value={pedido.documentoCliente} onChange={handleChange} required className="input-field" />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="metodoPago" className="label-heading">Método de Pago: <span className="required-asterisk">*</span></label>
-              <select id="metodoPago" name="metodoPago" value={pedido.metodoPago} onChange={handleChange} required className="input-field">
-                <option value="">Selecciona método</option>
-                <option value="efectivo">Efectivo</option>
-                <option value="credito">Crédito</option>
-                <option value="transferencia">Transferencia</option>
+              <label className="label-heading">Seleccionar Usuario: <span className="required-asterisk">*</span></label>
+              <select name="id_Usuario" value={formData.id_Usuario} onChange={handleChange} required className="barrio-select">
+                <option value="">-- Selecciona un usuario --</option>
+                {usuarios.map(u => (
+                  <option key={u.id_Usuario} value={u.id_Usuario}>
+                    {u.nombre_Completo} ({u.email})
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div className="form-group full-width">
-              <label className="label-heading">¿Requiere Domicilio? <span className="required-asterisk">*</span></label>
-              <div className="domicilio-buttons" style={{
-                display: 'flex',
-                justifyContent: 'flex-end',  // Cambia de flex-start a flex-end
-                paddingRight: '40%'  // Para separarlos del borde derecho
-
-              }}>
-                <button
-                  type="button"
-                  className={`save-button ${pedido.domicilio === 'Sí' ? 'selected' : ''}`}
-                  onClick={() => handleDomicilioChange('Sí')}
-                >
-                  Sí
-                </button>
-                <button
-                  type="button"
-                  className={`save-button ${pedido.domicilio === 'No' ? 'selected' : ''}`}
-                  onClick={() => handleDomicilioChange('No')}
-                >
-                  No
-                </button>
-              </div>
+            {/* Método de pago */}
+            <div className="form-group">
+              <label className="label-heading">Método de Pago: <span className="required-asterisk">*</span></label>
+              <select name="metodo_Pago" value={formData.metodo_Pago} onChange={handleChange} required className="barrio-select">
+                <option value="">-- Selecciona --</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
             </div>
 
-            {pedido.domicilio === 'Sí' && (
+            {/* Domicilio */}
+            <div className="form-group">
+              <label className="label-heading">
+                <input type="checkbox" name="domicilio" checked={formData.domicilio} onChange={handleChange} style={{ marginRight: '10px' }} />
+                ¿Requiere domicilio?
+              </label>
+            </div>
+
+            {/* Fecha y hora de entrega */}
+            {formData.domicilio && (
               <>
                 <div className="form-group">
-                  <label htmlFor="diaEntrega" className="label-heading">Día Estimado de Entrega: <span className="required-asterisk">*</span></label>
-                  <input type="date" id="diaEntrega" name="diaEntrega" value={pedido.diaEntrega} onChange={handleChange} required className="input-field" />
+                  <label className="label-heading">Fecha de Entrega: <span className="required-asterisk">*</span></label>
+                  <input type="date" name="fecha_Entrega_Estimada" value={formData.fecha_Entrega_Estimada} onChange={handleChange} required className="input-field" />
                 </div>
-
                 <div className="form-group">
-                  <label htmlFor="horaEntrega" className="label-heading">Hora Estimada de Entrega: <span className="required-asterisk">*</span></label>
-                  <input type="time" id="horaEntrega" name="horaEntrega" value={pedido.horaEntrega} onChange={handleChange} required className="input-field" />
+                  <label className="label-heading">Hora de Entrega: <span className="required-asterisk">*</span></label>
+                  <input
+                    type="time"
+                    name="hora_Entrega_Estimada"
+                    value={formData.hora_Entrega_Estimada}
+                    onChange={handleChange}
+                    className="input-field"
+                  />
                 </div>
               </>
             )}
 
-            <div className="form-group full-width">
-              <label htmlFor="estadoPago" className="label-heading">Estado de Pago: <span className="required-asterisk">*</span></label>
-              <select id="estadoPago" name="estadoPago" value={pedido.estadoPago} onChange={handleChange} required className="input-field">
-                <option value="">Selecciona estado</option>
-                <option value="proceso">Proceso de Pago</option>
-                <option value="cuotas">Pago a Cuotas</option>
-                <option value="pagado">Pagado</option>
-                <option value="finalizado">Finalizado</option>
-                <option value="anulado">Anulado</option>
-              </select>
-            </div>
+            {/* Productos */}
+            <div className="form-group">
+              <label className="label-heading">Productos: <span className="required-asterisk">*</span></label>
 
-            {/* SECCIÓN DE MÚLTIPLES PRODUCTOS */}
-            <div className="form-group full-width" style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '20px' }}>
-              <h2 className="label-heading">Detalle de Productos:</h2>
-              {pedido.productosSeleccionados.map((product, index) => (
-                <div key={index} className="form-group-triple multi-product-row"> {/* 'multi-product-row' para estilos específicos */}
-                  <div className="form-group">
-                    <label htmlFor={`nombreProducto-${index}`} className="label-heading">Producto #{index + 1} <span className="required-asterisk">*</span></label>
+              {productosSeleccionados.map((producto, index) => {
+                const detalle = detalleProductos.find(p => p.id_Detalle_Producto === parseInt(producto.id_Detalle_Producto));
+
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      border: '1px solid #ddd',
+                      borderRadius: '10px',
+                      padding: '15px',
+                      marginBottom: '15px',
+                      backgroundColor: '#fff',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    {/* Botón eliminar simple */}
+                    <button
+                      type="button"
+                      onClick={() => eliminarProducto(index)}
+                      style={{
+                        position: 'absolute',
+                        top: '5px',
+                        right: '5px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#ff4d4f',
+                        fontSize: '20px',
+                        cursor: 'pointer',
+                        padding: 0,
+                        lineHeight: 1,
+                      }}
+                      title="Eliminar producto"
+                    >
+                      ×
+                    </button>
+
+                    {/* Selección de producto */}
                     <select
-                      id={`nombreProducto-${index}`}
-                      name="nombre" // El 'name' aquí se refiere a la propiedad dentro del objeto producto
-                      value={product.nombre}
-                      onChange={(e) => handleProductChange(index, e)}
+                      value={producto.id_Detalle_Producto}
+                      onChange={(e) => handleProductoChange(index, e.target.value)}
                       required
-                      className="input-field"
+                      className="barrio-select"
                     >
                       <option value="">Selecciona un producto</option>
-                      {Object.keys(PRODUCTOS_PRECIOS).map((prodName) => (
-                        <option key={prodName} value={prodName}>
-                          {prodName}
+                      {detalleProductos.map(p => (
+                        <option key={p.id_Detalle_Producto} value={p.id_Detalle_Producto}>
+                          {p.producto?.nombre_Producto} - Color: {p.color} - Talla: {p.talla} - Stock: {p.stock} - ${p.producto?.precio?.toLocaleString()}
                         </option>
                       ))}
                     </select>
+
+                    {/* Info del producto */}
+                    {detalle && (
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        marginTop: '10px',
+                        padding: '10px',
+                        border: '1px solid #eee',
+                        borderRadius: '5px',
+                        backgroundColor: '#f9f9f9',
+                        fontSize: '14px'
+                      }}>
+                        <strong>{detalle.producto?.nombre_Producto}</strong>
+                        <span>Color: <span style={{ color: detalle.hexColor }}>{detalle.color}</span></span>
+                        <span>Talla: {detalle.talla}</span>
+                        <span>Stock disponible: {detalle.stock}</span>
+                        <span>Precio: ${detalle.producto?.precio?.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    {/* Cantidad */}
+                    <div style={{ marginTop: '10px' }}>
+                      <label>Cantidad:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={detalle?.stock || 999}
+                        value={producto.cantidad}
+                        onChange={(e) => handleCantidadChange(index, e.target.value)}
+                        className="input-field"
+                        style={{ width: 60, textAlign: 'center', marginLeft: '10px' }}
+                      />
+                    </div>
                   </div>
+                );
+              })}
 
-                  <div className="form-group">
-                    <label htmlFor={`cantidadProducto-${index}`} className="label-heading">Cantidad: <span className="required-asterisk">*</span></label>
-                    <input
-                      type="number"
-                      id={`cantidadProducto-${index}`}
-                      name="cantidad" // 'name' se refiere a la propiedad dentro del objeto producto
-                      value={product.cantidad}
-                      onChange={(e) => handleProductChange(index, e)}
-                      required
-                      className="input-field"
-                      min="1"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor={`precioProducto-${index}`} className="label-heading">Precio: <span className="required-asterisk">*</span></label>
-                    <input
-                      type="text"
-                      id={`precioProducto-${index}`}
-                      name="precio" // 'name' se refiere a la propiedad dentro del objeto producto
-                      value={product.precio}
-                      onChange={(e) => handleProductChange(index, e)} // Permitir edición manual si se desea
-                      required
-                      className="input-field"
-                      placeholder="Ej: 19.99"
-                      readOnly // Mantenemos readOnly para que se autocomplete
-                    />
-                  </div>
-
-                  {/* Botón para eliminar esta fila de producto */}
-                  {pedido.productosSeleccionados.length > 1 && ( // No permitir eliminar si solo hay un producto
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveProduct(index)}
-                      className="cancel-button-pedido" // Nueva clase para estilizar
-                    >
-                      Eliminar X
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {/* Botón para añadir una nueva fila de producto */}
-              <button
-                type="button"
-                onClick={handleAddProduct}
-                className="save-button"
-                style={{
-                  display: 'block',
-                  marginLeft: 'auto',
-                  marginRight: '70%',
-                  marginTop: '10px'
-                }}
-              >
-                + Añadir Otro Producto
+              <button type="button" onClick={agregarProducto} className="add-button" style={{ marginTop: '10px' }}>
+                <FaPlus style={{ marginRight: '8px' }} />
+                Agregar Producto
               </button>
             </div>
 
-            <button className="cancel-button" onClick={() => navigate(-1)}>Cancelar</button>
-            <button type="submit" className="save-button">
-              Guardar Pedido
-            </button>
+            {/* Botones */}
+            <div className="form-buttons">
+              <button type="button" className="cancel-button" onClick={() => navigate('/pedidos')} disabled={saving}>Cancelar</button>
+              <button type="submit" className="save-button" disabled={saving}>
+                <FaSave style={{ marginRight: '8px' }} />
+                {saving ? 'Guardando...' : 'Guardar Pedido'}
+              </button>
+            </div>
+
           </form>
         </div>
-
       </div>
     </div>
   );
 }
-
-export default AgregarPedido;

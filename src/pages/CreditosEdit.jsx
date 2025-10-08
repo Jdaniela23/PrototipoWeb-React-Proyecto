@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
 
+import { FaSave } from 'react-icons/fa';
+
 export default function EditPedido() {
   // 1️⃣ Obtén el pedido que viene por el state del location
   const location = useLocation();
@@ -140,7 +142,7 @@ export default function EditPedido() {
               >
                 Cancelar
               </button>
-              <button type="submit" className="save-button">Guardar Cambios</button>
+              <button type="submit" className="save-button"><FaSave style={{ marginRight: '8px' }} /> Guardar Cambios</button>
 
             </div>
           </form>

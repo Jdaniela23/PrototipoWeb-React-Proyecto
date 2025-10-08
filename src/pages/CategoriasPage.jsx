@@ -1,172 +1,183 @@
+// src/pages/CategoriasPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaSearch, FaPlus, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 import Nav from '../components/Nav.jsx';
 import Footer from '../components/Footer.jsx';
 import DetallesCategoria from '../components/DetallesCategoria.jsx';
-import DeleteCategorias from './DeleteCategorias.jsx'; 
+import DeleteCategorias from './DeleteCategorias.jsx';
+import ToastNotification from '../components/ToastNotification.jsx';
+import { getCategorias, deleteCategoria } from '../api/categoriasService';
+import './Page.css';
 
 export default function CategoriasPage() {
-  const [categorias, setCategorias] = useState([
-    { id: '001', nombre: 'Niños', descripcion: 'Ropa y accesorios para niñ@s', estado: true, fechaCreacion: '2024-05-01' },
-    { id: '002', nombre: 'Femenina', descripcion: 'Ropa para mujeres', estado: true, fechaCreacion: '2024-05-03' },
-    { id: '003', nombre: 'Masculina', descripcion: 'Ropa para hombres', estado: false, fechaCreacion: '2024-05-05' },
-
-  ]);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
-  const [editandoCategoria, setEditandoCategoria] = useState(null);
-
-  // ➡️ NUEVO ESTADO para controlar el modal de eliminación
-  const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
-
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [categorias, setCategorias] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [menuCollapsed, setMenuCollapsed] = useState(false);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
+  const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage || null);
+  const [errorMessage, setErrorMessage] = useState(null);
+
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
+  // Limpiar el state para que el toast no se repita al navegar
   useEffect(() => {
-    if (location.state?.nuevaCategoria) {
-      const nueva = {
-        ...location.state.nuevaCategoria,
-        id: String(categorias.length + 1).padStart(3, '0'),
-        fechaCreacion: new Date().toISOString().split('T')[0],
-      };
-      setCategorias(prev => [...prev, nueva]);
+    if (location.state?.successMessage) {
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, categorias.length]);
+  }, [location.state]);
 
+  // Cargar categorías
+  const fetchCategorias = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getCategorias();
+      setCategorias(data);
+    } catch (err) {
+      console.error('Error cargando categorías:', err);
+      setError(err.response?.data?.mensaje || 'Error al cargar las categorías');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategorias();
+  }, []);
+
+  // Filtrado por nombre o descripción
   const filteredCategorias = categorias.filter(categoria =>
-    Object.values(categoria).some(value =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    (categoria.nombre_Categoria?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (categoria.descripcion?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
-  // ➡️ Funciones para el modal de detalles
-  const handleVerDetalles = (categoria) => {
-    setCategoriaSeleccionada(categoria);
-  };
+  // Modales y acciones
+  const handleVerDetalles = (categoria) => setCategoriaSeleccionada(categoria);
+  const handleCerrarModalDetalles = () => setCategoriaSeleccionada(null);
 
-  const handleCerrarModalDetalles = () => {
-    setCategoriaSeleccionada(null);
-  };
+  const handleAbrirModalEliminar = (categoria) => setCategoriaAEliminar(categoria);
+  const handleCerrarModalEliminar = () => setCategoriaAEliminar(null);
 
-  // ➡️ NUEVAS Funciones para el modal de eliminación
-  const handleAbrirModalEliminar = (categoria) => {
-    setCategoriaAEliminar(categoria);
-  };
-
-  const handleCerrarModalEliminar = () => {
-    setCategoriaAEliminar(null);
-  };
-
-  const handleConfirmarEliminacion = (categoria) => {
-    setCategorias(prev => prev.filter(c => c.id !== categoria.id));
-    setCategoriaAEliminar(null);
-    alert('Categoría eliminada exitosamente!');
+  const handleConfirmarEliminacion = async (categoria) => {
+    try {
+      await deleteCategoria(categoria.id_Categoria_Producto);
+      setCategorias(prev => prev.filter(c => c.id_Categoria_Producto !== categoria.id_Categoria_Producto));
+      setCategoriaAEliminar(null);
+      setSuccessMessage(`Categoría '${categoria.nombre_Categoria}' eliminada exitosamente`);
+      setErrorMessage(null);
+    } catch (err) {
+      console.error('Error al eliminar:', err);
+      setErrorMessage(`No se pudo eliminar la categoría '${categoria.nombre_Categoria}'`);
+      setSuccessMessage(null);
+    }
   };
 
   return (
-    <div className="container">
-      <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
+    <div className="page-wrapper">
+      <div className="container">
+        <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
 
-      <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
-        <div className="header">
-          <div className="header-left">
+        <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
+          <div className="header">
             <h1>Gestión de Categorías</h1>
           </div>
-        </div>
 
-        <div className="actions">
-          <div className="search-container">
-            <input
-              type="text"
-              placeholder="Buscar categorías"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="search-button">
-              <FaSearch color="#fff" /> Buscar
-            </button>
+          <div className="actions">
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Buscar categorías"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button className="search-button">
+                <FaSearch color="#fff" />
+              </button>
+            </div>
+
+            <Link to="/crearcategoria" className="add-button">
+              <FaPlus style={{ marginRight: '8px', color: '#fff' }} />
+              Agregar categoría
+            </Link>
           </div>
 
-          <button className="add-button" onClick={() => navigate('/crearcategoria')}>
-            <FaPlus style={{ marginRight: '8px' }} />
-            Agregar categoría
-          </button>
-        </div>
-
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-                <th>Fecha de creación</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategorias.map(c => (
-                <tr key={c.id}>
-                  <td>{c.nombre}</td>
-                  <td>{c.descripcion}</td>
-                  <td>
-                    <label className="switch">
-                      <input
-                        type="checkbox"
-                        checked={c.estado}
-                        onChange={() => {
-                          setCategorias(prev =>
-                            prev.map(item =>
-                              item.id === c.id ? { ...item, estado: !item.estado } : item
-                            )
-                          );
-                        }}
-                      />
-                      <span className="slider round"></span>
-                    </label>
-                  </td>
-                  <td>{c.fechaCreacion}</td>
-                  <td className="icons">
-                    <button className="icon-button black" title="Ver detalles" onClick={() => handleVerDetalles(c)}>
-                      <FaEye />
-                    </button>
-                    <Link to='/categoriasedit' className="icon-button blue" title='editar'>
-                      <FaEdit />
-                    </Link>
-                    {/* ➡️ AQUÍ CAMBIAMOS EL BOTÓN para usar el nuevo modal */}
-                    <button className="icon-button red" title="Eliminar" onClick={() => handleAbrirModalEliminar(c)}>
-                      <FaTrash />
-                    </button>
-                  </td>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th style={{ textAlign: 'center' }}>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>
+                      Cargando categorías...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan="3" style={{ textAlign: 'center', color: 'red' }}>
+                      {error}
+                    </td>
+                  </tr>
+                ) : filteredCategorias.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" style={{ textAlign: 'center', color: '#555' }}>
+                      No se encontraron categorías
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCategorias.map((c, index) => (
+                    <tr key={`categoria-${c.id_Categoria_Producto}-${index}`}>
+                      <td>{c.nombre_Categoria}</td>
+                      <td>{c.descripcion || 'Sin descripción'}</td>
+                      <td className="icons" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                        <button className="icon-button black" title="Ver detalles" onClick={() => handleVerDetalles(c)}>
+                          <FaEye />
+                        </button>
+                        <button
+                          className="icon-button blue"
+                          title="Editar"
+                          onClick={() => navigate(`/editarCategoria/${c.id_Categoria_Producto}`, { state: { categoria: c } })}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button className="icon-button red" title="Eliminar" onClick={() => handleAbrirModalEliminar(c)}>
+                          <FaTrash />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-          {filteredCategorias.length === 0 && (
-            <div className="no-results">
-              <p>No se encontraron categorías</p>
-            </div>
-          )}
-        </div>
-
-        <div className="footer-productos-page">
-          <Footer />
+          <div className="footer-page">
+            <Footer />
+          </div>
         </div>
       </div>
 
-      {/* ➡️ Renderizado condicional del modal de detalles */}
+      {/* Modales */}
       {categoriaSeleccionada && (
-        <DetallesCategoria categoria={categoriaSeleccionada} onClose={handleCerrarModalDetalles} />
+        <DetallesCategoria
+          categoria={categoriaSeleccionada}
+          onClose={handleCerrarModalDetalles}
+        />
       )}
 
-      {/* ➡️ NUEVO: Renderizado condicional del modal de eliminación */}
       {categoriaAEliminar && (
         <DeleteCategorias
           categoria={categoriaAEliminar}
@@ -174,6 +185,18 @@ export default function CategoriasPage() {
           onConfirm={handleConfirmarEliminacion}
         />
       )}
+
+      {/* ToastNotifications */}
+      <ToastNotification
+        message={successMessage}
+        type="success"
+        onClose={() => setSuccessMessage(null)}
+      />
+      <ToastNotification
+        message={errorMessage}
+        type="error"
+        onClose={() => setErrorMessage(null)}
+      />
     </div>
   );
 }

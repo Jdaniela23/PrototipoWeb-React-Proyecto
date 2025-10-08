@@ -1,0 +1,85 @@
+/* components/ToastNotification.css */
+
+.toast-notification {
+    position: fixed; /* Fijo en la pantalla */
+    bottom: 20px; /* Abajo */
+    right: 20px; /* En la esquina derecha */
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra suave */
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    max-width: 350px; /* Ancho máximo */
+    z-index: 10000; /* Asegura que esté por encima de otros elementos */
+    opacity: 0; /* Inicialmente oculto */
+    transform: translateY(100%); /* Desplazado hacia abajo */
+    animation: slideIn 0.5s forwards, fadeOut var(--toast-duration) forwards; /* Animaciones */
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animación de salida (se activa un poco antes de que termine la duración total) */
+@keyframes fadeOut {
+    0% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; transform: translateY(0); } /* Mantiene la opacidad hasta el 80% del tiempo */
+    100% { opacity: 0; transform: translateY(100%); }
+}
+
+/* Ajusta la duración de la animación con una variable CSS */
+.toast-notification {
+    --toast-duration: 5s; /* Duración por defecto, se puede sobrescribir con el prop duration */
+}
+
+/* Estilos para los diferentes tipos */
+.toast-success {
+    background-color: #e6ffed; /* Verde claro */
+    color: #1a6d34; /* Verde oscuro */
+    border: 1px solid #b3e0c0;
+}
+
+.toast-error {
+    background-color: #ffe6e6; /* Rojo claro */
+    color: #8f1f1f; /* Rojo oscuro */
+    border: 1px solid #e0b3b3;
+}
+
+.toast-warning {
+    background-color: #fff9e6; /* Amarillo claro */
+    color: #8c6a00; /* Naranja oscuro */
+    border: 1px solid #e0d3b3;
+}
+
+.toast-info {
+    background-color: #e6f7ff; /* Azul claro */
+    color: #1f508f; /* Azul oscuro */
+    border: 1px solid #b3d9e0;
+}
+
+.toast-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.toast-message {
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Opcional: botón de cerrar */
+.toast-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    margin-left: 10px;
+    cursor: pointer;
+}

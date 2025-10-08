@@ -1,117 +1,97 @@
+// src/pages/CrearCategoria.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaSave } from 'react-icons/fa';
+import { FaSave } from 'react-icons/fa';
 import Nav from '../components/Nav.jsx';
 import Footer from '../components/Footer.jsx';
-import './CategoriaForm.css';
+import ToastNotification from '../components/ToastNotification.jsx';
+import { createCategoria } from '../api/categoriasService';
+import './FormAdd.css'; // mismo CSS que colores
 
 export default function CrearCategoria() {
   const navigate = useNavigate();
   const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: ''
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ nombre_Categoria: '', descripcion: '' });
   const [errors, setErrors] = useState({});
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Limpiar error del campo cuando se modifica
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre es obligatorio';
-    }
-
-    if (!formData.descripcion.trim()) {
-      newErrors.descripcion = 'La descripción es obligatoria';
-    }
-
+    if (!formData.nombre_Categoria.trim()) newErrors.nombre_Categoria = 'El nombre es obligatorio';
+    if (formData.descripcion && formData.descripcion.length > 500) newErrors.descripcion = 'Máx 500 caracteres';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (validateForm()) {
-      // Guardar en localStorage o enviar a API
-      const nuevaCategoria = {
-        ...formData,
-        estado: true,
-        fechaCreacion: new Date().toISOString().split('T')[0]
-      };
+    try {
+      setSubmitting(true);
+      await createCategoria(formData);
 
-      // Redirigir a la página de categorías con los datos
+      // 🚀 Pasamos el mensaje al estado de la página de categorías
       navigate('/categorias', {
-        state: { nuevaCategoria }
+        state: { successMessage: `Categoría '${formData.nombre_Categoria}' creada exitosamente` }
       });
+
+    } catch (error) {
+      console.error(error);
+      alert('Error al crear la categoría');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="container">
+    <div className="role-form-container">
       <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
 
-      <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
-        <div className="header">
-          <div className="header-left">
-            <button
-              className="back-button"
-              onClick={() => navigate('/categorias')}
-            >
-              <FaArrowLeft />
-            </button>
-            <h1>Crear Nueva Categoría</h1>
-          </div>
-        </div>
+      <div className={`formulario-rol-main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
+        <div className="formulario-roles">
+          <h1 className="form-title">Crear Nueva Categoría</h1>
+          <p className="form-info">Completa todos los campos antes de Guardar 👩🏻‍💻</p><br /><br />
 
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="category-form">
+          <form onSubmit={handleSubmit} className="role-form">
             <div className="form-group">
-              <label htmlFor="nombre">
-                Nombre de la categoría <span className="required">*</span>
+              <label htmlFor="nombre_Categoria" className="label-heading">
+                Nombre de la categoría <span className="required-asterisk">*</span>
               </label>
               <input
                 type="text"
-                id="nombre"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                className={errors.nombre ? 'error' : ''}
+                id="nombre_Categoria"
+                name="nombre_Categoria"
+                className="input-field"
                 placeholder="Ej: Ropa deportiva"
+                value={formData.nombre_Categoria}
+                onChange={handleChange}
+                disabled={submitting}
               />
-              {errors.nombre && <span className="error-message">{errors.nombre}</span>}
+              {errors.nombre_Categoria && <span className="error-message">{errors.nombre_Categoria}</span>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="descripcion">
-                Descripción <span className="required">*</span>
+              <label htmlFor="descripcion" className="label-heading">
+                Descripción <span className="required-asterisk">*</span>
               </label>
               <textarea
                 id="descripcion"
                 name="descripcion"
+                className="input-field"
+                placeholder="Describe brevemente esta categoría (opcional)"
                 value={formData.descripcion}
                 onChange={handleChange}
-                className={errors.descripcion ? 'error' : ''}
-                placeholder="Describe brevemente esta categoría"
                 rows="4"
+                disabled={submitting}
               />
               {errors.descripcion && <span className="error-message">{errors.descripcion}</span>}
             </div>
@@ -121,20 +101,23 @@ export default function CrearCategoria() {
                 type="button"
                 className="cancel-button"
                 onClick={() => navigate('/categorias')}
+                disabled={submitting}
               >
                 Cancelar
               </button>
-              <button type="submit" className="submit-button">
-                <FaSave /> Crear Categoría
+              <button
+                type="submit"
+                className="save-button"
+                disabled={submitting}
+              >
+                <FaSave /> {submitting ? 'Creando...' : 'Crear Categoría'}
               </button>
             </div>
           </form>
         </div>
-
-        <div className="footer-productos-page">
-          <Footer />
-        </div>
       </div>
+
+
     </div>
   );
 }

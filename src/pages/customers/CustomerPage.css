@@ -1,0 +1,199 @@
+.customer-app-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.customer-main-content {
+    flex-grow: 1;
+    margin-left: 250px; /* Ancho del sidebar */
+    padding-top: 90px;
+    transition: margin-left 0.3s ease;
+    overflow-y: auto;
+    display: flex; /* Añadido para usar flexbox */
+    justify-content: center; /* Centra el contenido horizontalmente */
+    align-items: flex-start; /* Alinea la tarjeta en la parte superior del contenedor */
+}
+
+/* Estilos de la tarjeta de información del cliente */
+.info-card-customer {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    width: 100%; /* Ocupa todo el ancho disponible */
+    max-width: 900px; /* Ancho máximo de la tarjeta */
+    /* Se elimina 'margin: 0 auto' ya que flexbox se encargará del centrado */
+}
+
+.titulo-miperfil-customer {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-top: 20%;
+    width: 100%;
+    padding-bottom: 15px;
+  
+}
+
+.profile-details-container-customer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-image-section-customer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+
+.profile-avatar-customer {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e6f7ff;
+    transition: transform 0.5s ease;
+       
+}
+.profile-avatar-customer:hover{
+ transform: scale(2.08);
+}
+
+.profile-name-email-customer h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.profile-name-email-customer p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.details-grid-customer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.detail-item-customer {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item-customer label {
+    font-size: 0.9em;
+    color: #999;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.detail-item-customer p {
+    margin: 0;
+    font-size: 1em;
+    color: #555;
+    font-weight: 400;
+}
+
+.expanded-margin-customer {
+  margin-left: 90px;
+}
+
+.collapsed-sidebar-customer {
+  margin-left: 90px;
+}
+
+.loading-container-customer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: #555;
+}
+.delete-account-btn{
+   background-color: #e63946;
+  color: #fff;
+}
+.modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+.modal-icon.warning {
+  color: #e63946;
+}
+.modal-icon.success {
+  color: #2a9d8f;
+}
+
+.cancel-btn {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.confirm-delete-btn {
+  background-color: #e63946;
+  color: #fff;
+}
+
+.confirm-delete-btn:hover {
+  background-color: #c1121f;
+}
+.cancel-btn,
+.confirm-delete-btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.modal-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+}
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center; 
+  color: #333;
+}
+
+.titulo-miperfil-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* titulo a la izq, botón a la der */
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.titulo-miperfil-customer {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.edit-profile-btn {
+  background: none;
+  border: none;
+  color: #0077cc;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out, transform 0.1s;
+}
+
+.edit-profile-btn:hover {
+  color: #005fa3;
+  transform: scale(1.1);
+}

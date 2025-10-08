@@ -1,51 +1,61 @@
 .layout-principal-split {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-    background-color: #3e3938; 
-    color: black;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #3e3938;
+  color: black;
 }
+
 /* Contenedor para la imagen (lado izquierdo) */
 .boton-login {
-    height: 50px;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-    padding: 5px;
+  height: 50px;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+  padding: 5px;
 }
+
 .boton-login a {
-    background-color: #9d6d28;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+  background-color: #9d6d28;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
 }
 
 .boton-login a:hover {
-    background-color: #81571f; /* Un tono más oscuro al pasar el mouse */
+  background-color: #81571f;
+  /* Un tono más oscuro al pasar el mouse */
 }
 
 .izquierda-con-imagen {
   flex: 1;
   display: flex;
-  flex-direction: column; /*  Apila los elementos verticalmente */
-  justify-content: center; /* Centra los elementos a lo largo del eje principal (vertical ahora) */
-  align-items: center; /* Centra los elementos a lo largo del eje transversal (horizontal ahora) */
-  background-color: #3e3938; /* Fondo negro */
-  text-align: center; /* Asegura que el texto dentro de h2 se centre */
-  
+  flex-direction: column;
+  /*  Apila los elementos verticalmente */
+  justify-content: center;
+  /* Centra los elementos a lo largo del eje principal (vertical ahora) */
+  align-items: center;
+  /* Centra los elementos a lo largo del eje transversal (horizontal ahora) */
+  background-color: #3e3938;
+  /* Fondo negro */
+  text-align: center;
+  /* Asegura que el texto dentro de h2 se centre */
+
 }
 
 
 .izquierda-con-imagen img {
-  max-width: 75%; /* Imagen grande dentro de su mitad */
-  height: auto; /* Mantiene la proporción */
+  max-width: 75%;
+  /* Imagen grande dentro de su mitad */
+  height: auto;
+  /* Mantiene la proporción */
 
 }
 
@@ -76,7 +86,7 @@
 
 
 /* Estilos de los elementos del formulario (sin cambios) */
-.login-form-container h4{
+.login-form-container h4 {
   color: black;
   font-size: 25px;
 }
@@ -105,7 +115,15 @@
   box-sizing: border-box;
 }
 
-
+.password-input-container-login input {
+    width: 100%;
+    padding: 12px;
+    padding-right: 40px; /* Esto asegura espacio para el ícono */
+    box-sizing: border-box; /* Esto es VITAL para que el padding no afecte el ancho */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
 .login-form-container button {
   width: 100%;
   padding: 15px;
@@ -123,47 +141,72 @@
 .login-form-container button:hover {
   background-color: #cd9e45;
 }
-.logo-form{
-    width: 100px;
-    margin-right: 100%;
+
+.logo-form {
+  width: 100px;
+  margin-right: 100%;
 }
 
 .password-input-container {
-  position: relative; /* Muy importante para que el icono se posicione RELATIVAMENTE a este div */
-  margin-bottom: 15px; /* Ajusta el espacio debajo del campo de contraseña si es necesario */
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  /* Muy importante para que el icono se posicione RELATIVAMENTE a este div */
+  margin-bottom: 15px;
+  /* Ajusta el espacio debajo del campo de contraseña si es necesario */
+  width: 100%;
+
 }
 
+
 .password-input-container input[type="password"],
-.password-input-container input[type="text"] { 
+.password-input-container input[type="text"] {
   padding-right: 40px;
+  width: 100%;
+  /* ⭐ Esto es CRÍTICO: Asegura que el input ocupe el 100% del espacio disponible de su padre. ⭐ */
+  padding: 12px;
+  /* Mantenemos el padding original */
+  padding-right: 40px;
+  /* ⭐ Asegúrate de que este padding sea suficiente para el ícono ⭐ */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
 
 }
 
 /* Estilos para el icono de alternar visibilidad */
 .password-toggle-icon-login {
-  position: absolute; /* Posiciona el icono de forma absoluta dentro de .password-input-container */
-  right: 10px; /* Distancia desde el borde derecho del contenedor */
-  top: 10%; /* Intenta centrar verticalmenta */
-  transform: translateY(-50%); /* Ajuste fino para centrado vertical */
-  cursor: pointer; /* Cambia el cursor a una mano para indicar que es clickeable */
-  color: #888; /* Un color sutil para el icono, ajústalo a tu diseño */
-  font-size: 18px; /* Tamaño del icono */
-  z-index: 2; /* Asegura que el icono esté por encima del input */
+  position: absolute;
+  /* Posiciona el icono de forma absoluta dentro de .password-input-container */
+  right: 10px;
+  /* Distancia desde el borde derecho del contenedor */
+  top: 10%;
+  /* Intenta centrar verticalmenta */
+  transform: translateY(-50%);
+  /* Ajuste fino para centrado vertical */
+  cursor: pointer;
+  /* Cambia el cursor a una mano para indicar que es clickeable */
+  color: #888;
+  /* Un color sutil para el icono, ajústalo a tu diseño */
+  font-size: 18px;
+  /* Tamaño del icono */
+  z-index: 2;
+  /* Asegura que el icono esté por encima del input */
   margin-top: 330px;
   margin-right: 120px;
- 
- 
+
+
 }
 
 /* Opcional: Estilo para cuando el ratón pasa por encima del icono */
 .password-toggle-icon:hover {
-  color: #555; /* Un color ligeramente más oscuro al pasar el ratón */
+  color: #555;
+  /* Un color ligeramente más oscuro al pasar el ratón */
 }
-.link-pass{
+
+.link-pass {
   color: #cd9e45;
 }
-.link-pass:hover{
+
+.link-pass:hover {
   color: #9d6d28;
 }

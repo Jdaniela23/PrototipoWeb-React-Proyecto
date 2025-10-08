@@ -1,110 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FormAdd.css';
 import Nav from '../components/Nav.jsx';
-import ProfileCard from '../components/ProfileCard.jsx';
+import { fetchAllPermisos, createNewRole, ESTADO_ROL } from '../api/rolesService';
 import { useNavigate } from 'react-router-dom';
+
+// Función auxiliar para organizar la lista plana de permisos del backend
+const categorizePermisos = (permisosArray) => {
+    const categorias = {};
+    permisosArray.forEach(permiso => {
+        let categoria = 'Otros Permisos';
+
+        if (permiso.includes('Gestión de Usuarios')) categoria = 'Gestión de Usuarios';
+        else if (permiso.includes('Gestión de Productos')) categoria = 'Gestión de Productos';
+        else if (permiso.includes('Gestión de Pedidos')) categoria = 'Gestión de Pedidos';
+        else if (permiso.includes('Gestión de Roles')) categoria = 'Gestión de Roles y Permisos';
+        else if (permiso.includes('Gestión de Clientes')) categoria = 'Gestión de Clientes';
+        else if (permiso.includes('Gestión de Compras')) categoria = 'Gestión de Compras';
+        else if (permiso.includes('Gestión de Ventas')) categoria = 'Gestión de Ventas';
+        else if (permiso.includes('Dashboard') || permiso.includes('Ver dashboard')) categoria = 'Dashboard';
+        else if (permiso.includes('Gestión de Perfil')) categoria = 'Gestión de Perfil';
+
+        if (!categorias[categoria]) {
+            categorias[categoria] = [];
+        }
+        categorias[categoria].push(permiso);
+    });
+    return categorias;
+};
 
 
 function FormAdd() {
-    const toggleMenu = () => {
-        setMenuCollapsed(!menuCollapsed);
-    };
-    const [menuCollapsed, setMenuCollapsed] = useState(false);
     const navigate = useNavigate();
+    const [menuCollapsed, setMenuCollapsed] = useState(false);
+    const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
-    // Objeto con TODOS los permisos disponibles en el sistema, por categoría
-    // Esto es útil para cuando se crea un nuevo rol y se quieren mostrar todas las opciones.
-    const todosLosPermisosDisponibles = {
-        'Gestión de Usuarios': [
-            'Gestión de Usuarios',
-        ],
-        'Gestión de Productos': [
-            'Gestión de Productos',
-        ],
-        'Gestión de Pedidos': [
-            'Gestión de Pedidos',
-        ],
-        'Gestión de Roles y Permisos': [
-            'Gestión de Roles',
-        ],
-        'Gestión de Clientes': [
-            'Gestión de Clientes',
-        ],
-        'Gestión de Compras': [
-            'Gestión de Compras',
-        ],
-        'Gestión de Ventas': [
-            'Gestión de Ventas',
-        ],
-        'Dashboard': [
-            'Ver dashboard',
-        ],
-        'Gestión de Perfil': [
-            'Gestión de Perfil'
-        ],
-    };
+    // ESTADOS PARA MANEJAR LA API
+    const [permisosDisponibles, setPermisosDisponibles] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState(null);
 
+    // Estructura de permisos predefinidos para roles existentes
     const permisosPorRol = {
         Administrador: {
-            'Gestión de Usuarios': [
-                'Gestión de Usuarios',
-            ],
-            'Gestión de Productos': [
-                'Gestión de Productos',
-
-            ],
-            'Gestión de Pedidos': [
-                'Gestión de Pedidos',
-
-            ],
-            'Gestión de Roles y Permisos': [
-                'Gestión de Roles',
-
-            ],
-            'Gestión de Clientes': [
-                'Gestión de Clientes',
-
-            ],
-
-            'Gestión de Compras': [
-                'Gestión de Compras',
-            ],
-            'Gestión de Ventas': [
-                'Gestión de Ventas',
-            ],
-            'Dashboard': [
-                'Ver dashboard con información clave de Compras y Ventas',
-
-            ],
+            'Gestión de Usuarios': ['Gestión de Usuarios'],
+            'Gestión de Productos': ['Gestión de Productos'],
+            'Gestión de Pedidos': ['Gestión de Pedidos'],
+            'Gestión de Roles y Permisos': ['Gestión de Roles'],
+            'Gestión de Clientes': ['Gestión de Clientes'],
+            'Gestión de Compras': ['Gestión de Compras'],
+            'Gestión de Ventas': ['Gestión de Ventas'],
+            'Dashboard': ['Ver dashboard'],
+            'Gestión de Perfil': ['Gestión de Perfil'],
         },
-
         Cliente: {
-            'Gestión de Perfil': [
-                'Gestión de Perfil'
-            ],
-            'Gestión de Compras': [
-                'Gestión de Compras',
-            ],
+            'Gestión de Perfil': ['Gestión de Perfil'],
+            'Gestión de Compras': ['Gestión de Compras'],
         },
-        // 'Otro' ya no es necesario aquí como un rol,
-        // ya que `todosLosPermisosDisponibles` maneja esa lógica.
-        // Si 'Otro' es un rol que realmente existe con esos permisos, déjalo.
-        // Para este caso, lo he quitado ya que la idea es usarlo como la fuente de todos los permisos.
     };
-
 
     // Estado formulario
     const [roleData, setRoleData] = useState({
         nombreRol: '',
         descripcionRol: '',
-        estadoRol: 'Activo',
+        estadoRol: ESTADO_ROL.ACTIVO,
     });
 
-    // Nuevo estado para el rol personalizado
     const [nuevoRol, setNuevoRol] = useState('');
-
-    // Estado permisos seleccionados (array)
     const [permisosSeleccionados, setPermisosSeleccionados] = useState([]);
+
+    // 1. Cargar Permisos al Montar el Componente
+    useEffect(() => {
+        const loadPermisos = async () => {
+            try {
+                const data = await fetchAllPermisos();
+                setPermisosDisponibles(categorizePermisos(data));
+            } catch (error) {
+                setMessage(error.message || 'Error al cargar la lista de permisos.');
+                console.error('Error cargando permisos:', error);
+            }
+        };
+        loadPermisos();
+    }, []);
 
     // Manejar cambio inputs formulario
     const handleChange = (e) => {
@@ -115,19 +91,23 @@ function FormAdd() {
                 ...roleData,
                 nombreRol: value,
             });
-            setPermisosSeleccionados([]); // reset permisos al cambiar rol
-            // Si el rol seleccionado es "Administrador" o "Cliente", limpiamos el campo de nuevo rol
+            setPermisosSeleccionados([]);
+
             if (value === 'Administrador' || value === 'Cliente') {
                 setNuevoRol('');
             }
-        } else if (name === 'nuevoRolInput') {
+            else if (value === 'Agregar Nuevo rol') {
+                setNuevoRol('');
+            }
+        }
+        else if (name === 'nuevoRolInput') {
             setNuevoRol(value);
-            // Cuando se escribe en el nuevo input, forzamos la selección del "-- Agregar Nuevo rol +"
-            setRoleData({
-                ...roleData,
-                nombreRol: 'Agregar Nuevo rol',
-            });
-            setPermisosSeleccionados([]); // reset permisos al ingresar un nuevo rol
+            if (roleData.nombreRol !== 'Agregar Nuevo rol') {
+                setRoleData({
+                    ...roleData,
+                    nombreRol: 'Agregar Nuevo rol',
+                });
+            }
         } else {
             setRoleData({
                 ...roleData,
@@ -136,8 +116,10 @@ function FormAdd() {
         }
     };
 
-    // Toggle permisos seleccionados
+    // Toggle permisos seleccionados (Solo aplica para "Agregar Nuevo rol")
     const togglePermiso = (permiso) => {
+        if (roleData.nombreRol !== 'Agregar Nuevo rol') return;
+
         setPermisosSeleccionados((prev) =>
             prev.includes(permiso)
                 ? prev.filter((p) => p !== permiso)
@@ -145,45 +127,81 @@ function FormAdd() {
         );
     };
 
-    // Enviar formulario
-    const handleSubmit = (e) => {
+    // 2. Enviar formulario (usando la API) - ¡Payload CORREGIDO a C# DTO NAMES!
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setMessage(null);
+        setLoading(true);
 
-        // Determinar el nombre final del rol a guardar
-        const rolFinal = roleData.nombreRol === 'Agregar Nuevo rol' ? nuevoRol : roleData.nombreRol;
+        // 1. Determinar el nombre final y limpio del rol.
+        const rolFinal = roleData.nombreRol === 'Agregar Nuevo rol' ? nuevoRol.trim() : roleData.nombreRol;
 
         if (!rolFinal) {
-            alert('Por favor, selecciona un rol o ingresa uno nuevo.');
+            setMessage('Por favor, selecciona un rol o ingresa uno nuevo.');
+            setLoading(false);
             return;
         }
 
-        const rolCompleto = {
-            ...roleData,
-            nombreRol: rolFinal, // Usamos el rol determinado
-            permisos: permisosSeleccionados,
+        // 2. Determinar la lista de permisos a enviar.
+        let permisosParaEnviar = [];
+
+        if (roleData.nombreRol === 'Agregar Nuevo rol') {
+            if (permisosSeleccionados.length === 0) {
+                setMessage('Debe seleccionar al menos un permiso para el nuevo rol.');
+                setLoading(false);
+                return;
+            }
+            permisosParaEnviar = permisosSeleccionados;
+        }
+        else if (roleData.nombreRol && permisosPorRol[roleData.nombreRol]) {
+            permisosParaEnviar = Object.values(permisosPorRol[roleData.nombreRol]).flat();
+        }
+
+        // 3. Construcción del Payload FINAL. 
+        // 🚨 CAMBIO CRUCIAL: Usamos los nombres de propiedad EXACTOS del DTO de C#
+
+        const payloadParaServicio = {
+            "nombreRol": rolFinal, // <-- CamelCase
+            "descripcionRol": roleData.descripcionRol, // <-- CamelCase
+            "estadoRol": roleData.estadoRol || ESTADO_ROL.ACTIVO, // <-- CamelCase
+            "permisos": permisosParaEnviar, // <-- CamelCase
         };
+        try {
+            // 4. Llamada a la API de Creación
+            const result = await createNewRole(payloadParaServicio);
 
-        console.log('Datos del rol a guardar:', rolCompleto);
+            navigate('/roles', {
+                state: {
+                    successMessage: result.message || `Rol "${rolFinal}" creado exitosamente.`
+                }
+            });
 
-        alert('Rol guardado exitosamente!');
 
-        setTimeout(() => {
-            navigate('/roles');
-        }, 1000);
 
-        setRoleData({
-            nombreRol: '',
-            descripcionRol: '',
-            estadoRol: 'Activo',
-        });
-        setNuevoRol(''); // Limpiamos el nuevo rol
-        setPermisosSeleccionados([]);
+            setRoleData({
+                nombreRol: '',
+                descripcionRol: '',
+                estadoRol: ESTADO_ROL.ACTIVO,
+            });
+            setNuevoRol('');
+            setPermisosSeleccionados([]);
+
+        } catch (error) {
+            // Muestra el mensaje de error detallado que viene desde rolesService.js
+            const errorMessage = error.message || 'Error desconocido al guardar el rol.';
+            setMessage(`Error al guardar el rol: ${errorMessage}`);
+            console.error("Error al guardar el rol:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Obtenemos los permisos disponibles basados en el rol seleccionado (o si es un rol nuevo)
     const permisosAMostrar = roleData.nombreRol === 'Agregar Nuevo rol'
-        ? todosLosPermisosDisponibles // Si es nuevo rol, mostramos todos los permisos
-        : permisosPorRol[roleData.nombreRol] || {}; // O los permisos del rol existente
+        ? permisosDisponibles
+        : permisosPorRol[roleData.nombreRol] || {};
+
+    const isReady = Object.keys(permisosDisponibles).length > 0 || (roleData.nombreRol && roleData.nombreRol !== 'Agregar Nuevo rol' && permisosPorRol[roleData.nombreRol]);
 
     return (
         <div className="role-form-container">
@@ -193,7 +211,14 @@ function FormAdd() {
 
                 <div className="formulario-roles">
                     <h1 className="form-title">Registro de Roles</h1>
-                    <p className="form-info">Información para registrar diferentes roles a Julieta Streamline Ingresa los campos y Guarda el rol.</p><br /><br />
+                    <p className="form-info">Información para registrar diferentes roles a Julieta Streamline. Ingresa los campos y Guarda el rol.</p><br /><br />
+
+                    {/* Mensajes de feedback (éxito/error) */}
+                    {message && (
+                        <div className={`alert ${message.includes('Error') || message.includes('Conflicto') || message.includes('No autorizado') ? 'alert-error' : 'alert-success'}`}>
+                            {message}
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="role-form">
                         {/* Selector de Rol */}
@@ -246,32 +271,51 @@ function FormAdd() {
                             />
                         </div>
 
+
                         {/* Permisos dinámicos */}
-                        {(roleData.nombreRol && roleData.nombreRol !== 'Agregar Nuevo rol' && permisosPorRol[roleData.nombreRol]) || roleData.nombreRol === 'Agregar Nuevo rol' ? (
+                        {isReady && roleData.nombreRol ? (
                             <div className="form-group permisos-group">
-                                <label className="titulo-permisos">Permisos para {roleData.nombreRol === 'Agregar Nuevo rol' ? 'el nuevo rol' : roleData.nombreRol}:<span className="required-asterisk">*</span></label>
+                                <label className="titulo-permisos">Permisos para {roleData.nombreRol === 'Agregar Nuevo rol' ? nuevoRol || 'el nuevo rol' : roleData.nombreRol}:<span className="required-asterisk">*</span></label>
                                 <div className="permisos-columns-container">
                                     {Object.entries(permisosAMostrar).map(([categoria, listaPermisos]) => (
                                         <div key={categoria} className="categoria-permisos-seccion">
+                                            {listaPermisos.length > 1 && <h4 className='categoria-titulo'>{categoria}</h4>}
 
-                                            {listaPermisos.map((permiso) => (
-                                                <label key={`${categoria}-${permiso}`} className="checkbox-label">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={permisosSeleccionados.includes(permiso)}
-                                                        onChange={() => togglePermiso(permiso)}
-                                                    />
-                                                    {permiso}
-                                                </label>
-                                            ))}
+                                            {listaPermisos.map((permiso) => {
+                                                const isChecked = roleData.nombreRol === 'Agregar Nuevo rol'
+                                                    ? permisosSeleccionados.includes(permiso)
+                                                    : listaPermisos.includes(permiso);
+
+                                                const isDisabled = roleData.nombreRol !== 'Agregar Nuevo rol';
+
+                                                return (
+                                                    <label key={`${categoria}-${permiso}`} className="checkbox-label">
+                                                        <input
+                                                            type="checkbox"
+                                                            disabled={isDisabled}
+                                                            checked={isChecked}
+                                                            onChange={() => togglePermiso(permiso)}
+                                                        />
+                                                        {permiso}
+                                                    </label>
+                                                );
+                                            })}
                                         </div>
                                     ))}
                                 </div>
+                                {roleData.nombreRol !== 'Agregar Nuevo rol' && roleData.nombreRol !== '' && (
+                                    <p className="advertencia-permisos">
+                                        Los permisos para el rol **{roleData.nombreRol}** están predefinidos y no son editables.
+                                    </p>
+                                )}
                             </div>
+                        ) : roleData.nombreRol === 'Agregar Nuevo rol' && !isReady ? (
+                            <div className="form-group"><p>Cargando lista de permisos...</p></div>
                         ) : null}
-                        <button className="cancel-button" onClick={() => navigate(-1)}>Cancelar</button>
-                        <button type="submit" className="save-button">
-                            Guardar Rol
+
+                        <button className="cancel-button" onClick={() => navigate(-1)} disabled={loading}>Cancelar</button>
+                        <button type="submit" className="save-button" disabled={loading}>
+                            {loading ? 'Guardando...' : 'Guardar Rol'}
                         </button>
                     </form>
                 </div>

@@ -1,20 +1,23 @@
-// src/components/LoginForm.jsx
-
 import { useNavigate, Link } from 'react-router-dom';
 import './LoginForm.css';
-import miImagen from '../assets/imagen-principal.png';
+import miImagen from '../assets/img/imagen-principal.png';
 import { FaUserCircle } from 'react-icons/fa';
-import { FaEyeSlash, FaEye } from 'react-icons/fa';
+import { FaEyeSlash, FaEye, FaHome } from 'react-icons/fa';
 import React, { useState } from 'react';
-import TwoFactorAuthModal from '../pages/TwoFactorAuthModal'; 
+import TwoFactorAuthModal from '../pages/TwoFactorAuthModal';
+import { loginUser } from '../api/authService';
+import { jwtDecode } from 'jwt-decode'; //Para decodificar el rol del token JWT
 
 function LoginForm() {
+
+  //Estados de variables 
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loginMessage, setLoginMessage] = useState('');
-  
+  const [message, setMessage] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
   const [emailFor2FA, setEmailFor2FA] = useState('');
 
@@ -22,56 +25,78 @@ function LoginForm() {
     setShowPassword(prevShowPassword => !prevShowPassword);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoginMessage('');
+  const handleSubmit = async (e) => {
+    e.preventDefault(); //  Prevenir recargar la pagina 
+    setMessage('');
+    setIsLoggingIn(true);
 
-    // ⭐ Lógica de autenticación SIMULADA (corregida) ⭐
-    // Simula credenciales correctas que requieren 2FA
-    if (email === 'test@example.com' && password === '123456') {
-      setLoginMessage('Verificación en dos pasos requerida.');
-      setEmailFor2FA(email);
-      setIs2FAModalOpen(true);
-      return; // Detener la ejecución para que no continúe al siguiente 'if'
-    } 
-    
-    // Simula el flujo que tenías originalmente
-    const usernameLower = email.toLowerCase();
-    if (usernameLower && usernameLower.endsWith('@gmail.com') && password) {
-      setLoginMessage('¡Inicio de sesión exitoso!');
-      setTimeout(() => {
-        navigate('/loading');
-      }, 1500);
-    }
-    // Si no cumple ninguna de las condiciones anteriores, son credenciales incorrectas.
-    else {
-      setLoginMessage('Error en el inicio de sesión. Credenciales incorrectas.');
+    try {
+      // ⭐ Llama a la función de la API con los datos del formulario ⭐
+      const userData = await loginUser(email, password);
+      // ⭐ Decodificar el token para obtener el rol y otros datos ⭐
+      const decodedToken = jwtDecode(userData.token);
+
+      console.log('Token decodificado:', decodedToken);
+
+      // ⭐️ Obtén la clave del rol y el nombre directamente del token decodificado ⭐️
+      const roleKey = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+      const nameKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
+      
+      // ⭐ Guardar el rol, el nombre/email y el email del usuario en localStorage ⭐
+      // Se guarda el email de manera explícita para asegurar que esté disponible.
+      localStorage.setItem('userRole', decodedToken[roleKey]);
+      localStorage.setItem('userName', decodedToken[nameKey] || email);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('userToken', userData.token);
+
+      console.log('¡Inicio de sesión exitoso!', userData);
+
+      // Maneja la respuesta de la API para el 2FA (Aún no se tiene)
+      if (userData.is2FARequired) {
+        setMessage('Verificación en dos pasos requerida.');
+        setEmailFor2FA(email);
+        setIs2FAModalOpen(true);
+      } else {
+        setMessage('¡Inicio de sesión exitoso!');
+        setTimeout(() => {
+          navigate('/loading');
+        }, 1500);
+      }
+
+    } catch (error) {
+      console.error("Error en el inicio de sesión:", error);
+      const errorMessage = error.response?.data?.message || 'Error en el inicio de sesión. Credenciales incorrectas.';
+      setMessage(errorMessage);
+
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
+  // Esta función simula la verificación 2FA. 
+
   const handle2FASubmit = (code) => {
-    // Lógica de verificación 2FA SIMULADA
     if (code === '123456') {
-      setLoginMessage('¡Verificación 2FA exitosa!');
-      setIs2FAModalOpen(false); 
+      setMessage('¡Verificación 2FA exitosa!');
+      setIs2FAModalOpen(false);
       setTimeout(() => {
         navigate('/loading');
       }, 1500);
     } else {
-      setLoginMessage('Código 2FA incorrecto. Inténtalo de nuevo.');
+      setMessage('Código 2FA incorrecto. Inténtalo de nuevo.');
     }
   };
-  
+
   const handleClose2FAModal = () => {
-      setIs2FAModalOpen(false);
-      setLoginMessage('');
+    setIs2FAModalOpen(false);
+    setMessage('');
   };
 
 
   return (
     <div className="layout-principal-split">
       <div className="boton-login">
-        <Link to="/" >Inicio</Link>
+        <Link to="/" ><FaHome/></Link>
       </div>
       <div className="izquierda-con-imagen">
         <img src={miImagen} alt="Ilustración de bienvenida" />
@@ -112,18 +137,20 @@ function LoginForm() {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
             </div>
-            {loginMessage && (
-              <p className={loginMessage.includes('exitoso') || loginMessage.includes('requerida') ? 'mensaje-exito' : 'mensaje-error'}>
-                {loginMessage}
+            {message && (
+              <p className={message.includes('exitoso') || message.includes('requerida') ? 'mensaje-exito' : 'mensaje-error'}>
+                {message}
               </p>
             )}
-            <button type="submit">Iniciar sesión</button>
+            <button type="submit" disabled={isLoggingIn}>
+              {isLoggingIn ? 'Iniciando...' : 'Iniciar sesión'}
+            </button>
             ¿Olvidaste tu contraseña? <Link className="link-pass" to="/recuperar">Recuperar contraseña</Link><br /><br />
             ¿No tienes cuenta? 👩🏻‍💻<Link className="link-pass" to="/crearcuenta">Crear cuenta</Link>
           </form>
         </div>
       </div>
-      
+
       <TwoFactorAuthModal
         isOpen={is2FAModalOpen}
         onClose={handleClose2FAModal}

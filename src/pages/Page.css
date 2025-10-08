@@ -1,0 +1,401 @@
+/* Contenedor principal del contenido */
+.main-content-area {
+  padding: 20px;
+  background-color: #f8f8f8;
+  flex-grow: 1;
+  box-sizing: border-box;
+  min-height: 100vh;
+  margin-left: -150px;
+  transition: margin-left 0.3s ease;
+}
+
+.icon-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* Header de la página de productos */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #c89b3c;
+  margin: 0;
+}
+.actions button {
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  background-color: #3e3e3e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  font-family: DM Sans, sans-serif;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+/* Sección de acciones (Agregar, Buscar) */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+/* Contenedor del input de búsqueda y botón "Buscar" */
+.search-container {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.search-container input {
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  width: calc(100% - 90px);
+  border: none;
+  background-color: #f9f9f9;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.search-button {
+  color: #fff;
+  border: none;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background-color 0.2s ease;
+  min-width: 90px;
+  text-decoration: beige;
+}
+
+.search-button:hover {
+  background-color: #333;
+}
+
+/* Botón "Agregar Producto +" */
+.add-button {
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+.add-button:hover {
+  color: #fff;
+}
+/* Botón "Buscar" rojo (debajo del input de búsqueda) */
+.red-search-button {
+  background-color: #6d5456;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s ease;
+  width: 120px;
+  margin-left: auto;
+  display: block;
+}
+
+.red-search-button:hover {
+  background-color: #c82333;
+}
+
+/* Contenedor de la tabla */
+.table-container {
+  max-height: calc(100vh - 180px);
+  border-radius: 8px;
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+
+table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  color: #000;
+  text-align: start;
+}
+
+
+table thead tr {
+  background-color: #333;
+  color: white;
+  text-align: left;
+}
+
+table th,
+table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  color: #000;
+}
+
+table th {
+  font-weight: bold;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
+
+table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Estilos para el Switch (toggle) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 25px;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0;
+  margin-right: -20px;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 22px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #c89b3c;
+}
+
+input:checked + .slider:before {
+  transform: translateX(14px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Estilos para los botones de acción en las celdas de la tabla */
+.icons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-left: -90px;
+  
+}
+
+.icon-button {
+  background: none;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button svg {
+  font-size: 1em;
+}
+
+.icon-button.blue {
+  color: #5ca7f7;
+  border-color: #5ca7f7;
+}
+.icon-button.blue:hover {
+  background-color: #5ca7f7;
+  color: #fff;
+}
+
+.icon-button.yellow {
+  color: #fcdc7c;
+  border-color: #ffc107;
+}
+.icon-button.yellow:hover {
+  background-color: #fcdc7c;
+}
+
+.icon-button.red {
+  color: #f57d89;
+  border-color: #fa7b87;
+}
+.icon-button.red:hover {
+  background-color: #f57d89;
+  color: #fff;
+}
+/* Estilos responsive */
+@media (max-width: 768px) {
+  .main-content-area {
+    padding: 20px;
+  }
+  .header h1 {
+    font-size: 2rem;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  .search-container {
+    flex-direction: column;
+    border: none;
+  }
+  .search-container input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .search-button,
+  .add-button,
+  .red-search-button {
+    width: 100%;
+    margin-left: 0;
+  }
+  table {
+    font-size: 0.85rem;
+     color: #000;
+  
+  }
+  table th,
+  table td {
+    padding: 8px 10px;
+    color: #000;
+  }
+  .icons {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 5px;
+  }
+}
+/* Todas las columnas con el mismo ancho y contenido centrado */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;   /* reparte el ancho entre columnas */
+
+  text-align: center;    /* centra el contenido */
+}
+
+.footer-page{
+  margin-top: 40%;
+}
+.acciones-th-tallas{
+  text-align: center; 
+}
+.remove-photo-button{
+  color: #fff;
+  width: 150px;
+  height: 30px;
+  font-size: small;
+  text-align: center;
+  padding: 2px;
+  background-color: #000;
+  margin: 10px 0; /* 10px arriba y abajo, 0 a los lados */
+}
+
+.remove-photo-button:hover{
+  background-color: #b8892f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  border-color: #b8892f;
+}
+.custom-file {
+  color: #fff !important;
+  background-color: #000;
+  width: 130px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  border: none;
+  
+   /* IMPORTANTE  */
+   margin: 15px  10px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+}
+
+.custom-file:hover {
+  background-color: #b8892f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.custom-file:active {
+  transform: translateY(0);
+}

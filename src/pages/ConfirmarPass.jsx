@@ -1,166 +1,189 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import './ConfirmarPass.css'; 
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import './ConfirmarPass.css';
+import { verifyCode, resendForgotPasswordCode } from '../api/authService';
 import Footer from '../components/Footer';
+import LogoUno from '../assets/img/Logo.png';
+import { FaShoppingCart, FaUserCircle, FaUsers, FaHome } from 'react-icons/fa';
+
 
 function RecuperarPassConfirmacion() {
-  const navigate = useNavigate();
-  const [codigo, setCodigo] = useState('');
-  const [errorMensaje, setErrorMensaje] = useState('');
-  const [mensajeExito, setMensajeExito] = useState('');
-  const [tiempoRestante, setTiempoRestante] = useState(180); // 3 minutos = 180 segundos
-  const [intervalId, setIntervalId] = useState(null); // Para almacenar el ID del intervalo
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  // Efecto para el contador de tiempo
-  useEffect(() => {
-    // Si no hay un intervalo en marcha y el tiempo es positivo, inicia el contador
-    if (tiempoRestante > 0 && !intervalId) {
-      const id = setInterval(() => {
-        setTiempoRestante(prevTime => prevTime - 1);
-      }, 1000);
-      setIntervalId(id); // Guarda el ID para poder limpiarlo
-    } else if (tiempoRestante === 0 && intervalId) {
-      // Si el tiempo llega a cero, limpia el intervalo
-      clearInterval(intervalId);
-      setIntervalId(null);
-    }
+    // Declaración de estados
+    const [email, setEmail] = useState('');
+    const [codigo, setCodigo] = useState('');
+    const [errorMensaje, setErrorMensaje] = useState('');
+    const [mensajeExito, setMensajeExito] = useState('');
+    const [tiempoRestante, setTiempoRestante] = useState(180);
+    const [intervalId, setIntervalId] = useState(null);
 
-    // Función de limpieza para cuando el componente se desmonte
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+    // Funciones de ayuda (helpers)
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
-  }, [tiempoRestante, intervalId]); // Dependencias: se ejecuta cuando el tiempo o el ID cambian
 
-  // Función para formatear el tiempo (MM:SS)
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+    const handleCodigoChange = (e) => {
+        setCodigo(e.target.value);
+        setErrorMensaje('');
+        setMensajeExito('');
+    };
 
-  const handleCodigoChange = (e) => {
-    setCodigo(e.target.value);
-    setErrorMensaje(''); // Limpiar mensajes al escribir
-    setMensajeExito('');
-  };
+    // Efectos de React (Hooks)
+    useEffect(() => {
+        const query = new URLSearchParams(location.search);
+        const emailFromUrl = query.get('email');
+        if (emailFromUrl) {
+            setEmail(emailFromUrl);
+        } else {
+            navigate('/recuperar');
+        }
+    }, [location, navigate]);
 
-  const handleVerificarCodigo = () => {
-    // Limpiar mensajes anteriores
-    setErrorMensaje('');
-    setMensajeExito('');
+    // ⭐ Lógica del temporizador 
+    useEffect(() => {
+        let id;
+        if (tiempoRestante > 0) {
+            id = setInterval(() => {
+                setTiempoRestante(prevTime => prevTime - 1);
+            }, 1000);
+        }
 
-    // Validación de campo requerido
-    if (!codigo.trim()) {
-      setErrorMensaje('Por favor, ingresa el código de verificación.');
-      return;
-    }
+        // Función de limpieza que se ejecuta cuando el componente se desmonta o el efecto se vuelve a ejecutar
+        return () => {
+            if (id) {
+                clearInterval(id);
+            }
+        };
+    }, [tiempoRestante]);
 
-    // Aquí se puede añadir tu lógica de validación de código real.
-    // Por ejemplo, un código fijo:
-    if (codigo === '123456') { // Código de ejemplo
-      setMensajeExito('¡Código verificado correctamente!');
-      // Si el código es correcto, puedes redirigir a una página para cambiar la contraseña
-      setTimeout(() => {
-        navigate('/restablecer'); // Ruta a página para restablecer contraseña
-      }, 1500);
-    } else {
-      setErrorMensaje('El código ingresado es incorrecto.');
-    }
-  };
+    // Funciones de manejo de eventos (handlers)
+    const handleVerificarCodigo = async () => {
+        setErrorMensaje('');
+        setMensajeExito('');
 
-  const handleEnviarNuevoCodigo = () => {
-    // Lógica para reenviar el código.
-    // Simplemente reiniciamos el contador y mostramos un mensaje.
-    setTiempoRestante(180); // Reiniciar a 3 minutos
-    setMensajeExito('Se ha enviado un nuevo código a tu correo.');
-    setErrorMensaje(''); // Limpiar cualquier error anterior
-    if (intervalId) { // Limpiar el intervalo anterior si existe
-      clearInterval(intervalId);
-    }
-    setIntervalId(null); // Asegurarse de que se reinicie el efecto
-  };
+        if (!codigo.trim() || !email) {
+            setErrorMensaje('Por favor, ingresa el código y asegúrate de que el correo es válido.');
+            return;
+        }
 
-  return (
-    <div className='recuperar-contrasena-page-container'> {/* Reusamos el contenedor principal */}
-      <div className='recuperar-contrasena-card'> {/* Reusamos la tarjeta */}
-        <h2>Recuperar contraseña</h2>
+        try {
+            await verifyCode(email, codigo);
+            setMensajeExito('¡Código verificado correctamente! Redirigiendo para restablecer la contraseña...');
 
-        <p className='instrucciones'>
-          Ingresa el código enviado a tu correo electrónico:
-        </p>
+            setTimeout(() => {
+                navigate(`/restablecer?email=${email}&code=${codigo}`);
+            }, 1500);
 
-        <h3 className='codigo-label'>Código  </h3> {/* Título para el input de código */}
-        <p className='instrucciones-small'>
-          Ingresa el código de verificación que hemos enviado a example@gmail.com
-        </p>
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'El código ingresado es incorrecto o ha expirado.';
+            setErrorMensaje(errorMessage);
+        }
+    };
 
-        <div className='input-group'>
-          <input
-            type='text' // Tipo de texto para el código
-            placeholder='Digita tu código de verificación'
-            className='codigo-input' // Nueva clase para este input
-            aria-label='Código de verificación'
-            id='codigo-input-id'
-            value={codigo}
-            onChange={handleCodigoChange}
-            required
-          />
-          <label htmlFor='codigo-input-id' className='input-label-hidden'>Código</label> {/* Oculta esta etiqueta si el placeholder es suficiente */}
+    const handleEnviarNuevoCodigo = async () => {
+        setMensajeExito('');
+        setErrorMensaje('');
+
+        if (!email) {
+            setErrorMensaje('No se puede reenviar el código sin un correo válido.');
+            return;
+        }
+
+        try {
+            await resendForgotPasswordCode(email);
+            setMensajeExito('Se ha enviado un nuevo código a tu correo.');
+            setTiempoRestante(180); // Reinicia el temporizador
+
+        
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Ocurrió un error al reenviar el código.';
+            setErrorMensaje(errorMessage);
+        }
+    };
+
+    return (
+        <div className='recuperar-contrasena-page-container'>
+            <div className="container-titulo">
+                <img src={LogoUno} className="logo-home" alt="Logo de Home" /> <strong className="Titulo-home">  JULIETA STREAMLINE</strong>
+            </div>
+            <div className="botones-home">
+                <Link to="/" ><FaHome /></Link>
+                <Link to="/quienessomos" className="enlace-con-icono">
+                    <span>Quienes Somos</span> <FaUsers />
+                </Link>
+                <Link to="/login" className="enlace-con-icono">
+                    <span>Productos Shop</span> <FaShoppingCart />
+                </Link>
+                <Link to="/login" className="enlace-con-icono">
+                    <span>Iniciar sesión | Crear Cuenta</span> <FaUserCircle />
+                </Link>
+            </div>
+            <div className='recuperar-contrasena-card'>
+                <h2>Recuperar contraseña</h2>
+
+
+                <p className='instrucciones-small'>
+                    Ingresa el código de verificación que hemos enviado a {email || 'example@gmail.com'}
+                </p>
+                <h3 className='codigo-label'>Código</h3>
+                <div className='input-group'>
+                    <input
+                        type='text'
+                        placeholder='Digita tu código de verificación'
+                        className='codigo-input'
+                        aria-label='Código de verificación'
+                        id='codigo-input-id'
+                        value={codigo}
+                        onChange={handleCodigoChange}
+                        required
+                    />
+                    <label htmlFor='codigo-input-id' className='input-label-hidden'>Código</label>
+                </div>
+                {errorMensaje && (
+                    <p className='mensaje-error'>
+                        {errorMensaje}
+                    </p>
+                )}
+                {mensajeExito && (
+                    <p className='mensaje-confirmacion'>
+                        {mensajeExito}
+                    </p>
+                )}
+                <div className='buttons-grid'>
+                    <button
+                        className='btn-verificar-codigo'
+                        onClick={handleVerificarCodigo}
+                    >
+                        Verificar Código
+                    </button>
+                    <button
+                        className='btn-enviar-nuevo-codigo'
+                        onClick={handleEnviarNuevoCodigo}
+                        disabled={tiempoRestante > 0}
+                    >
+                        {tiempoRestante > 0 ? formatTime(tiempoRestante) : 'Enviar nuevo código'}
+                    </button>
+                    <Link to="/login" className='btn-volver-link'>
+                        <button className='btn-volver'>
+                            ⬅️{'Volver'}
+                        </button>
+                    </Link>
+                    <Link to="/login" className='btn-iniciar-sesion-link'>
+                        <button className='btn-iniciar-sesion'>
+                            Iniciar sesión
+                        </button>
+                    </Link>
+                </div>
+            </div><br />
+
+            <Footer />
+
         </div>
-
-        {/* Mensajes de error o éxito */}
-        {errorMensaje && (
-          <p className='mensaje-error'>
-            {errorMensaje}
-          </p>
-        )}
-
-        {mensajeExito && (
-          <p className='mensaje-confirmacion'>
-            {mensajeExito}
-          </p>
-        )}
-
-        {/* Botones */}
-        <div className='buttons-grid'>
-          <button
-            className='btn-verificar-codigo'
-            onClick={handleVerificarCodigo}
-          >
-            Verificar Código
-          </button>
-
-          <button
-            className='btn-enviar-nuevo-codigo'
-            onClick={handleEnviarNuevoCodigo}
-            disabled={tiempoRestante > 0} // Deshabilita el botón mientras el contador está activo
-          >
-            {tiempoRestante > 0 ? formatTime(tiempoRestante) : 'Enviar nuevo código'}
-          </button>
-          
-          {/* El botón rojo se elimina de aquí, según tu petición anterior */}
-          {/* <button className='btn-verificar-codigo btn-rojo'>Verificar Código</button> */}
-
-          <Link to="/login" className='btn-volver-link'> {/* Enlace a la página de login */}
-            <button className='btn-volver'>
-              {'<- Volver'}
-            </button>
-          </Link>
-
-          <Link to="/login" className='btn-iniciar-sesion-link'> {/* Enlace a la página de login */}
-            <button className='btn-iniciar-sesion'>
-              Iniciar sesión
-            </button>
-          </Link>
-        </div>
-      </div><br/>
-       <div className='my-footer'> {/*Creamos un div para el footer debido a que por el estilo del div principal su tamaño se encoje */}
-        <Footer />
-      </div>
-    </div>
-  );
+    );
 }
 
 export default RecuperarPassConfirmacion;

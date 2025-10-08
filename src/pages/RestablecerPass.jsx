@@ -1,151 +1,185 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaEyeSlash, FaEye } from 'react-icons/fa';
 import './RestablecerPass.css';
-import { Link } from 'react-router-dom';
+import { resetPassword } from '../api/authService';
+import Footer from '../components/Footer';
+import LogoUno from '../assets/img/Logo.png';
+import { FaShoppingCart, FaUserCircle, FaUsers, FaHome } from 'react-icons/fa';
 
 function RestablecerContrasena() {
-  const navigate = useNavigate();
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errorMensaje, setErrorMensaje] = useState('');
-  const [mensajeExito, setMensajeExito] = useState('');
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [code, setCode] = useState('');
 
-  // Regex para la validación de la contraseña (al menos 8 caracteres, mayúscula, minúscula, número, especial)
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<>,.?/~`]).{8,}$/;
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [errorMensaje, setErrorMensaje] = useState('');
+    const [mensajeExito, setMensajeExito] = useState('');
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleNewPasswordChange = (e) => {
-    setNewPassword(e.target.value);
-    setErrorMensaje('');
-    setMensajeExito('');
-  };
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<>,.?/~`]).{8,}$/;
 
-  const handleConfirmPasswordChange = (e) => {
-    setConfirmPassword(e.target.value);
-    setErrorMensaje('');
-    setMensajeExito('');
-  };
+    useEffect(() => {
+        const query = new URLSearchParams(location.search);
+        const emailFromUrl = query.get('email');
+        const codeFromUrl = query.get('code');
 
-  const toggleNewPasswordVisibility = () => {
-    setShowNewPassword(prev => !prev);
-  };
+        if (emailFromUrl && codeFromUrl) {
+            setEmail(emailFromUrl);
+            setCode(codeFromUrl);
+        } else {
+            // ⭐ Si faltan los parámetros, redirige a la página inicial de recuperación.
+            navigate('/recuperar');
+        }
+    }, [location, navigate]);
 
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(prev => !prev);
-  };
+    const handleNewPasswordChange = (e) => {
+        setNewPassword(e.target.value);
+        setErrorMensaje('');
+        setMensajeExito('');
+    };
 
-  const handleGuardarContrasena = (e) => {
-    e.preventDefault();
+    const handleConfirmPasswordChange = (e) => {
+        setConfirmPassword(e.target.value);
+        setErrorMensaje('');
+        setMensajeExito('');
+    };
 
-    setErrorMensaje('');
-    setMensajeExito('');
+    const toggleNewPasswordVisibility = () => {
+        setShowNewPassword(prev => !prev);
+    };
 
-    // 1. Validación de campo requerido (tanto para nueva como para confirmar)
-    if (!newPassword.trim() || !confirmPassword.trim()) {
-      setErrorMensaje('Todos los campos de contraseña son requeridos.');
-      return;
-    }
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(prev => !prev);
+    };
 
-    // 2. Validación de requisitos de contraseña (la que debe cumplir)
-    if (!passwordRegex.test(newPassword)) {
-      // <--- CAMBIO CLAVE AQUÍ: Mensaje de error con los requisitos
-      setErrorMensaje('• La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales como !, @, #, $, %, &, ., etc.');
-      return;
-    }
+    const handleGuardarContrasena = async (e) => {
+        e.preventDefault();
 
-    // 3. Validación de coincidencia de contraseñas
-    if (newPassword !== confirmPassword) {
-      setErrorMensaje('Las contraseñas no coinciden.');
-      return;
-    }
+        setErrorMensaje('');
+        setMensajeExito('');
 
-    // --- Si todas las validaciones pasan ---
-    setMensajeExito('¡Contraseña restablecida con éxito! Redireccionando al Login 👩🏻‍💻');
-    console.log("Nueva contraseña guardada:", newPassword);
+        // Validaciones del front-end
+        if (!newPassword.trim() || !confirmPassword.trim()) {
+            setErrorMensaje('Todos los campos de contraseña son requeridos.');
+            return;
+        }
 
-    setTimeout(() => {
-      navigate('/login'); // O a una página de confirmación final
-    }, 4000);
-  };
+        if (!passwordRegex.test(newPassword)) {
+            setErrorMensaje('La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales.');
+            return;
+        }
 
-  return (
-    <div className='recuperar-contrasena-page-container'>
-      <div className='recuperar-contrasena-card'>
-        <h2>Recuperar contraseña 👩🏻‍💻</h2>
+        if (newPassword !== confirmPassword) {
+            setErrorMensaje('Las contraseñas no coinciden.');
+            return;
+        }
 
-        <form onSubmit={handleGuardarContrasena}>
-          <p className='instrucciones'>
-            Ingrese su nueva contraseña:
-          </p>
-          <div className='input-group password-input-container'>
-            <input
-              type={showNewPassword ? 'text' : 'password'}
-              placeholder='Ingresa nueva contraseña'
-              className='password-input'
-              aria-label='Nueva contraseña'
-              id='new-password-id'
-              value={newPassword}
-              onChange={handleNewPasswordChange}
-              required
-            />
-            <span
-              className="password-toggle-icon"
-              onClick={toggleNewPasswordVisibility}
-            >
-              {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
+        try {
+            await resetPassword(email, code, newPassword);
+            setMensajeExito('¡Contraseña restablecida con éxito! Redireccionando al Login 👩🏻‍💻');
 
-          {/* <--- ¡PARRAFO DE REQUISITOS ELIMINADO DE AQUÍ! */}
+            setTimeout(() => {
+                navigate('/login');
+            }, 4000);
 
-          <p className='instrucciones'>
-            Confirmar contraseña:
-          </p>
-          <div className='input-group password-input-container'>
-            <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder='Confirma la contraseña'
-              className='password-input'
-              aria-label='Confirmar contraseña'
-              id='confirm-password-id'
-              value={confirmPassword}
-              onChange={handleConfirmPasswordChange}
-              required
-            />
-            <span
-              className="password-toggle-icon"
-              onClick={toggleConfirmPasswordVisibility}
-            >
-              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
+        } catch (error) {
+            // ⭐ LÍNEA CORREGIDA AQUÍ
+            // Accede al mensaje de error del objeto error que lanza la función en authService.js
+            const errorMessage = error.message || 'Ocurrió un error al restablecer la contraseña. Asegúrate de que el código y el email son correctos.';
+            setErrorMensaje(errorMessage);
+        }
+    };
 
-          {/* El mensaje de error ahora contendrá los requisitos si no se cumplen */}
-          {errorMensaje && (
-            <p className='mensaje-error'>
-              {errorMensaje}
-            </p>
-          )}
+    return (
+        <div className='recuperar-contrasena-page-container'>
+            <div className="container-titulo">
+                <img src={LogoUno} className="logo-home" alt="Logo de Home" /> <strong className="Titulo-home">  JULIETA STREAMLINE</strong>
+            </div>
+            <div className="botones-home">
+                <Link to="/" ><FaHome /></Link>
+                <Link to="/quienessomos" className="enlace-con-icono">
+                    <span>Quienes Somos</span> <FaUsers />
+                </Link>
+                <Link to="/login" className="enlace-con-icono">
+                    <span>Productos Shop</span> <FaShoppingCart />
+                </Link>
+                <Link to="/login" className="enlace-con-icono">
+                    <span>Iniciar sesión | Crear Cuenta</span> <FaUserCircle />
+                </Link>
+            </div>
+            <div className='recuperar-contrasena-card'>
+                <h2 className="titulo-restablecerpass">Restablecer Contraseña👩🏻‍💻</h2 >
 
-          {mensajeExito && (
-            <p className='mensaje-confirmacion'>
-              {mensajeExito}
-            </p>
-          )}
+                <form onSubmit={handleGuardarContrasena}>
+                    <p className='instrucciones'>
+                        Ingrese su nueva contraseña:
+                    </p>
+                    <div className='input-group password-input-container'>
+                        <input
+                            type={showNewPassword ? 'text' : 'password'}
+                            placeholder='Ingresa nueva contraseña'
+                            className='password-input'
+                            aria-label='Nueva contraseña'
+                            id='new-password-id'
+                            value={newPassword}
+                            onChange={handleNewPasswordChange}
+                            required
+                        />
+                        <span
+                            className="password-toggle-icon"
+                            onClick={toggleNewPasswordVisibility}
+                        >
+                            {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                    <p className='instrucciones'>
+                        Confirmar contraseña:
+                    </p>
+                    <div className='input-group password-input-container'>
+                        <input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder='Confirma la contraseña'
+                            className='password-input'
+                            aria-label='Confirmar contraseña'
+                            id='confirm-password-id'
+                            value={confirmPassword}
+                            onChange={handleConfirmPasswordChange}
+                            required
+                        />
+                        <span
+                            className="password-toggle-icon"
+                            onClick={toggleConfirmPasswordVisibility}
+                        >
+                            {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                    {errorMensaje && (
+                        <p className='mensaje-error'>
+                            {errorMensaje}
+                        </p>
+                    )}
+                    {mensajeExito && (
+                        <p className='mensaje-confirmacion'>
+                            {mensajeExito}
+                        </p>
+                    )}
+                    <button
+                        type='submit'
+                        className='btn-guardar-contrasena btn-gris'
+                    >
+                        Guardar nueva contraseña
+                    </button>
+                </form>
 
-          <button
-            type='submit'
-            className='btn-guardar-contrasena btn-gris'
-          >
-            Guardar nueva contraseña
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+            </div><br/>
+            <Footer />
+        </div>
+    );
 }
 
 export default RestablecerContrasena;

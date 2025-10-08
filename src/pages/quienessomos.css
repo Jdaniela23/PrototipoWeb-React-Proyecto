@@ -1,0 +1,116 @@
+.about-page {
+  font-family: 'DM Sans', sans-serif;
+  color: #333;
+
+}
+
+.about-page section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: center;
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 50px;
+}
+
+.about-page section img {
+  width: 86%;
+  height: auto;
+  object-fit: cover;
+
+}
+
+.about-page section h1,
+.about-page section h2 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.about-page section p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+@media (min-width: 768px) {
+  .about-page section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.presentacion-uno{
+  margin-top: 15%;
+  color:rgb(5, 5, 5);
+  padding: 20px;
+  width: 120%;
+  height: 105%;
+  margin-left: -120px;
+  display: flex;
+  background-color: #333;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(255, 255, 255, 0.4); 
+
+}
+.text-quienesomos{
+  margin-top: 10%;
+}
+
+.text-tittle{
+  text-align: center;
+}
+
+.titulo-cursiva{
+   font-size: 24px;
+   color: #9d6d28;
+}
+.carrusel-quienes-somos {
+  width: 70%;  /* Reduce el ancho del carrusel al 70% de su contenedor */
+  margin: 0 auto; /* Centra el carrusel en la página */
+  height: 60%;
+  margin-top: -35%;
+}
+.imagenes{
+     box-shadow: 0 0 20px 5px rgba(207, 181, 30, 0.75);
+}
+.titulo-quienessomos-valores{
+  background-color: #9d6d28;
+  color: white;
+  text-align: center;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+}
+.lista-bonita {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: Arial, sans-serif; /* Fuente legible */
+}
+
+.lista-bonita li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 15px 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada */
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 16px;
+  color: #333;
+}
+
+.lista-bonita li:hover {
+  transform: translateY(-2px); /* Efecto de levitación al pasar el mouse */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.lista-bonita li::before {
+  content: '✨'; /* Puedes cambiar este emoji */
+  font-size: 1.5em;
+  line-height: 1; /* Asegura la alineación */
+  margin-right: 15px;
+}

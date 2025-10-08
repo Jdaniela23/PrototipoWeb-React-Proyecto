@@ -1,0 +1,70 @@
+/* src/components/customer/TopBar.css */
+.topbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    position: fixed; /* Fijo en la parte superior */
+    top: 0;
+    left: 220px; /* Ajusta este valor al ancho de tu sidebar para que empiece después */
+    right: 0;
+    z-index: 99; /* Asegura que esté por encima del contenido */
+    height: 70px; /* Altura fija para la barra superior */
+    box-sizing: border-box; /* Incluye padding en el height */
+}
+
+/* Ajusta el left para cuando el sidebar esté colapsado */
+.topbar-container.collapsed-sidebar {
+    left: 70px; /* Ancho del sidebar colapsado */
+}
+
+.topbar-left .topbar-page-title {
+    font-size: 1em;
+    color: #666;
+}
+
+.topbar-center {
+    flex-grow: 1; /* Permite que la barra de búsqueda ocupe el espacio restante */
+    display: flex;
+    justify-content: center; /* Centra la barra de búsqueda */
+}
+
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.topbar-icon {
+    font-size: 1.2em;
+    color: #666;
+    cursor: pointer;
+}
+
+.topbar-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.topbar-profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #eee;
+}
+
+.topbar-profile-name {
+  
+    color: #333;
+    
+}
+.topbar-page-title{
+    color: #e1b94c;
+}

@@ -2,29 +2,33 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 100;
+    z-index: 10;
 }
 
 .boton-createcount a {
     background-color: #9d6d28;
     color: white;
     border: none;
-    padding: 10px 15px;
+    padding: 8px 12px;
     font-weight: bold;
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .boton-createcount a:hover {
     background-color: #81571f;
-
 }
 
 .preview-image-create-count {
-    width: 200px;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 8px;
 }
 
 .password-validation-message.error-message {
@@ -33,101 +37,161 @@
 }
 
 .password-toggle-icon-count {
-    margin-top: -70px;
-    margin-left: -20px;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
 }
 
 .barrio-select {
-    width: 50%;
-    height: 35px;
+    width: 100%;
+    height: 38px;
+    padding: 8px 10px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.9em;
+    background-color: white;
+    color: #333;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'><polyline points='6,9 12,15 18,9'></polyline></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 35px;
+   
 }
 
 .form-group input.input-error {
     border-bottom-color: #d9534f;
 }
 
+/* Contenedor principal - INVERTIDO */
 .registration-container {
-    min-height: 100vh;
-    font-family: DM Sans, sans-serif;
-    /*background-image: url('../assets/imgCearcuenta.jpg')*/
-    background-color: #faf7f7;
-    background-repeat: no-repeat;
-    /* Evita que la imagen se repita */
-    background-size: cover;
-    /* Escala la imagen para cubrir todo el elemento, recortando si es necesario */
-    background-position: center center;
-    /* Centra la imagen en el elemento */
-    background-attachment: fixed;
-    /* (Opcional) Mantiene la imagen fija al hacer scroll */
-    min-height: 100vh;
-    /* Asegura que el body ocupe al menos el 100% de la altura de la ventana */
+    font-family: 'DM Sans', sans-serif;
+    background-color: #3e3938;
     margin: 0;
-    /* Elimina el margen predeterminado del body */
     padding: 0;
-    /* Elimina el padding predeterminado del body */
     display: flex;
-    /* Habilita Flexbox */
-    flex-direction: column;
-    /* Apila los elementos hijos verticalmente */
-    align-items: center;
-    /* Centra los elementos hijos horizontalmente */
-    /* Se elimina justify-content: center; para que el contenido fluya desde arriba */
+    justify-content: space-between;
+    align-items: stretch;
+    min-height: 100vh;
+    gap: 0;
 }
 
-/* Left section Registration form */
+/* Contenedor de la imagen - AHORA A LA IZQUIERDA */
+.derecha-con-imagen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    order: 1;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: calc(100% - 610px);
+}
+
+.derecha-con-imagen img {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+/* Formulario - AHORA A LA DERECHA con scroll */
 .registration-form-section {
-    margin: 50px auto;
-    /* Centra horizontalmente el formulario y añade margen superior/inferior */
-    padding: 40px 60px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    position: relative;
+    padding: 25px 30px;
+    box-shadow: 0 4px 12px rgba(196, 188, 188, 0.1);
     display: flex;
     flex-direction: column;
-    /* Alinea el contenido interno del formulario a la izquierda */
-    align-items: flex-start;
     color: rgb(8, 8, 8);
     border: 1px solid #ccc;
-    /* Borde en todos los lados */
-    border-radius: 10px;
-    /* Bordes redondeados */
-    width: 45%;
-    /* Hace el formulario más ancho (90% del contenedor) */
-
+    width: 610px;
+    max-height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+    background-color: white;
+    order: 2;
+    margin-left: auto;
 }
+
+/* Estilo del scrollbar */
+.registration-form-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.registration-form-section::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.registration-form-section::-webkit-scrollbar-thumb {
+    background: #9d6d28;
+    border-radius: 10px;
+}
+
+.registration-form-section::-webkit-scrollbar-thumb:hover {
+    background: #81571f;
+}
+
 .welcome-title {
-    font-size: 4.5em;
+    font-size: 2.2em;
     color: rgb(7, 7, 7);
-    margin-bottom: -10px;
+    margin-bottom: 5px;
     font-weight: bold;
+    text-align: center;
+    align-self: center;
 }
 
 .create-account-title {
     color: rgb(7, 7, 7);
-    margin-bottom: 30px;
+    margin-bottom: 15px;
     font-weight: normal;
+    font-size: 1.1em;
+    text-align: center;
+    align-self: center;
 }
-
 
 .registration-form {
     width: 100%;
-    max-width: 450px;
+}
+
+/* Grid para organizar campos en 2 columnas */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 15px;
+    width: 100%;
+}
+
+/* Campos que ocupan toda la fila */
+.form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.form-grid .form-group {
+    margin-bottom: 0;
 }
 
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 12px;
     position: relative;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 0.95em;
+    margin-bottom: 5px;
+    font-size: 0.85em;
     color: black;
     text-align: start;
-    font-size: medium;
-
+    font-weight: 500;
 }
-
 
 .form-group input:focus,
 .password-field:focus {
@@ -136,61 +200,57 @@
     box-shadow: none;
 }
 
-
 .password-field {
     width: 100%;
-    border-radius: 10px;
-    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
+    border-radius: 8px;
+    padding: 10px 35px 10px 10px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    font-size: 0.9em;
     transition: border-color 0.2s;
 }
 
 .nombre-create {
     width: 100%;
-    padding: 12px 10px;
+    padding: 10px;
     border: none;
     border-bottom: 1px solid #ccc;
     outline: none;
-    font-size: 1em;
+    font-size: 0.9em;
     box-sizing: border-box;
     transition: border-bottom-color 0.3s ease;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 .input-createcount-identificacion {
     width: 100%;
-    padding: 12px 10px;
+    padding: 10px;
     border: none;
     border-bottom: 1px solid #ccc;
     outline: none;
-    font-size: 1em;
+    font-size: 0.9em;
     box-sizing: border-box;
     transition: border-bottom-color 0.3s ease;
-    border-radius: 10px;
+    border-radius: 8px;
 }
-
-
 
 .identification-type-buttons {
     display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
-
 
 .identification-type-buttons input[type="radio"] {
     display: none;
 }
 
 .identification-type-buttons .id-type-button {
-    padding: 8px 15px;
+    padding: 6px 12px;
     color: rgb(245, 245, 245);
     border: 1px solid white;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.85em;
     transition: background-color 0.3s, border-color 0.3s;
     background-color: black;
 }
@@ -202,29 +262,25 @@
 }
 
 .identification-type-buttons .label-heading {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
-
 
 .password-validation-message {
-    font-size: 0.85em;
-    color: white;
-    margin-top: 5px;
-    line-height: 1.4;
+    font-size: 0.75em;
+    color: #666;
+    margin-top: 3px;
+    line-height: 1.3;
 }
-
 
 .file-upload-label {
     display: inline-block;
-    padding: 10px 15px;
+    padding: 8px 12px;
     background-color: #c89b3c;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 0.95em;
+    font-size: 0.85em;
     color: white;
 }
-
-
 
 .file-upload-label:hover {
     background-color: #eec15f;
@@ -233,42 +289,39 @@
 
 .file-input {
     display: none;
-    
 }
-
 
 .checkbox-group {
     display: flex;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 12px;
 }
 
 .checkbox-group input[type="checkbox"] {
-    margin-right: 10px;
-    width: 18px;
-    height: 18px;
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
 }
 
 .checkbox-group .checkbox-label {
-    /*Terminos y condiciones*/
-    font-size: 0.95em;
+    font-size: 0.85em;
     color: rgb(15, 15, 15);
     cursor: pointer;
 }
 
 /* Submit Button */
 .submit-button {
-    width: 100%;
-    padding: 15px;
+    width: 50%;
+    padding: 10px;
     background-color: #c89b3c;
     color: white;
     border: none;
     border-radius: 5px;
-    font-size: 1.1em;
+    font-size: 0.95em;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-top: 30px;
+    margin-top: 15px;
     border-color: white;
 }
 
@@ -277,35 +330,35 @@
     border-color: white;
 }
 
-
-.footer-create-count {
-    width: 100%;
-
+.submit-regresar {
+    width: 50%;
+    padding: 10px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
 }
 
-@media (max-width: 768px) {
-    .registration-container {
-        flex-direction: column;
-    }
+.submit-regresar:hover {
+    background-color: #a3a3a3;
+}
 
-    .registration-form-section {
-        padding: 30px 20px;
-        box-shadow: none;
-    }
-
-    .registration-image-section {
-        display: none;
- 
-    }
-
-    .registration-form {
-        max-width: 100%;
-    }
+.botones-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
 }
 
 .parrafo-explicacion-createcount {
     color: rgb(138, 136, 136);
     text-align: start;
+    font-size: 0.8em;
+    margin-bottom: 6px;
 }
 
 /* Tooltip para los botones de tipo de identificación */
@@ -315,62 +368,28 @@
 
 .id-type-button:hover::after {
     content: attr(data-tooltip);
-    /* Muestra el contenido del tooltip */
     position: absolute;
     top: -35px;
-    /* Arriba del botón */
     left: 50%;
     transform: translateX(-50%);
-    /* Centrado */
     background-color: #333;
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 11px;
     white-space: nowrap;
     z-index: 100;
 }
 
-/* Flecha del tooltip */
 .id-type-button:hover::before {
     content: '';
     position: absolute;
     top: -10px;
-    /* Debajo del tooltip */
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
     border-top-color: #333;
-    /* Flecha apuntando hacia abajo */
     z-index: 100;
-}
-
-
-.barrio-select {
-    width: 80%;
-    padding: 2px;
-    border: 1px solid #ccc;
-    /* Mismo borde */
-    border-radius: 5px;
-    /* Mismo border-radius */
-    font-size: 16px;
-    /* Misma fuente */
-    background-color: white;
-    color: #333;
-    display: block;
-    /* Quitar estilos por defecto del navegador */
-    appearance: none;
-    /* Quita la flecha por defecto */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-
-    /* Agregar flecha personalizada esta: > */
-    background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'><polyline points='6,9 12,15 18,9'></polyline></svg>");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 40px;
-    /* Espacio para la flecha */
 }
 
 .barrio-select:focus {
@@ -385,10 +404,104 @@
     font-weight: bold;
 }
 
-/* Para el input de Contraseña y Confirmar Contraseña */
 .registration-form input[type="password"]:focus,
 .password-field:focus {
     outline: none;
     border: 1px solid #ccc;
     box-shadow: none;
+}
+
+/* Media Queries - Responsivo */
+@media (max-width: 1200px) {
+    .derecha-con-imagen {
+        width: calc(100% - 500px);
+    }
+
+    .derecha-con-imagen img {
+        max-width: 300px;
+    }
+
+    .registration-form-section {
+        width: 500px;
+    }
+}
+
+@media (max-width: 998px) {
+    .registration-container {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 20px;
+        padding-top: 80px;
+        gap: 25px;
+    }
+
+    .derecha-con-imagen {
+        position: relative;
+        width: 100%;
+        order: 1;
+        max-width: 100%;
+    }
+
+    .derecha-con-imagen img {
+        max-width: 250px;
+        width: 100%;
+    }
+
+    .registration-form-section {
+        padding: 20px;
+        box-shadow: none;
+        width: 100%;
+        max-width: 500px;
+        order: 2;
+        max-height: none;
+        overflow-y: visible;
+        border-radius: 10px;
+        margin-left: 0;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .welcome-title {
+        font-size: 2em;
+    }
+
+    .create-account-title {
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .welcome-title {
+        font-size: 1.8em;
+    }
+
+    .derecha-con-imagen img {
+        max-width: 200px;
+    }
+
+    .registration-form-section {
+        padding: 15px;
+    }
+
+    .botones-container {
+        flex-direction: column;
+    }
+
+    .submit-button,
+    .submit-regresar {
+        width: 100%;
+    }
+}
+
+.boton-createcount{
+
+ margin-right: 90%;
 }

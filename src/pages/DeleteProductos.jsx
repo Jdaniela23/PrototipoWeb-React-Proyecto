@@ -1,7 +1,6 @@
-import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import './DeleteModal.css'; 
-
+import { formatFechaCorta } from '../components/formatters';
 // PaletaColores 
 function PaletaColores({ colores }) {
   return (
@@ -26,7 +25,7 @@ export default function DeleteProducts({ producto, onClose, onConfirm }) {
   return (
     <div className="delete-overlay">
       <div className="delete-content">
-        <h2>Eliminar Producto: {producto.nombre}</h2>
+        <h2>Eliminar Producto:</h2>
 
         <p className="delete-message">
           Estás a punto de eliminar este producto de forma permanente. Esta acción es irreversible.
@@ -35,13 +34,14 @@ export default function DeleteProducts({ producto, onClose, onConfirm }) {
 
  
         <div className="delete-info-summary">
-          <p><strong>Cantidad:</strong> {producto.cantidad}</p>
+          <p><strong>Nombre:</strong> {producto.nombre_Producto}</p> 
+          <p><strong>Cantidad:</strong> {producto.stock_Total}</p>
 
-          <p><strong>Estado:</strong> {producto.estado ? '✅ Disponible' : '❌ No disponible'}</p>
+          <p><strong>Estado:</strong> {producto.estado_Producto ? '✅ Disponible' : '❌ No disponible'}</p>
 
-          <p><strong>Categoría:</strong> {producto.categoria}</p>
-          <p><strong>Marca:</strong> {producto.marca}</p>
-          <p><strong>Fecha creación:</strong> {producto.fecha_Creacion}</p>
+          <p><strong>Categoría:</strong> {producto.nombre_Categoria}</p>
+          <p><strong>Marca:</strong> {producto.marca_Producto}</p>
+          <p><strong>Fecha creación:</strong>{formatFechaCorta(producto.fecha_Creacion)}</p>
         </div>
 
 

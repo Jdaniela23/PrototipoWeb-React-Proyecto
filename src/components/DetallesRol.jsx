@@ -1,6 +1,7 @@
 import React from 'react';
 import './Detalles.css';
 import { FaUser, FaCheck, FaCalendarAlt, FaIdCard } from 'react-icons/fa';
+import { formatFechaCorta } from './formatters'; 
 
 
 export default function DetallesRol({ rol, onClose }) {
@@ -10,12 +11,16 @@ export default function DetallesRol({ rol, onClose }) {
 
   // Se añade una función para formatear los permisos
   const renderPermisos = () => {
+    const permisos = rol.permisos || {};
+     if (Object.keys(permisos).length === 0) {
+        return <p className="permisos-lista">No hay permisos definidos.</p>;
+    }
     return Object.entries(rol.permisos).map(([categoria, lista]) => (
       <div key={categoria} className="permisos-categoria">
-        <h4 className="subtitulo-modal">{categoria}</h4>
+    
         <ul className="permisos-lista">
-          {lista.map((permiso, i) => (
-            <li key={i}>{permiso}</li>
+            {(Array.isArray(lista) ? lista : [lista]).map((permiso, i) => (
+            <p key={i}>{permiso}</p>
           ))}
         </ul>
       </div>
@@ -32,12 +37,15 @@ export default function DetallesRol({ rol, onClose }) {
             <p><strong><FaIdCard /> Id:</strong> {rol.id}</p>
             <p><strong>Estado:</strong> {rol.estado ? '✅ Activo' : '❌ Inactivo'}</p>
             <p><strong><FaUser /> Nombre del Rol:</strong> {rol.nombreRol}</p>
-            <p><strong><FaCalendarAlt /> Fecha de Creación: </strong> {rol.fecha_Creacion}</p>
-            <p className="descripcion-campo">
+            <p><strong><FaCalendarAlt /> Fecha de Creación: </strong> {formatFechaCorta(rol.fecha_Creacion)}</p>
+           
+            <p><strong>Descripción:</strong> {rol.descripcion}</p><br/>
+             <p className="descripcion-campo">
+            
               <strong><FaCheck /> Permisos:</strong>
               {renderPermisos()}
             </p>
-            <p><strong>Descripción:</strong> {rol.descripcion}</p>
+            
 
           </div>
         </div>

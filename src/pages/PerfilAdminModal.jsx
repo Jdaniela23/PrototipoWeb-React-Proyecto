@@ -3,7 +3,7 @@ import { FaTimes } from 'react-icons/fa';
 import './PerfilAdmin.css';
 
 // ✨ Simulación de los datos del usuario logueado
-import profilePic from '../assets/foto-perfil.jpeg';
+
 
 const usuarioLogueado = {
     id: '01',
@@ -16,7 +16,7 @@ const usuarioLogueado = {
     barrio: 'Bellavista',
     direccion: 'Calle 10 # 20-30',
     rol: 'Administrador',
-    fotoPerfil: profilePic,
+    
 };
 
 const PerfilAdminModal = ({ isOpen, onClose }) => {
@@ -47,11 +47,7 @@ const PerfilAdminModal = ({ isOpen, onClose }) => {
                     <p className="profile-admin-modal-subtitle">Información general de tu cuenta.</p>
                 </div>
                 <div className="profile-admin-modal-view-content">
-                    <div className="profile-admin-photo-container">
-                        {usuarioLogueado.fotoPerfil && (
-                            <img src={usuarioLogueado.fotoPerfil} alt="Foto de perfil" className="profile-admin-view-photo" />
-                        )}
-                    </div>
+                
                     <div className="profile-admin-details-grid">
                         <div className="profile-admin-detail-item">
                             <span className="profile-admin-label-heading">Nombre Completo:</span>

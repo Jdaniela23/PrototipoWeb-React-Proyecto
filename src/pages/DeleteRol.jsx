@@ -13,7 +13,7 @@ export default function DeleteRol({ rol, onClose, onConfirm }) {
       <div className="delete-content">
         <h2>Confirmar Eliminación de Rol </h2>
         <p className="delete-message">
-          Estás a punto de eliminar ❌ el siguiente rol. Esta acción es irreversible.
+          Estás a punto de eliminar ❌ el siguiente rol. <br/>Esta acción es irreversible y los usuarios asignados perderán todos los permisos asociados con este rol.
           ¿Estás absolutamente seguro de que deseas continuar?
         </p>
 

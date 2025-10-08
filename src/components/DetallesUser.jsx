@@ -1,5 +1,6 @@
 import "./Detalles.css";
 import { FaUser, FaPhone, FaEnvelope, FaIdCard, FaMapMarkerAlt, FaHome, FaImage, FaCalendarAlt } from 'react-icons/fa';
+import { formatFechaCorta } from './formatters'; 
 
 export default function DetallesUser({ usuario, onClose }) {
     if (!usuario) {
@@ -31,7 +32,7 @@ export default function DetallesUser({ usuario, onClose }) {
                         <p><strong><FaPhone /> Número de Contacto:</strong> {usuario.numero_Contacto}</p>
                         <p><strong><FaMapMarkerAlt /> Barrio:</strong> {usuario.barrio}</p>
                         <p><strong><FaHome /> Dirección:</strong> {usuario.direccion}</p>
-                        <p><strong> <FaCalendarAlt /> Fecha de Creación:</strong> {usuario.fecha_Creacion}</p>
+                        <p><strong> <FaCalendarAlt /> Fecha de Creación:</strong> {formatFechaCorta(usuario.fecha_Creacion)}</p>
 
 
                         <button className="boton-cancelar-detalle" onClick={onClose}>Cerrar</button>

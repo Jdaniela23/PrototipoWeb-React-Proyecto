@@ -4,45 +4,89 @@
     width: 100%;
     height: 100%;
     font-family: 'DM Sans', sans-serif;
-    overflow: hidden;
+    /* ¡CUIDADO! Quitamos el overflow: hidden para que el body pueda hacer scroll */
     box-sizing: border-box;
     color: white;
 }
+
+/* ESTILOS DE BARRA DE NAVEGACIÓN FIJA Y FLEXIBLE */
+.nav-home {
+    position: static;
+    top: 0; /* Lo pega al borde superior */
+    left: 0; /* Lo pega al borde izquierdo */
+    width: 100%; 
+    z-index: 2;
+    background-color: #9d6d28;
+    color: var(--color-black);
+    padding: 15px 20px;
+    z-index: 1000; /* Asegura que la barra esté por encima de otros elementos */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil para levantarla */
+   color: #fff;
+    /* Distribución interna: Flexbox maneja la posición de los hijos */
+    display: flex;
+    justify-content: space-between; /* Espacia el logo y los botones */
+    align-items: center;
+}
+
 .container-titulo {
-    position: absolute;
-    top: 20px;
-    left: 20px;
+    /* CORRECCIÓN CLAVE: Eliminamos position: absolute y dejamos que Flexbox lo posicione */
     margin: 0;
     z-index: 100;
-    color: #333;
+    color: #fff;
     font-size: 100%;
-    /* El tamaño de fuente de 100% para el contenedor no afectará directamente al h2 */
     font-weight: bold;
-    margin-left: 50px; 
+    /* Mantenemos el display: flex para alinear el logo y el texto */
     display: flex;
-    /* Convierte el contenedor en un flex container */
-    align-items: center;
-    /* Alinea los elementos hijos verticalmente al centro */
+    align-items: center; 
     gap: 10px;
-    /* Añade un espacio entre la imagen y el título */
+    /* Eliminamos left: 20px; y margin-left: 50px; ya que el padding del nav-home lo controla */
 }
 
 .logo-home {
     width: 80px;
-    /* Tamaño de tu logo */
     height: auto;
-    /* Mantiene la proporción de la imagen */
 }
 
-
 .Titulo-home {
-    font-size: 20px;
+    color: var(--color-gold); /* Usamos la variable dorada */
     font-weight: bold;
-    color: #333;
+    font-size: 1.2rem; /* Usamos 1.2rem para que se vea bien junto al logo */
     margin: 0;
     white-space: nowrap;
 }
 
+.botones-home {
+    /* CORRECCIÓN CLAVE: Eliminamos position: absolute y dejamos que Flexbox lo posicione */
+    display: flex;
+    /* Usamos el gap adecuado para separar los enlaces */
+    gap: 20px; 
+    z-index: 100;
+    font-size: small;
+}
+
+.enlace-con-icono {
+    display: flex; /* Habilitamos Flexbox */
+    align-items: center;
+    gap: 5px; 
+    text-decoration: none; 
+    color: var(--color-black); /* Color base del texto negro */
+    /* Estilos de botones que usabas en el bloque de código que proporcionaste */
+    background-color: #9d6d28;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.enlace-con-icono:hover {
+    background-color: #81571f; /* Un tono más oscuro al pasar el mouse */
+    color: var(--color-white); /* Aseguramos que el texto siga blanco */
+}
+
+/* Estilos adicionales que proporcionaste */
 .container-welcome {
     margin-left: 5%;
     text-align: start;
@@ -55,10 +99,10 @@
     color: black;
     margin-bottom: 0;
     font-weight: bold;
+    margin-top: -130px;
 }
 
 .titulo-h1 {
-
     color: #9d6d28;
     margin-top: 5px;
     margin-bottom: 20px;
@@ -72,52 +116,36 @@
     line-height: 1.6;
     color: black;
     margin-bottom: 0;
+    margin-top: 40px;
 }
 
-.imagen-home {
-    width: 20%;
-}
-
-.botones-home {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-}
-
-.botones-home a {
-    background-color: #9d6d28;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-.botones-home a:hover {
-    background-color: #81571f; /* Un tono más oscuro al pasar el mouse */
-}
 .imagenHome {
-    width: 60%; /*Más ancha*/
-    height: 10%; /* Menos alta */
-    object-fit: cover; /* Crucial para que la imagen cubra el espacio sin distorsionarse */
-    margin-left: auto; /* Mueve la imagen a la derecha */
-    display: block; /* Necesario para que 'margin-left: auto' funcione */
+    width: 60%;
+    height: 10%;
+    object-fit: cover;
+    margin-left: auto;
+    display: block;
     margin-top: -40%;
-    border-top-left-radius: 50%; /* Redondea la esquina superior izquierda */
-    border-bottom-left-radius: 50%; /* Redondea la esquina inferior izquierda */
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
 }
+
 .video {
-    width: 55%;
+    width: 45%;
     max-width: 700px;
     position: static;
-    border-radius: 15px;
     float: left;
-    margin-left: 45%;
+    margin-left: 55%;
     transform: translateY(-39%);
-    margin-bottom: -25%; 
+    margin-bottom: -25%;
+    margin-top: -16%; 
+}
+
+.span-home{
+    color:#81571f;
+}
+
+hr{
+    border-color: #9d6d28;
+    border-width: 2px;
 }

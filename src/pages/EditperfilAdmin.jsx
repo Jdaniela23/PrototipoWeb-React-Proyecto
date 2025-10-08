@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import profilePic from '../assets/foto-perfil.jpeg';
+import profilePic from '../assets/img/fotoAdmin.jpg';
 
 // ✨ SIMULACIÓN: Aquí se importaría el contexto o estado global del usuario logueado.
 // Por ahora, simularemos un objeto de usuario fijo.
@@ -81,7 +81,7 @@ export default function EditPerfil() {
 
       <div className={`formulario-rol-main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
         <div className="formulario-roles">
-          <h1 className="form-title">Editar Perfil</h1>
+          <h1 className="form-title">Editar Mi Perfil</h1>
           <p className="form-info">Actualiza tu información personal y luego haz clic en "Guardar Cambios".</p>
           <br /><br />
           <form onSubmit={handleSubmit} className="role-form">

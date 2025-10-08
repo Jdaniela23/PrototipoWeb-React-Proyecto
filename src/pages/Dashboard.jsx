@@ -1,158 +1,273 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
+import TopBar from '../components/customer/TopBar';
 import Chart from 'react-apexcharts';
 import './Dashboard.css';
-
+import { getCompras } from "../api/comprasService.js";
+import { getPedidos } from "../api/pedidosService.js";
+import { getMyProfile } from "../api/authService"; // Traer perfil admin
 
 const Dashboard = () => {
-    const [selectedYear, setSelectedYear] = useState(null);
-    const [selectedMonth, setSelectedMonth] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [menuCollapsed, setMenuCollapsed] = useState(false);
 
-    const categories = ['camisas', 'pantalones', 'vestidos', 'faldas', 'chaquetas'];
+    // Perfil admin
+    const [profile, setProfile] = useState(null);
 
-    const costData = {
-        labels: categories,
-        values: [535.97, 370.59, 311.35, 394.32, 416.83]
+    // Datos de la API
+    const [comprasData, setComprasData] = useState([]);
+    const [pedidosData, setPedidosData] = useState([]);
+    const [ventasPorMes, setVentasPorMes] = useState([]);
+    const [ventasProyectadas, setVentasProyectadas] = useState([]);
+    const [costoPorCategoria, setCostoPorCategoria] = useState({});
+    const [ventasPorCategoria, setVentasPorCategoria] = useState({});
+    const [costoProyectado, setCostoProyectado] = useState({});
+    const [ventasProyectadasCategoria, setVentasProyectadasCategoria] = useState({});
+
+    const navigate = useNavigate();
+
+    // --- Cargar perfil y datos ---
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const profileData = await getMyProfile();
+                setProfile(profileData);
+
+                const [compras, pedidos] = await Promise.all([getCompras(), getPedidos()]);
+                setComprasData(compras);
+                setPedidosData(pedidos);
+                procesarDatos(compras, pedidos);
+            } catch (error) {
+                console.error("Error al cargar datos:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const procesarDatos = (compras, pedidos) => {
+        const pedidosFinalizados = pedidos.filter(p => p.estado_Pedido === 'Completado');
+        const pedidosActivos = pedidos.filter(p => p.estado_Pedido !== 'Cancelado');
+
+        setVentasPorMes(calcularVentasPorMes(pedidosFinalizados));
+        setVentasProyectadas(calcularVentasPorMes(pedidosActivos));
+
+        setCostoPorCategoria(calcularCostosPorCategoria(compras));
+        setVentasPorCategoria(calcularVentasPorCategoria(pedidosFinalizados));
+        setVentasProyectadasCategoria(calcularVentasPorCategoria(pedidosActivos));
+        setCostoProyectado(calcularCostosPorCategoria(compras));
     };
 
-    const salesData = {
-        labels: categories,
-        values: [443.79, 495.74, 216.45, 514.43, 314.34]
+    const calcularVentasPorMes = (pedidos) => {
+        const meses = Array(12).fill(0);
+        pedidos.forEach(p => {
+            const fecha = new Date(p.fecha_Creacion);
+            meses[fecha.getMonth()] += p.total_Pedido;
+        });
+        return meses;
     };
 
-    const profitData = {
-        labels: categories,
-        values: costData.values.map((cost, index) => salesData.values[index] - cost)
+    const calcularCostosPorCategoria = (compras) => {
+        const costos = {};
+        compras.forEach(c => {
+            if (c.estado === 'Activo') {
+                const categoria = c.proveedor?.nombre || 'Sin categoría';
+                costos[categoria] = (costos[categoria] || 0) + c.total;
+            }
+        });
+        return costos;
     };
 
+    const calcularVentasPorCategoria = (pedidos) => {
+        const ventas = {};
+        pedidos.forEach(p => {
+            p.detalle_Pedidos?.forEach(d => {
+                const nombre = d.detalle_Producto?.producto?.nombre_Producto || 'Sin nombre';
+                ventas[nombre] = (ventas[nombre] || 0) + d.subtotal;
+            });
+        });
+        return ventas;
+    };
+
+    const calcularTotales = (obj) => Object.values(obj).reduce((sum, val) => sum + val, 0);
+
+    const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
+
+    if (isLoading) return <div className="loading-container">Cargando...</div>;
+
+    // --- Datos del perfil ---
+    const nombreUsuario = profile?.nombreUsuario || 'Administrador';
+    const foto = profile?.foto || null;
+
+    // --- Totales y ganancias ---
+    const totalCostos = calcularTotales(costoPorCategoria);
+    const totalVentas = calcularTotales(ventasPorCategoria);
+    const gananciaReal = totalVentas - totalCostos;
+
+    const totalCostosProyectado = calcularTotales(costoProyectado);
+    const totalVentasProyectadas = calcularTotales(ventasProyectadasCategoria);
+    const gananciaProyectada = totalVentasProyectadas - totalCostosProyectado;
+
+    // --- Gráficos ---
     const ventasOptions = {
         chart: { id: 'ventas-chart', toolbar: { show: false } },
-        xaxis: { categories: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'] },
+        xaxis: { categories: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'] },
         colors: ['#c89b3c']
     };
+    const ventasSeries = [{ name: 'Ventas Completadas', data: ventasPorMes }];
 
-    const ventasSeries = [{ name: 'Ventas', data: [3000, 4000, 3500, 5000, 4900, 2000] }];
-
-    const serviciosOptions = {
-        labels: ['Camisas', 'Pantalones', 'Vestidos', 'Faldas', 'Chaquetas', 'Blusas'],
-        colors: ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#c89b3c', '#34495e']
+    const ventasProyectadasOptions = {
+        chart: { id: 'ventas-proyectadas-chart', toolbar: { show: false } },
+        xaxis: { categories: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'] },
+        colors: ['#c89b3c']
     };
+    const ventasProyectadasSeries = [{ name: 'Ventas Proyectadas', data: ventasProyectadas }];
 
-    const serviciosSeries = [44, 55, 13, 33, 20, 12];
+    const costData = { labels: Object.keys(costoPorCategoria), values: Object.values(costoPorCategoria) };
+    const salesData = { labels: Object.keys(ventasPorCategoria), values: Object.values(ventasPorCategoria) };
 
-    const years = [2022, 2023, 2024, 2025];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
-    const [menuCollapsed, setMenuCollapsed] = useState(false);
-    const toggleMenu = () => {
-        setMenuCollapsed(!menuCollapsed);
-    };
+    const costDataProyectado = { labels: Object.keys(costoProyectado), values: Object.values(costoProyectado) };
+    const salesDataProyectado = { labels: Object.keys(ventasProyectadasCategoria), values: Object.values(ventasProyectadasCategoria) };
 
     return (
         <div className="app-container size-a">
             <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
 
-            <div className="dashboard-container">
+            <div className={`dashboard-container ${menuCollapsed ? 'admin-expanded-margin' : ''}`}>
+                <TopBar
+                    userName={nombreUsuario}
+                    foto={foto}
+                    className={menuCollapsed ? 'collapsed-sidebar-customer' : ''}
+                />
 
                 <h1 className="titulo-dashboard">Dashboard de Ventas</h1>
-                <div className="date-range">Filtrar Dashboard por año</div>
-                <div className="date-range">
-                    {years.map(year => (
-                        <button
-                            key={year}
-                            className={`Boton-año ${selectedYear === year ? 'Boton-seleccionado' : ''}`}
-                            onClick={() => setSelectedYear(year)}
-                            style={{ backgroundColor: selectedYear !== year ? '#c89b3c' : '' }}
-                        >
-                            {year}
-                        </button>
-                    ))}
-                </div>
+                <p className='admin-subtitulo'>
+                    Panel de Administración Desde aquí tiene el control total.
+                    Gestione usuarios, configure ajustes y supervise todas las operaciones
+                    con eficiencia accediendo a todos los módulos como Administrador.
+                </p>
 
-                {/* Contenido ampliado: Gráficos y estadísticas */}
                 <div className="dashboard-content">
-                    {/* Fila 1: Gráfico de ganancias */}
+                    {/* Ventas completadas */}
                     <div className="dashboard-row">
                         <div className="dashboard-card large">
                             <div className="card-header">
-                                <h3>Ganancias de las ventas</h3>
+                                <h3>Ganancias de las ventas completadas</h3>
                             </div>
                             <Chart options={ventasOptions} series={ventasSeries} type="area" height={250} />
                             <hr />
                         </div>
                     </div>
 
-                    {/* Fila 2: Servicios y métricas */}
+                    {/* Métricas reales */}
                     <div className="dashboard-row">
-                        <div className="dashboard-card">
-                            <div className="card-header">
-                                <h3>Porcentaje de subcategorias vendidas</h3>
-                            </div>
-                            <Chart options={serviciosOptions} series={serviciosSeries} type="pie" height={250} />
-                        </div>
-
                         <div className='contenedor-cartas'>
                             <hr />
                             <div className="metrics-container">
                                 <div className="metric-card">
-                                    <h2>Costo de Ventas</h2>
+                                    <h2>Costo de Compras</h2>
                                     <ul className="data-list">
-                                        {costData.labels.map((category, index) => (
-                                            <li key={index}>
-                                                <span className="category">{category}:</span>
-                                                <span className="value">${costData.values[index].toFixed(2)}</span>
+                                        {costData.labels.length > 0 ? costData.labels.map((cat,i)=>(
+                                            <li key={i}>
+                                                <span className="category">{cat}:</span>
+                                                <span className="value">${costData.values[i].toLocaleString('es-CO', {minimumFractionDigits:2})}</span>
                                             </li>
-                                        ))}
+                                        )) : <li>No hay datos disponibles</li>}
                                     </ul>
                                 </div>
 
                                 <div className="metric-card">
-                                    <h2>Ventas</h2>
+                                    <h2>Ventas (Completadas)</h2>
                                     <ul className="data-list">
-                                        {salesData.labels.map((category, index) => (
-                                            <li key={index}>
-                                                <span className="category">{category}:</span>
-                                                <span className="value">${salesData.values[index].toFixed(2)}</span>
+                                        {salesData.labels.length > 0 ? salesData.labels.map((cat,i)=>(
+                                            <li key={i}>
+                                                <span className="category">{cat}:</span>
+                                                <span className="value">${salesData.values[i].toLocaleString('es-CO', {minimumFractionDigits:2})}</span>
                                             </li>
-                                        ))}
+                                        )) : <li>No hay datos disponibles</li>}
                                     </ul>
                                 </div>
 
                                 <div className="metric-card">
                                     <h2>Ganancias</h2>
-                                    <ul className="data-list">
-                                        {profitData.labels.map((category, index) => (
-                                            <li key={index}>
-                                                <span className="category">{category}:</span>
-                                                <span className={`value ${profitData.values[index] >= 0 ? 'positive' : 'negative'}`}>
-                                                    ${profitData.values[index].toFixed(2)}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div style={{padding:'20px', textAlign:'center', fontSize:'2em', fontWeight:'bold', color: gananciaReal>=0?'#c89b3c':'#FF4560'}}>
+                                        ${gananciaReal.toLocaleString('es-CO', {minimumFractionDigits:2})}
+                                    </div>
+                                    <div style={{textAlign:'center', fontSize:'0.9em', color:'#666', marginTop:'10px'}}>
+                                        <div>Total Ventas: ${totalVentas.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
+                                        <div>Total Costos: ${totalCostos.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Filtros por meses */}
-                <div className="filtros-meses">
-                    {months.map(month => (
-                        <button
-                            key={month}
-                            className={`Boton-mes ${selectedMonth === month ? 'Boton-seleccionado' : ''}`}
-                            onClick={() => setSelectedMonth(month)}
-                            style={{ backgroundColor: selectedMonth !== month ? '#c89b3c' : '' }}
-                        >
-                            {month}
-                        </button>
-                    ))}
+                    {/* Ventas proyectadas */}
+                    <div className="dashboard-row">
+                        <div className="dashboard-card large">
+                            <div className="card-header">
+                                <h3>Proyección de ventas (Incluye pedidos pendientes)</h3>
+                                <p style={{fontSize:'0.9em', color:'#666', marginTop:'5px'}}>
+                                    Esta gráfica muestra cómo se verían las ventas si todos los pedidos no cancelados se completaran
+                                </p>
+                            </div>
+                            <Chart options={ventasProyectadasOptions} series={ventasProyectadasSeries} type="area" height={250} />
+                            <hr />
+                        </div>
+                    </div>
+
+                    {/* Métricas proyectadas */}
+                    <div className="dashboard-row">
+                        <div className='contenedor-cartas'>
+                            <h3 style={{textAlign:'center', color:'#c89b3c', marginBottom:'20px'}}>
+                                📊 Ganancias Proyectadas (Si todos los pedidos se completan)
+                            </h3>
+                            <hr />
+                            <div className="metrics-container">
+                                <div className="metric-card" style={{borderColor:'#c89b3c'}}>
+                                    <h2>Costo de Compras (Proyectado)</h2>
+                                    <ul className="data-list">
+                                        {costDataProyectado.labels.length > 0 ? costDataProyectado.labels.map((cat,i)=>(
+                                            <li key={i}>
+                                                <span className="category">{cat}:</span>
+                                                <span className="value">${costDataProyectado.values[i].toLocaleString('es-CO', {minimumFractionDigits:2})}</span>
+                                            </li>
+                                        )) : <li>No hay datos disponibles</li>}
+                                    </ul>
+                                </div>
+
+                                <div className="metric-card" style={{borderColor:'#c89b3c'}}>
+                                    <h2>Ventas (Proyectadas)</h2>
+                                    <ul className="data-list">
+                                        {salesDataProyectado.labels.length > 0 ? salesDataProyectado.labels.map((cat,i)=>(
+                                            <li key={i}>
+                                                <span className="category">{cat}:</span>
+                                                <span className="value">${salesDataProyectado.values[i].toLocaleString('es-CO', {minimumFractionDigits:2})}</span>
+                                            </li>
+                                        )) : <li>No hay datos disponibles</li>}
+                                    </ul>
+                                </div>
+
+                                <div className="metric-card" style={{borderColor:'#c89b3c'}}>
+                                    <h2>Ganancias (Proyectadas)</h2>
+                                    <div style={{padding:'20px', textAlign:'center', fontSize:'2em', fontWeight:'bold', color: gananciaProyectada>=0?'#c89b3c':'#FF4560'}}>
+                                        ${gananciaProyectada.toLocaleString('es-CO', {minimumFractionDigits:2})}
+                                    </div>
+                                    <div style={{textAlign:'center', fontSize:'0.9em', color:'#666', marginTop:'10px'}}>
+                                        <div>Total Ventas: ${totalVentasProyectadas.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
+                                        <div>Total Costos: ${totalCostosProyectado.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-
         </div>
-
     );
 };
 

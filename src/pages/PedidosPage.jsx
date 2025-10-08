@@ -1,81 +1,56 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FaSearch, FaPlus, FaEye, FaEdit } from 'react-icons/fa';
-import Nav from '../components/Nav.jsx';
-import DetallesPedido from '../components/DetallesPedido'; 
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaSearch, FaPlus, FaEye, FaEdit } from "react-icons/fa";
+import Nav from "../components/Nav.jsx";
+import Footer from "../components/Footer.jsx";
+import { getPedidos } from "../api/pedidosService.js";
+import DetallesPedido from "../components/DetallesPedido";
+import "./Page.css";
+
 function PedidosPageA() {
   const navigate = useNavigate();
-
-  const pedidosData = [
-    {
-      idPedido: 'PED001',
-      fecha: '2025-06-01',
-      documentoCliente: '123456789',
-      metodoPago: 'efectivo',
-      domicilio: 'sí',
-      estadoPago: 'en proceso',
-      productos: [
-        { id: 1, nombre: 'Camiseta Negra', cantidad: 2, precio: 30000 },
-        { id: 2, nombre: 'Pantalón Jean', cantidad: 1, precio: 80000 }
-      ],
-      subtotal: 140000,
-      iva: 26600,
-      totalCompra: 166600
-    },
-    {
-      idPedido: 'PED002',
-      fecha: '2025-06-03',
-      documentoCliente: '987654321',
-      metodoPago: 'transferencia',
-      domicilio: 'no',
-      estadoPago: 'pagado',
-      productos: [
-        { id: 3, nombre: 'Sudadera Gris', cantidad: 1, precio: 50000 }
-      ],
-      subtotal: 50000,
-      iva: 9500,
-      totalCompra: 59500
-    },
-  ];
-
-  const [pedidos, setPedidos] = useState(pedidosData);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [pedidos, setPedidos] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [pedidoDetalle, setPedidoDetalle] = useState(null);
-  const [pedidoEditando, setPedidoEditando] = useState(null);
-  const [pedidoEliminar, setPedidoEliminar] = useState(null);
+  const [pedidoDetalleData, setPedidoDetalleData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
-  const filteredPedidos = pedidos.filter(p =>
-    p.fecha.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.documentoCliente.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getPedidos();
+        setPedidos(data);
+      } catch (err) {
+        console.error("Error obteniendo pedidos:", err);
+        if (err.response?.status === 401 || err.message.includes("No autorizado")) {
+          navigate("/login");
+        } else {
+          setError("Error al cargar los pedidos.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPedidos();
+  }, [navigate]);
+
+  const filteredPedidos = pedidos.filter(
+    (p) =>
+      p.fecha_Creacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.usuario?.nombre_Usuario.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.estado_Pedido.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleNavegarAEditar = (pedido) => {
-    navigate('/editpedido', { state: { pedido } });
-  };
-
-  const guardarEdicion = () => {
-    setPedidos(prev =>
-      prev.map(p =>
-        p.documentoCliente === pedidoEditando.documentoCliente ? pedidoEditando : p
-      )
-    );
-    setPedidoEditando(null);
-  };
-
-  const handleEliminar = (pedido) => setPedidoEliminar(pedido);
-
-  const confirmarEliminar = () => {
-    setPedidos(prev => prev.filter(p => p.documentoCliente !== pedidoEliminar.documentoCliente));
-    setPedidoEliminar(null);
-  };
 
   return (
     <div className="container lowercase">
       <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
-      <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
+
+      <div className={`main-content-area ${menuCollapsed ? "expanded-margin" : ""}`}>
         <div className="header">
           <h1>Gestión de Pedidos</h1>
         </div>
@@ -84,65 +59,100 @@ function PedidosPageA() {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Buscar por Fecha o Número de Documento"
+              placeholder="Buscar por Fecha o Usuario"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="search-button">
-              <FaSearch color="#fff" /> Buscar
+              <FaSearch color="#fff" />
             </button>
           </div>
 
-          <button className="add-button" onClick={() => navigate('/crearpedidos')}>
-            <FaPlus style={{ marginRight: '8px' }} />
+          <Link to="/crearpedidos" className="add-button">
+            <FaPlus style={{ marginRight: "8px" }} />
             Agregar Pedido
-          </button>
+          </Link>
         </div>
 
         <div className="table-container">
           <table>
             <thead>
               <tr>
-                <th>Pedido ID</th>
                 <th>Fecha</th>
-                <th>Documento</th>
-                <th>Método<br /> de pago</th>
-                <th>Requiere <br />domicilio</th>
-                <th>Estado <br />de pago</th>
+                <th>Usuario</th>
+                <th>Total</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filteredPedidos.map(pedido => (
-                <tr key={pedido.documentoCliente}>
-                  <td>{pedido.idPedido}</td>
-                  <td>{pedido.fecha}</td>
-                  <td>{pedido.documentoCliente}</td>
-                  <td>{pedido.metodoPago}</td>
-                  <td>{pedido.domicilio}</td>
-                  <td>{pedido.estadoPago}</td>
-                  <td className="icons">
-                    <button
-                      className="icon-button black"
-                      title="ver detalles"
-                      onClick={() => setPedidoDetalle(pedido)}
-                    >
-                      <FaEye />
-                    </button>
-                    <button className="icon-button blue" title="editar" onClick={() => handleNavegarAEditar(pedido)}>
-                      <FaEdit />
-                    </button>
-
+              {loading && (
+                <tr>
+                  <td colSpan="5" className="loading-message">
+                    Cargando pedidos...
                   </td>
                 </tr>
-              ))}
+              )}
+
+              {!loading && error && (
+                <tr>
+                  <td colSpan="5" className="error-message">
+                    {error}
+                  </td>
+                </tr>
+              )}
+
+              {!loading && !error && filteredPedidos.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="no-data-message">
+                    No se encontraron pedidos.
+                  </td>
+                </tr>
+              )}
+
+              {!loading &&
+                !error &&
+                filteredPedidos.map((pedido) => (
+                  <tr key={pedido.id_Pedido}>
+                    <td>{pedido.fecha_Creacion.split("T")[0]}</td>
+                    <td>{pedido.usuario?.nombre_Completo}</td>
+                    <td>${pedido.total_Pedido.toLocaleString()}</td>
+                    <td>{pedido.estado_Pedido}</td>
+                    <td className="icons">
+                      <button
+                        className="icon-button black"
+                        title="Ver detalles"
+                        onClick={() => setPedidoDetalleData(pedido)}
+                      >
+                        <FaEye />
+                      </button>
+
+                      <button
+                        className={`icon-button blue ${pedido.estado_Pedido === 'Anulado' ? 'disabled' : ''}`}
+                        title={pedido.estado_Pedido === 'Anulado' ? 'Pedido anulado' : 'Editar pedido'}
+                        onClick={() => navigate(`/editpedido/${pedido.id_Pedido}`)}
+                        disabled={pedido.estado_Pedido === 'Anulado'}
+                      >
+                        <FaEdit />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
+
+        <div className="footer-page">
+          <Footer />
+        </div>
       </div>
 
-      {/* ➡️ Renderización condicional del modal de detalles */}
-      {pedidoDetalle && <DetallesPedido pedido={pedidoDetalle} onClose={() => setPedidoDetalle(null)} />}
+      {pedidoDetalleData && (
+        <DetallesPedido
+          pedido={pedidoDetalleData}
+          onClose={() => setPedidoDetalleData(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,101 +1,113 @@
-import React, { useState } from 'react';
-import { FaEye, FaTrash, FaPlus, FaEdit, FaSearch } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { FaEye, FaSearch, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { Link, useLocation } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
 import DetallesProveedor from '../components/DetallesProveedor.jsx';
-import './UsuariosPage.css';
+import ToastNotification from '../components/ToastNotification.jsx';
+import { getProveedores, toggleEstadoProveedor } from "../api/proveedoresService.js";
+import './Page.css';
 
 const ProveedoresPage = () => {
+  const location = useLocation();
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
-  const [proveedores, setProveedores] = useState([
-    {
-      id: 1,
-      idProveedor: 'P-001',
-      nombreRepresentante: 'Carlos',
-      apellidoRepresentante: 'Gómez',
-      numeroContacto: '3101234567',
-      tipoDocumento: 'CC',
-      numeroDocumento: '123456789',
-      correoElectronico: 'carlos.gomez@proveedor.com',
-      estado: 'Activo',
-      municipio: 'Bogotá',
-      direccion: 'Calle 123 #45-67',
-      img: 'https://placehold.co/150x150/E0BBE4/FFFFFF?text=Prov1',
-      fecha_Creacion: '2025-07-20'
-    },
-    {
-      id: 2,
-      idProveedor: 'P-002',
-      nombreRepresentante: 'María',
-      apellidoRepresentante: 'Rodríguez',
-      numeroContacto: '3209876543',
-      tipoDocumento: 'NIT',
-      numeroDocumento: '987654321',
-      correoElectronico: 'maria.rodriguez@empresa.com',
-      estado: 'Inactivo',
-      municipio: 'Medellín',
-      direccion: 'Carrera 56 #12-34',
-      img: 'https://placehold.co/150x150/957DAD/FFFFFF?text=Prov2',
-      fecha_Creacion: '2025-07-20'
-    },
-    {
-      id: 3,
-      idProveedor: 'P-003',
-      nombreRepresentante: 'Carlos',
-      apellidoRepresentante: 'Mendez',
-      numeroContacto: '3113661189',
-      tipoDocumento: 'CC',
-      numeroDocumento: '64278390',
-      correoElectronico: 'Calintos.Mendez@empresa.com',
-      estado: 'Activo',
-      municipio: 'Medellín',
-      direccion: 'Carrera 56 #12-34',
-      img: 'https://placehold.co/150x150/D291BC/FFFFFF?text=Prov3',
-      fecha_Creacion: '2025-07-20'
-    }
-  ]);
-
-  const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null); // Cambié el nombre de la variable de estado para mayor claridad
+  const [proveedores, setProveedores] = useState([]);
+  const [proveedorSeleccionadoId, setProveedorSeleccionadoId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchTrigger, setSearchTrigger] = useState('');
+  const [cargandoDetalles, setCargandoDetalles] = useState(false);
 
-  const cambiarEstadoProveedor = (id) => {
-    setProveedores(proveedores.map(proveedor =>
-      proveedor.id === id ? {
-        ...proveedor,
-        estado: proveedor.estado === 'activo' ? 'inactivo' : 'activo'
-      } : proveedor
-    ));
-  };
+  const [toastMessage, setToastMessage] = useState(location.state?.successMessage || '');
+  const [toastType, setToastType] = useState('success');
 
-  const verDetalles = (proveedor) => {
-    setProveedorSeleccionado(proveedor);
-    // Prevenir el scroll del body cuando el modal está abierto
+  useEffect(() => {
+    const fetchProveedores = async () => {
+      try {
+        const data = await getProveedores();
+        setProveedores(data);
+      } catch (error) {
+        console.error("Error al cargar proveedores:", error);
+        setToastMessage("❌ Error al cargar proveedores");
+        setToastType("error");
+      }
+    };
+    fetchProveedores();
+  }, []);
+
+  const verDetalles = async (proveedor) => {
+    setCargandoDetalles(true);
+    setProveedorSeleccionadoId(proveedor.idProveedor);
     document.body.style.overflow = 'hidden';
+    setCargandoDetalles(false);
   };
 
   const cerrarModal = () => {
-    setProveedorSeleccionado(null);
-    // Restaurar el scroll del body cuando el modal se cierra
+    setProveedorSeleccionadoId(null);
     document.body.style.overflow = 'auto';
   };
 
-  const filteredProveedores = proveedores.filter(proveedor =>
-    Object.values(proveedor).some(value =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const cambiarEstadoProveedor = async (proveedor) => {
+    try {
+      const proveedoresActualizados = proveedores.map(p =>
+        p.idProveedor === proveedor.idProveedor 
+          ? { ...p, estado: !p.estado } 
+          : p
+      );
+      setProveedores(proveedoresActualizados);
+
+      await toggleEstadoProveedor(proveedor);
+
+      setToastMessage(
+        proveedor.estado ? "✅ El proveedor fue ANULADO correctamente." : 
+                           "✅ El proveedor fue ACTIVADO correctamente."
+      );
+      setToastType("success");
+
+      const dataActualizada = await getProveedores();
+      setProveedores(dataActualizada);
+
+    } catch (error) {
+      console.error(error);
+      const proveedoresOriginales = proveedores.map(p =>
+        p.idProveedor === proveedor.idProveedor 
+          ? { ...p, estado: proveedor.estado } 
+          : p
+      );
+      setProveedores(proveedoresOriginales);
+      setToastMessage("❌ No se pudo cambiar el estado del proveedor.");
+      setToastType("error");
+    }
+  };
+
+  const filteredProveedores = proveedores.filter(proveedor => {
+    const term = (searchTrigger || searchTerm).toLowerCase();
+    const estadoTexto = proveedor.estado ? "activo" : "inactivo";
+
+    return (
+      String(proveedor.nombre).toLowerCase().includes(term) ||
+      String(proveedor.telefono).toLowerCase().includes(term) ||
+      String(proveedor.email).toLowerCase().includes(term) ||
+      String(proveedor.ciudad).toLowerCase().includes(term) ||
+      estadoTexto.includes(term)
+    );
+  });
 
   return (
     <div className="container">
       <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
 
       <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
+        {toastMessage && (
+          <ToastNotification
+            message={toastMessage}
+            type={toastType}
+            onClose={() => setToastMessage('')}
+          />
+        )}
+
         <div className="header">
-          <div className="header-left">
-            <h1>Gestión de Proveedores</h1>
-          </div>
+          <h1>Gestión de Proveedores</h1>
         </div>
 
         <div className="actions">
@@ -107,8 +119,11 @@ const ProveedoresPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="search-button">
-              <FaSearch color="#fff" /> Buscar
+            <button 
+              className="search-button"
+              onClick={() => setSearchTrigger(searchTerm)}
+            >
+              <FaSearch color="#fff" /> 
             </button>
           </div>
 
@@ -118,71 +133,82 @@ const ProveedoresPage = () => {
         </div>
 
         <div className="table-container">
-          <div className="table-wrapper">
-            <table className="table table-striped table-hover">
-              <thead>
-                <tr>
-                  <th>ID Proveedor</th>
-                  <th>Representante</th>
-                  <th>Contacto</th>
-                  <th>Documento</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProveedores.length > 0 ? (
-                  filteredProveedores.map((proveedor) => (
-                    <tr key={proveedor.id}>
-                      <td>{proveedor.idProveedor}</td>
-                      <td>{proveedor.nombreRepresentante} {proveedor.apellidoRepresentante}</td>
-                      <td>{proveedor.numeroContacto}</td>
-                      <td>{proveedor.tipoDocumento}: {proveedor.numeroDocumento}</td>
-                      <td>
-                        <span className={`badge ${proveedor.estado === 'activo' ? 'bg-success' : 'bg-danger'}`}>
-                          {proveedor.estado}
-                        </span>
-                      </td>
-                      <td className="icons">
-
+          <table className="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProveedores.length > 0 ? (
+                filteredProveedores.map((proveedor) => (
+                  <tr key={proveedor.idProveedor}>
+                    <td>{proveedor.nombre}</td>
+                    <td>{proveedor.telefono}</td>
+                    <td>{proveedor.email}</td>
+                    <td>{proveedor.ciudad}</td>
+                    <td>
+                      <span className={`badge ${proveedor.estado ? 'bg-success' : 'bg-danger'}`}>
+                        {proveedor.estado ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td className="icons">
+                      <button
+                        className="icon-button black"
+                        onClick={() => verDetalles(proveedor)}
+                      >
                         <FaEye />
-                        <button
-                          className="icon-button black"
-                          onClick={() => verDetalles(proveedor)}
-                          title="Ver detalles"
-                        >
-                          <FaEye />
-                        </button>
+                      </button>
 
-                        <Link to='/proovedoresedit' className="icon-button blue" title='editar'>
-                          <FaEdit />
-                        </Link>
-                        <button
-                          className="icon-button red"
-                          onClick={() => cambiarEstadoProveedor(proveedor.id)}
-                          title={proveedor.estado === 'activo' ? 'Desactivar' : 'Activar'}
-                        >
-                          {proveedor.estado === 'activo' ? <FaTrash /> : <FaPlus />}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
-                      No se encontraron proveedores que coincidan con la búsqueda.
+                      <Link
+                        to={`/editproveedor/${proveedor.idProveedor}`}
+                        className="icon-button blue"
+                      >
+                        <FaEdit />
+                      </Link>
+
+                      <button
+                        className="icon-button red"
+                        onClick={() => cambiarEstadoProveedor(proveedor)}
+                      >
+                        {proveedor.estado ? <FaTrash /> : <FaPlus />}
+                      </button>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6">
+                    {proveedores.length === 0 ? 'Cargando Proveedores...' : 'No se encontraron proveedores'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* ⬅️ Aquí usamos el componente de modal de detalles en su lugar */}
-        {proveedorSeleccionado && <DetallesProveedor proveedor={proveedorSeleccionado} onClose={cerrarModal} />}
+      
+        {cargandoDetalles && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <p>Cargando detalles...</p>
+            </div>
+          </div>
+        )}
+
+        {proveedorSeleccionadoId && !cargandoDetalles && (
+          <DetallesProveedor 
+            proveedorId={proveedorSeleccionadoId} 
+            onClose={cerrarModal} 
+          />
+        )}
       </div>
-    </div >
+    </div>
   );
 };
 

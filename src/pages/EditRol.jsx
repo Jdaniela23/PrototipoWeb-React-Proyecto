@@ -1,74 +1,67 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import './FormAdd.css'; 
+import './FormAdd.css';
+import { FaSave } from 'react-icons/fa';
+// 🚨 Importar la función de servicio que actualiza el rol
+import { updateRol } from '../api/rolesService.js';
+
+// --- Función de utilidad para aplanar permisos (si vienen agrupados) ---
+const aplanarPermisos = (permisosAgrupados) => {
+  if (!permisosAgrupados || typeof permisosAgrupados !== 'object') return [];
+  // Object.values() obtiene los arrays de permisos, y .flat() los une en una sola lista.
+  return Object.values(permisosAgrupados).flat();
+};
 
 function EditRol() {
   const location = useLocation();
   const rolEdit = location.state?.rol; // Recibe rol a editar (objeto)
+  const navigate = useNavigate();
 
-  // Objeto con TODOS los permisos disponibles en el sistema, por categoría
-  // (Este es el mismo objeto que usamos en FormAdd.jsx para tener todos los permisos)
+  // 🛑 Verificación inicial para evitar errores si no se pasó el rol
+  if (!rolEdit) {
+    navigate('/roles', { state: { errorMessage: 'No se encontró el rol para editar.' } });
+    return null;
+  }
+
+  // Objeto con TODOS los permisos disponibles en el sistema (Se mantiene para la UI)
   const todosLosPermisosDisponibles = {
-    'Gestión de Usuarios': [
-      'Gestión de Usuarios',
-    ],
-    'Gestión de Productos': [
-      'Gestión de Productos',
-    ],
-    'Gestión de Pedidos': [
-      'Gestión de Pedidos',
-    ],
-    'Gestión de Roles y Permisos': [
-      'Gestión de Roles',
-    ],
-    'Gestión de Clientes': [
-      'Gestión de Clientes',
-    ],
-    'Gestión de Compras': [
-      'Gestión de Compras',
-    ],
-    'Gestión de Ventas': [
-      'Gestión de Ventas',
-    ],
-    'Dashboard': [
-      'Ver dashboard con información clave de Compras y Ventas',
-    ],
-    'Gestión de Perfil': [
-      'Gestión de Perfil'
-    ],
+    'Gestión de Usuarios': ['Gestión de Usuarios'],
+    'Gestión de Productos': ['Gestión de Productos'],
+    'Gestión de Pedidos': ['Gestión de Pedidos'],
+    'Gestión de Roles y Permisos': ['Gestión de Roles'],
+    'Gestión de Clientes': ['Gestión de Clientes'],
+    'Gestión de Compras': ['Gestión de Compras'],
+    'Gestión de Ventas': ['Gestión de Ventas'],
+    'Dashboard': ['Dashboard'],
+    'Gestión de Perfil': ['Gestión de Perfil'],
   };
 
+  // Permisos predefinidos (Se mantiene para la lógica de roles base)
   const permisosPorRol = {
-    Administrador: {
-      'Gestión de Usuarios': ['Gestión de Usuarios'],
-      'Gestión de Productos': ['Gestión de Productos'],
-      'Gestión de Pedidos': ['Gestión de Pedidos'],
-      'Gestión de Roles y Permisos': ['Gestión de Roles'],
-      'Gestión de Clientes': ['Gestión de Clientes'],
-      'Gestión de Compras': ['Gestión de Compras'],
-      'Gestión de Ventas': ['Gestión de Ventas'],
-      'Dashboard': ['Ver dashboard con información clave de Compras y Ventas'],
-    },
+    Administrador: todosLosPermisosDisponibles, // Asumo que Admin tiene todos
     Cliente: {
       'Gestión de Perfil': ['Gestión de Perfil'],
       'Gestión de Compras': ['Gestión de Compras'],
     },
   };
 
-  // Estado inicial con datos del rol que editamos o vacíos
+  // 1. 🟢 ESTADO INICIAL AJUSTADO: Se guardan ID, Fecha_Creacion y Estado
   const [roleData, setRoleData] = useState({
-    nombreRol: rolEdit?.nombreRol || '',
-    descripcionRol: rolEdit?.descripcion || '',
-    estadoRol: rolEdit?.estado || 'Activo',
+    id: rolEdit.id, // ¡CLAVE! ID para el PUT
+    nombreRol: rolEdit.nombreRol || '',
+    descripcionRol: rolEdit.descripcion || '',
+    // Estado NO se incluye en el formulario, pero se necesita en el submit.
+    // Lo usaremos desde rolEdit.estado al enviar.
+    fecha_Creacion: rolEdit.fecha_Creacion || 'N/A', // ¡CLAVE! Fecha_Creacion para el PUT
   });
 
+  // 2. 🟢 ESTADO DE PERMISOS AJUSTADO: Aplana la lista inicial
   const [permisosSeleccionados, setPermisosSeleccionados] = useState(
-    Array.isArray(rolEdit?.permisos) ? rolEdit.permisos : []
+    aplanarPermisos(rolEdit.permisos)
   );
 
   const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const navigate = useNavigate();
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
@@ -88,26 +81,46 @@ function EditRol() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // 3. 🟢 FUNCIÓN SUBMIT AJUSTADA: Llama a la API con todos los datos
+  // EditRol.jsx - Función handleSubmit corregida
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const rolActualizado = {
-      ...roleData,
-      permisos: permisosSeleccionados,
+
+    const rolParaApi = {
+          "Id_Rol": roleData.id, 
+        "Nombre_Rol": roleData.nombreRol, // Usamos roleData.nombreRol (el valor del input)
+        "Descripcion_Rol": roleData.descripcionRol, // Usamos roleData.descripcionRol (el valor del textarea)
+        
+        // Estado_Rol es un booleano (true/false)
+        "Estado_Rol": rolEdit.estado, 
+        
+        // 🚨 CLAVE: Permisos con 'P' mayúscula para coincidir con el DTO
+        "Permisos": permisosSeleccionados, 
     };
 
-    console.log('Rol actualizado:', rolActualizado);
+    // 🟢 DEPURACIÓN: Muestra el objeto exacto que se envía para verificar en la consola/Network
+    console.log('Objeto FINAL a enviar a la API (PUT):', rolParaApi);
 
-    alert('Rol actualizado exitosamente!');
+    try {
+      await updateRol(rolParaApi);
 
-    setTimeout(() => {
-      navigate('/roles');
-    }, 1000);
+      // Navegar con mensaje de éxito
+      navigate('/roles', {
+        state: {
+          successMessage: `El rol '${rolParaApi.Nombre_Rol}' ha sido actualizado exitosamente.`
+        }
+      });
+
+    } catch (error) {
+      // Manejo de errores más detallado
+      console.error('Error al actualizar rol:', error.response?.data || error.message);
+      alert(`Error al actualizar el rol: ${error.response?.data?.message || error.message || 'Error desconocido.'}`);
+    }
   };
 
 
-  const permisosAMostrar = (roleData.nombreRol === 'Administrador' || roleData.nombreRol === 'Cliente')
-    ? permisosPorRol[roleData.nombreRol]
-    : todosLosPermisosDisponibles; // Si es un rol personalizado o vacío, mostramos todos los permisos
+  const permisosAMostrar = todosLosPermisosDisponibles;
 
   return (
     <div className="role-form-container">
@@ -117,44 +130,33 @@ function EditRol() {
 
 
         <div className="formulario-roles">
-          <h1 className="form-title">Editar Rol</h1>
+          <h1 className="form-title">Editar Rol: {rolEdit.nombreRol}</h1>
           <p className="form-info">Modifica los datos y permisos del rol seleccionado</p><br /><br />
 
           <form onSubmit={handleSubmit} className="role-form">
+
+            {/* Campo Nombre Rol */}
             <div className="form-group">
               <label htmlFor="nombreRol" className="label-heading">
-                Nombre del Rol:  <span className="required-asterisk">*</span> {/* Añadido asterisco */}
+                Nombre del Rol:  <span className="required-asterisk">*</span>
               </label>
-              <select
+              <input
                 id="nombreRol"
                 name="nombreRol"
+                type="text"
                 value={roleData.nombreRol}
                 onChange={handleChange}
                 required
                 className="input-field"
-                // Deshabilitar la edición del nombre del rol si no es un nuevo rol,
-                // para evitar que se cambie el rol base (Administrador/Cliente)
-                // y se desordenen los permisos iniciales asociados a ellos.
-                // Si quieres permitir cambiar a un rol predefinido o nuevo, quita 'disabled'.
-                disabled={rolEdit?.nombreRol === 'Administrador' || rolEdit?.nombreRol === 'Cliente'}
-              >
-                <option value="">-- Seleccione un rol --</option>
-                {/* Opciones solo si el rol no es predefinido o si se está creando uno nuevo */}
-                {/* En Editar, solo listamos el rol actual y quizás "Agregar Nuevo rol" si quieres esa funcionalidad */}
-                <option value="Administrador">Administrador</option>
-                <option value="Cliente">Cliente</option>
-                {/* Puedes añadir una opción para "Agregar Nuevo rol" si quieres permitir convertir un rol existente en uno personalizado aquí */}
-                {/* <option value="Agregar Nuevo rol">-- Agregar Nuevo rol +</option> */}
-                {/* Para roles personalizados que no sean "Administrador" o "Cliente", aseguramos que su nombre se muestre */}
-                {(!['Administrador', 'Cliente'].includes(roleData.nombreRol) && roleData.nombreRol) && (
-                  <option value={roleData.nombreRol}>{roleData.nombreRol}</option>
-                )}
-              </select>
+              // Deshabilitar la edición del nombre si es un rol base
+              //disabled={rolEdit.nombreRol === 'Administrador' || rolEdit.nombreRol === 'Cliente'}
+              />
             </div>
 
+            {/* Campo Descripción */}
             <div className="form-group">
               <label htmlFor="descripcionRol" className="label-heading">
-                Descripción: <span className="required-asterisk">*</span> {/* Añadido asterisco */}
+                Descripción: <span className="required-asterisk">*</span>
               </label>
               <textarea
                 id="descripcionRol"
@@ -164,20 +166,19 @@ function EditRol() {
                 onChange={handleChange}
                 rows="3"
                 required
-                className="input-field textarea-field" // Añadida clase 'textarea-field' para consistencia
+                className="input-field textarea-field"
               />
             </div>
 
             {/* Sección de Permisos */}
-            {/* Solo muestra permisos si hay un nombre de rol seleccionado */}
             {roleData.nombreRol && (
               <div className="form-group permisos-group">
                 <label className="titulo-permisos">Permisos para {roleData.nombreRol}:<span className="required-asterisk">*</span></label>
                 <div className="permisos-columns-container">
                   {Object.entries(permisosAMostrar).map(
                     ([categoria, listaPermisos]) => (
-                 
                       <div key={categoria} className="categoria-permisos-seccion">
+
                         {listaPermisos.map((permiso) => (
                           <label key={`${categoria}-${permiso}`} className="checkbox-label">
                             <input
@@ -195,14 +196,13 @@ function EditRol() {
               </div>
             )}
 
-            {/* Contenedor para los botones de acción */}
-            <div className="form-actions"> {/* Clase agregada para centrar y espaciar botones */}
+            {/* Botones de acción */}
+            <div className="form-actions">
               <button type="submit" className="save-button">
-                Actualizar Rol
+                <FaSave style={{ marginRight: '8px' }} /> Actualizar Rol
               </button>
-
             </div>
-            <button type="button" className="cancel-button" onClick={() => navigate(-1)}> {/* type="button" para evitar envío */}
+            <button type="button" className="cancel-button" onClick={() => navigate(-1)}>
               Cancelar
             </button>
           </form>

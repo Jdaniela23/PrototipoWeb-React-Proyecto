@@ -1,111 +1,120 @@
 .main-footer {
-  background-color: white; /* Color de fondo del footer como en la imagen */
-  color: #333; /* Color de texto general para el footer */
-  padding: 40px 20px; /* Padding interno para que el contenido no pegue a los bordes */
- 
-  font-family: 'DM Sans', sans-serif; /* O la fuente que uses en tu proyecto */
+  background-color: #c89b3c;
+  color: #fdfcfc;
+  padding: 5px 0px;   /* antes 10px → más compacto */
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
 }
 
 .footer-top {
   text-align: center;
-  margin-bottom: 20px;
-
+  margin-bottom: 10px; /* antes 20px */
 }
 
 .footer-brand {
-  font-size: 1.5em; /* Tamaño del título/logo */
-  margin-bottom: 10px;
-  color:  #c89b3c;
-  
+  font-size: 1.1em;   /* antes 1.5em → más pequeño */
+  margin-bottom: 5px; /* antes 10px */
+  color: #f5f1ea;
+}
+
+.main-content {
+  flex: 1;
+  /* Esto hace que el main ocupe todo el espacio disponible */
 }
 
 .footer-divider {
   border: none;
-  border-top: 1px solid #ccc; /* Estilo de la línea divisoria */
-  width: 80%; /* Ancho de la línea */
-  margin: 20px auto; /* Centrar la línea */
+  border-top: 1px solid #ffffff;
+  width: 70%;        /* antes 80% → más angosto */
+  margin: 10px auto; /* antes 20px → menos espacio */
 }
 
 .footer-columns {
   display: flex;
-  justify-content: space-around; /* Distribuye las columnas uniformemente */
-  flex-wrap: wrap; /* Permite que las columnas se envuelvan en pantallas pequeñas */
-  gap: 30px; /* Espacio entre las columnas */
-  max-width: 1200px; /* Ancho máximo del contenido del footer */
-  margin: 0 auto; /* Centrar las columnas */
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 15px;          /* antes 30px → menos espacio */
+  max-width: 1000px;  /* antes 1200px → más compacto */
+  margin: 0 auto;
+  color: #ffffff;
 }
 
 .footer-column {
-  flex: 1; /* Permite que las columnas crezcan y ocupen el espacio disponible */
-  min-width: 250px; /* Ancho mínimo para cada columna antes de envolverse */
-  padding: 15px; /* Padding interno para las columnas */
+  flex: 1;
+  min-width: 200px;  /* antes 250px */
+  padding: 8px;      /* antes 15px */
+  color: #ffffff;
 }
 
 .contact-column {
-    border-left: 1px solid #ccc; /* Línea vertical como en tu diseño */
-    border-right: 1px solid #ccc; /* Línea vertical como en tu diseño */
-    padding-left: 30px;
-    padding-right: 30px;
+  border-left: 1px solid #ffffff;
+  border-right: 1px solid #ffffff;
+  padding-left: 20px;  /* antes 30px */
+  padding-right: 20px; /* antes 30px */
 }
 
 .column-title {
-  font-size: 1.2em;
+  font-size: 1em;     /* antes 1.2em */
   font-weight: bold;
-  margin-bottom: 15px;
-  color: #333 /* Asegura que los títulos de columna sean negros */
+  margin-bottom: 8px; /* antes 15px */
+  color: #ffffff;
 }
 
 .footer-list {
-  list-style: none; /* Quita los puntos de la lista */
+  list-style: none;
   padding: 0;
   margin: 0;
 }
 
 .footer-list li {
-  margin-bottom: 8px;
+  margin-bottom: 5px; /* antes 8px */
 }
 
 .footer-list a {
-  color: #333; /* Color de los enlaces */
+  color: #fff9f9;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .footer-list a:hover {
-  color: #007bff; /* Color de los enlaces al pasar el mouse */
+  color: #161616;
 }
 
 .footer-column p {
-    margin-bottom: 8px; /* Espacio debajo de los párrafos de info */
-    color: #555; /* Color del texto de información */
+  margin-bottom: 5px; /* antes 8px */
+  color: #eeeaea;
 }
 
-/* Estilos para el texto "[whatsapp]" que es un enlace dentro de un párrafo */
 .footer-column p a {
-    color: #25D366; /* Un verde WhatsApp */
-    font-weight: bold;
-}
-.footer-column p a:hover {
-    text-decoration: underline;
+  color: #25D366; /* verde WhatsApp */
+  font-weight: bold;
 }
 
-/* Media Queries para responsividad (ajusta según tus necesidades) */
+.footer-column p a:hover {
+  text-decoration: underline;
+}
+
+/* Media Queries para responsividad */
 @media (max-width: 768px) {
   .footer-columns {
-    flex-direction: column; /* Apila las columnas en pantallas más pequeñas */
-    align-items: center; /* Centra las columnas apiladas */
+    flex-direction: column;
+    align-items: center;
   }
 
   .footer-column {
-    width: 100%; /* Las columnas ocupan todo el ancho */
-    text-align: center; /* Centra el texto */
-    margin-bottom: 20px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 15px; /* antes 20px */
   }
 
   .contact-column {
-    border-left: none; /* Quita las líneas verticales en modo columna */
+    border-left: none;
     border-right: none;
-    padding-left: 15px; /* Ajusta el padding */
-    padding-right: 15px;
+    padding-left: 10px; /* antes 15px */
+    padding-right: 10px;
   }
+}
+
+.main-content-area {
+  flex-grow: 1;
 }

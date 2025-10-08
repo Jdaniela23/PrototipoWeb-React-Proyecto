@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import './Nav.css';
-import { FaBars, FaCaretDown, FaCaretUp, FaStore } from 'react-icons/fa';
-import LogoUno from '../assets/Logo.png';
-import { Link } from 'react-router-dom';
+import { FaBars, FaCaretDown, FaCaretUp, FaStore, FaSignOutAlt } from 'react-icons/fa';
+import LogoUno from '../assets/img/Logo.png';
+import { Link, useNavigate } from 'react-router-dom';
 
-
-export default function Nav() { 
+export default function Nav() {
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const [openMenus, setOpenMenus] = useState({}); // Estado para controlar los menús desplegables
+
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuCollapsed(!menuCollapsed);
@@ -19,6 +20,17 @@ export default function Nav() {
       [menuName]: !prevState[menuName],
     }));
   };
+
+  // ⭐ Función para manejar el cierre de sesión ⭐
+  const handleLogout = () => {
+    // Elimina el token de autenticación del localStorage
+    localStorage.removeItem('userToken');
+    // Elimina el rol del usuario del localStorage
+    localStorage.removeItem('userRole');
+    // Redirige al usuario a la página de inicio
+    navigate('/');
+  };
+
 
   return (
     <div className="container">
@@ -35,18 +47,31 @@ export default function Nav() {
           <div className="sidebar-menu-items">
             {/* Tienda (no desplegable) */}
             <div className="menu-item-group">
-              <Link to='/panelAdmin' className="link-menu">
-                <p><strong>Inicio</strong></p>
-              </Link>
-              <p>
-                <strong>Tienda<FaStore style={{ color: '#e1b94c', marginLeft: '8px' }} /></strong>
-              </p>
+              <div className='link-menu'>
+                <p>
+                  <strong className='nombre-modulo'>Tienda</strong>
+                </p>
+                <FaStore style={{ color: '#fff' }} />
+              </div>
+            </div>
+
+            {/* Dashboard */}
+            <div className="menu-item-group">
+              <div className="menu-header" onClick={() => toggleSubmenu('dashboard')}>
+                <p><strong className='nombre-modulo'>Dashboard</strong></p>
+                {openMenus.dashboard ? <FaCaretUp /> : <FaCaretDown />}
+              </div>
+              {openMenus.dashboard && (
+                <div className="submenu">
+                  <Link to='/dashboard' className='link-menu'> Dashboard </Link>
+                </div>
+              )}
             </div>
 
             {/* Configuración */}
             <div className="menu-item-group">
               <div className="menu-header" onClick={() => toggleSubmenu('configuracion')}>
-                <p><strong>Configuración</strong></p>
+                <p><strong className='nombre-modulo'>Configuración</strong></p>
                 {openMenus.configuracion ? <FaCaretUp /> : <FaCaretDown />}
               </div>
               {openMenus.configuracion && (
@@ -59,7 +84,7 @@ export default function Nav() {
             {/* Usuarios */}
             <div className="menu-item-group">
               <div className="menu-header" onClick={() => toggleSubmenu('usuarios')}>
-                <p><strong>Usuarios</strong></p>
+                <p><strong className='nombre-modulo'>Usuarios</strong></p>
                 {openMenus.usuarios ? <FaCaretUp /> : <FaCaretDown />}
               </div>
               {openMenus.usuarios && (
@@ -72,12 +97,15 @@ export default function Nav() {
             {/* Compras */}
             <div className="menu-item-group">
               <div className="menu-header" onClick={() => toggleSubmenu('compras')}>
-                <p><strong>Compras</strong></p>
+                <p><strong className='nombre-modulo'>Compras</strong></p>
                 {openMenus.compras ? <FaCaretUp /> : <FaCaretDown />}
               </div>
               {openMenus.compras && (
                 <div className="submenu">
                   <Link to='/productos' className='link-menu'> Productos </Link>
+                  <Link to='/tallas' className='link-menu'> Tallas </Link>
+                  <Link to='/colores' className='link-menu'> Colores </Link>
+
                   <Link to='/categorias' className='link-menu'> Categoría Productos </Link>
                   <Link to='/proveedores' className='link-menu'> Proveedores </Link>
                   <Link to='/compras' className='link-menu'> Compras </Link>
@@ -88,35 +116,24 @@ export default function Nav() {
             {/* Ventas */}
             <div className="menu-item-group">
               <div className="menu-header" onClick={() => toggleSubmenu('ventas')}>
-                <p><strong>Ventas</strong></p>
+                <p><strong className='nombre-modulo'>Ventas</strong></p>
                 {openMenus.ventas ? <FaCaretUp /> : <FaCaretDown />}
               </div>
               {openMenus.ventas && (
                 <div className="submenu">
                   <Link to='/pedidos' className='link-menu'> Pedidos </Link>
-                  <Link to='/creditos' className='link-menu'> Créditos </Link>
+             
                 </div>
               )}
             </div>
 
-            {/* Dashboard */}
-            <div className="menu-item-group">
-              <div className="menu-header" onClick={() => toggleSubmenu('dashboard')}>
-                <p><strong>Dashboard</strong></p>
-                {openMenus.dashboard ? <FaCaretUp /> : <FaCaretDown />}
-              </div>
-              {openMenus.dashboard && (
-                <div className="submenu">
-                  <Link to='/dashboard' className='link-menu'> Dashboard </Link>
-                </div>
-              )}
-            </div>
 
             {/* Cerrar sesión (no desplegable) */}
             <div className="menu-item-group">
-              <Link to='/' className='link-menu'>
-                <p><strong>Cerrar sesión</strong></p>
-              </Link>
+              {/* ⭐ Usar un botón o div para el evento de clic ⭐ */}
+              <div onClick={handleLogout} className='link-menu'>
+                <p><strong className='nombre-modulo'>Cerrar sesión <FaSignOutAlt style={{ color: '#fff', marginTop: '5px' }} /></strong></p>
+              </div>
             </div>
           </div>
         )}

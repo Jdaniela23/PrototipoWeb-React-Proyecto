@@ -1,29 +1,27 @@
-import './Detalles.css';
-import { FaList, FaCalendarAlt, FaIdCard } from 'react-icons/fa';
+import React from "react";
+import "./Detalles.css"; 
+import { FaIdCard, FaFont,  FaParagraph} from 'react-icons/fa';
 
 export default function DetallesCategoria({ categoria, onClose }) {
-  if (!categoria) {
-    return null;
-  }
+  if (!categoria) return null;
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
+        <h2 className="titulo-modal-detalle">DETALLES DE LA CATEGORÍA</h2>
+
         <div className="detalle-layout">
-          <div className="detalle-info">
-            <h2 className="titulo-modal-detalle">Detalles de la Categoría</h2>
-            <p><strong><FaIdCard /> Id:</strong> {categoria.id}</p>
-            <p><strong>Descripción:</strong> {categoria.descripcion}</p>
-            <p><strong><FaList /> Nombre:</strong> {categoria.nombre}</p>
-
-            <p><strong>< FaCalendarAlt /> Fecha de creación:</strong> {categoria.fechaCreacion}</p>
-            <p><strong>Estado:</strong> {categoria.estado ? 'Activa ✅' : 'Inactiva ❌'}</p>
+          <div className="detalle-info" style={{ color: "#fff" }}>
+            <p><strong><FaIdCard/> ID:</strong> {categoria.id_Categoria_Producto}</p>
+            <p><strong><FaFont/> Nombre:</strong> {categoria.nombre_Categoria}</p>
+            <p><strong><FaParagraph/> Descripción:</strong> {categoria.descripcion || "Sin descripción"}</p>
           </div>
-
         </div>
-        <button className="boton-cancelar-detalle" onClick={onClose}>Cerrar</button>
-      </div>
 
+        <button className="boton-cancelar-detalle" onClick={onClose}>
+          Cerrar
+        </button>
+      </div>
     </div>
   );
 }

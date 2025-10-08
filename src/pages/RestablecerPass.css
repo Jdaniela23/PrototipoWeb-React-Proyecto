@@ -7,11 +7,12 @@
     max-width: 400px; /* Limita el ancho como los otros inputs */
     margin-bottom: 15px; /* Espacio debajo del input de contraseña */
    
+   
 }
 
 /* Estilos para los inputs de contraseña */
 .password-input {
-    width: 400px; /* Ocupa todo el ancho de su contenedor (.password-input-container) */
+    width: 500px; /* Ocupa todo el ancho de su contenedor (.password-input-container) */
     height: 45px;
     padding: 10px 15px;
     border: 1px solid #ccc;
@@ -20,6 +21,7 @@
     box-sizing: border-box;
     margin-top: 5px;
     transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+ 
 }
 
 /* Estilos para el icono de mostrar/ocultar contraseña */
@@ -60,8 +62,8 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: 100%; /* Para que se alinee con el ancho de los inputs */
-    max-width: 400px; /* Mismo max-width que los inputs */
+    width: 130%; /* Para que se alinee con el ancho de los inputs */
+
     margin-top: 20px; /* Espacio para separarlo de los mensajes/inputs */
     box-sizing: border-box;
     text-decoration: none;
@@ -88,3 +90,9 @@
     text-decoration: underline; /* Subraya en hover si lo deseas */
 }
 
+.titulo-restablecerpass{
+    text-align: center;
+    font-size: larger;
+    margin-right: -10%;
+    
+}

@@ -1,0 +1,119 @@
+.centered-container {
+  max-width: 600px;      
+  margin: -40% auto 60px; /* top margin para no tapar TopBar */
+  background-color: #fff;
+  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;   
+  color: #000;
+  justify-content: center;
+  margin-left: 30%;
+  box-shadow: 0 0 20px 5px rgba(194, 192, 186, 0.75);
+}
+
+.titulo-editperfil{
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-photo-wrapper {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center; 
+}
+
+.editar-perfil-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%; /* asegura que los inputs llenen el grid */
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.form-row label {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.form-row input,
+.form-row select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  width: 100%; /* ancho uniforme en todos los inputs y selects */
+  box-sizing: border-box;
+}
+
+.photo-preview-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.foto-preview-large {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #c89b3c;
+}
+
+.form-actions {
+  grid-column: span 2;
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  justify-content: center; 
+}
+
+.btn-primary {
+  background-color: #c89b3c;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-primary:hover {
+background-color: #9d6d28;
+}
+.btn-secondary {
+  background-color: #1a1818;
+  color: #f8f7f7;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.success-message {
+  margin-top: 15px;
+  color: green;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Responsive: en móviles pasar a una columna */
+@media (max-width: 768px) {
+  .editar-perfil-form {
+    grid-template-columns: 1fr;
+  }
+  .form-photo-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+.parrafo-customer{
+  color: #7e7d7d;
+}

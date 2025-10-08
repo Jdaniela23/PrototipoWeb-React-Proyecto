@@ -1,105 +1,104 @@
-import React, { useState } from 'react';
-import './ProductosPage.css';
-import { FaHome, FaSearch, FaPlus, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback } from 'react';
+import './Page.css';
+import { FaSearch, FaPlus, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 import Nav from '../components/Nav.jsx';
 import Footer from '../components/Footer.jsx';
 import Detalles from '../components/Detalles.jsx';
 import DeleteProducts from './DeleteProductos.jsx';
-
 import { useLocation, Link } from 'react-router-dom';
+import { getProductsAdmin , changeProductState, deleteProduct } from '../api/productsService';
+import ToastNotification from '../components/ToastNotification.jsx';
 
 export default function ProductosPage() {
-    const [menuCollapsed, setMenuCollapsed] = useState(false);
-    // ➡️ Estado para manejar el modal de detalles
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const location = useLocation();
+    const navSuccessMessage = location.state?.successMessage;
 
-    // ➡️ Estado para manejar el modal de eliminación (NUEVO)
+    // === ESTADOS ===
+    const [menuCollapsed, setMenuCollapsed] = useState(false);
+    const [productos, setProductos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
     const [productoAEliminar, setProductoAEliminar] = useState(null);
 
-    const toggleMenu = () => {
-        setMenuCollapsed(!menuCollapsed);
-    };
+    const [successMessage, setSuccessMessage] = useState(navSuccessMessage || null);
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [loadingAction, setLoadingAction] = useState(false);
 
-    // Datos de los productos (ejemplo)
-    const [productos, setProductos] = useState([
-        {
-            id: 1, nombre: 'Blusa Estraple', cantidad: 10, precio: '$60.000', estado: true, descripcion: 'blusa estraple de algodón suave y facil de cuidar.', talla: 'M',
-            imagenes: [
-                'src/assets/Imagen-producto1.png',
-                'src/assets/Imagen-producto1.png',
+    const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
-            ],
-            colores: ['#000'], //negro
-            categoria: 'Femenina',
-            marca: 'Deluxe',
-            fecha_Creacion: '20-06-2025'
-        },
-        {
-            id: 2, nombre: 'Vestigo Manga Larga', cantidad: 5, precio: '$70.000', estado: true, descripcion: 'Vestido medio corto de manga larga tela en lino.', talla: 'L',
-            imagenes: [
-                'src/assets/vestido-producto2.png',
-                'src/assets/vestido-producto2.png',
-                'src/assets/vestido-producto2.png',
+    // === CARGA INICIAL DE PRODUCTOS ===
+    const fetchProducts = useCallback(async () => {
+        setError(null);
+        setLoading(true);
+        try {
+            const data = await getProductsAdmin();
+            setProductos(data);
+        } catch (err) {
+            console.error(err);
+            setError("No se pudieron cargar los productos. Por favor, intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-            ],
-            colores: ['#000'],
-            categoria: 'Femenina',
-            marca: 'Elena boteli',
-            fecha_Creacion: '20-06-2025'
-        },
-        {
-            id: 3, nombre: 'Cargo con Camisa', cantidad: 4, precio: '$50.000', estado: true, descripcion: 'Conjuto de camisa y cargo tono claro.', talla: 'XS',
-            imagenes: [
-                'src/assets/Imagen3-producto3.png',
-                'src/assets/Imagen3-producto3.png',
-            ],
-            colores: ['#d1d5db'],
-            categoria: 'Niños',
-            marca: 'Baby',
-            fecha_Creacion: '20-06-2025'
-        },
-    ]);
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
 
-    const [searchTerm, setSearchTerm] = useState('');
-    const location = useLocation();
-
+    // === FILTRADO ===
     const filteredProductos = productos.filter(producto =>
         Object.values(producto).some(value =>
             String(value).toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
 
-    const toggleEstadoProducto = (idProducto) => {
-        setProductos(prev =>
-            prev.map(p =>
-                p.id === idProducto ? { ...p, estado: !p.estado } : p
-            )
-        );
+    // === TOGGLE ESTADO PRODUCTO ===
+    const toggleEstadoProducto = async (idProducto, estadoActual) => {
+        setLoadingAction(true);
+        try {
+            await changeProductState(idProducto, !estadoActual);
+            setProductos(prev =>
+                prev.map(p =>
+                    p.id_Producto === idProducto ? { ...p, estado_Producto: !estadoActual } : p
+                )
+            );
+            setSuccessMessage(`Estado del producto ID ${idProducto} actualizado correctamente.`);
+            setErrorMessage(null);
+        } catch (err) {
+            console.error(err);
+            setErrorMessage("Error al cambiar el estado del producto.");
+            setSuccessMessage(null);
+        } finally {
+            setLoadingAction(false);
+        }
     };
 
-    // ➡️ Funciones para abrir y cerrar el modal de detalles
-    const handleVerDetalles = (producto) => {
-        setProductoSeleccionado(producto);
-    };
+    // === DETALLES MODAL ===
+    const handleVerDetalles = (producto) => setProductoSeleccionado(producto);
+    const handleCerrarModal = () => setProductoSeleccionado(null);
 
-    const handleCerrarModal = () => {
-        setProductoSeleccionado(null);
-    };
+    // === ELIMINAR PRODUCTO ===
+    const handleAbrirModalEliminar = (producto) => setProductoAEliminar(producto);
+    const handleCerrarModalEliminar = () => setProductoAEliminar(null);
 
-    // ➡️ Funciones para el modal de eliminación 
-    const handleAbrirModalEliminar = (producto) => {
-        setProductoAEliminar(producto);
-    };
-
-    const handleCerrarModalEliminar = () => {
-        setProductoAEliminar(null);
-    };
-
-    const handleConfirmarEliminar = (producto) => {
-        // Lógica para eliminar el producto del estado
-        setProductos(prev => prev.filter(p => p.id !== producto.id));
-        setProductoAEliminar(null); // Cierra el modal después de la acción
-        alert(`Producto '${producto.nombre}' eliminado correctamente.`);
+    const handleConfirmarEliminar = async (producto) => {
+        setLoadingAction(true);
+        try {
+            await deleteProduct(producto.id_Producto);
+            await fetchProducts();
+            setProductoAEliminar(null);
+            setSuccessMessage(`Producto '${producto.nombre_Producto}' eliminado exitosamente.`);
+            setErrorMessage(null);
+        } catch (err) {
+            console.error(err);
+            setErrorMessage(`No se pudo eliminar el producto '${producto.nombre_Producto}'.`);
+            setSuccessMessage(null);
+        } finally {
+            setLoadingAction(false);
+        }
     };
 
     return (
@@ -107,7 +106,6 @@ export default function ProductosPage() {
             <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
 
             <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
-
                 <div className="header">
                     <div className="header-left">
                         <h1>Gestión de Productos</h1>
@@ -123,7 +121,7 @@ export default function ProductosPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <button className="search-button">
-                            <FaSearch color="#fff" /> Buscar
+                            <FaSearch size={15} /> 
                         </button>
                     </div>
                     <Link className="add-button" to="/formproduct">
@@ -144,58 +142,74 @@ export default function ProductosPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredProductos.map(p => (
-                                <tr key={p.id}>
-                                    <td>{p.nombre}</td>
-                                    <td>{p.cantidad}</td>
-                                    <td>{p.precio}</td>
-                                    <td>
-                                        <label className="switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={p.estado}
-                                                onChange={() => toggleEstadoProducto(p.id)}
-                                            />
-                                            <span className="slider round"></span>
-                                        </label>
-                                    </td>
-                                    <td className="icons">
-                                        {/* ➡️ Botón para ver detalles del producto actual (p) */}
-                                        <button onClick={() => handleVerDetalles(p)} className="icon-button black">
-                                            <FaEye />
-                                        </button>
-                                        <Link
-                                            to="/editarProducto"
-                                            state={{ producto: p }}
-                                            className="icon-button blue"
-                                            title="Editar"
-                                        >
-                                            <FaEdit />
-                                        </Link>
-                                        {/* ➡️ Botón para abrir el modal de eliminación (AQUÍ ESTÁ EL CAMBIO) */}
-                                        <button
-                                            className="icon-button red"
-                                            title="Eliminar"
-                                            onClick={() => handleAbrirModalEliminar(p)}
-                                        >
-                                            <FaTrash />
-                                        </button>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="loading-message">Cargando productos...</td>
+                                </tr>
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center', color: 'red' }}>
+                                        {error}
                                     </td>
                                 </tr>
-                            ))}
+                            ) : filteredProductos.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron productos.</td>
+                                </tr>
+                            ) : (
+                                filteredProductos.map(p => (
+                                    <tr key={p.id_Producto}>
+                                        <td>{p.nombre_Producto}</td>
+                                        <td>{p.stock_Total}</td>
+                                        <td>{p.precio}</td>
+                                        <td>
+                                            <label className="switch" title={p.estado_Producto ? 'Activo' : 'Inactivo'}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={p.estado_Producto}
+                                                    disabled={loadingAction}
+                                                    onChange={() => toggleEstadoProducto(p.id_Producto, p.estado_Producto)}
+                                                />
+                                                <span className="slider round"></span>
+                                            </label>
+                                        </td>
+                                        <td className="icons">
+                                            <button onClick={() => handleVerDetalles(p)} className="icon-button black">
+                                                <FaEye />
+                                            </button>
+                                            <Link
+                                                to="/editarProducto"
+                                                state={{ producto: p }}
+                                                className="icon-button blue"
+                                            >
+                                                <FaEdit />
+                                            </Link>
+                                            <button
+                                                className="icon-button red"
+                                                disabled={loadingAction}
+                                                onClick={() => handleAbrirModalEliminar(p)}
+                                            >
+                                                { <FaTrash />}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
-                <div className="footer-productos-page"> <Footer /></div>
 
+                <div className="footer-page">
+                    <Footer />
+                </div>
             </div>
 
-            {/* ➡️ El modal de detalles se renderiza aquí */}
+            {/* MODAL DETALLES */}
             {productoSeleccionado && (
                 <Detalles producto={productoSeleccionado} onClose={handleCerrarModal} />
             )}
 
-            {/* ➡️ El modal de eliminación se renderiza aquí (NUEVO) */}
+            {/* MODAL ELIMINAR */}
             {productoAEliminar && (
                 <DeleteProducts
                     producto={productoAEliminar}
@@ -203,6 +217,18 @@ export default function ProductosPage() {
                     onConfirm={handleConfirmarEliminar}
                 />
             )}
+
+            {/* TOASTS */}
+            <ToastNotification
+                message={successMessage}
+                type="success"
+                onClose={() => setSuccessMessage(null)}
+            />
+            <ToastNotification
+                message={errorMessage}
+                type="error"
+                onClose={() => setErrorMessage(null)}
+            />
         </div>
     );
 }

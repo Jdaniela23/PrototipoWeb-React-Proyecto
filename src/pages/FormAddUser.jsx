@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FormAdd.css';
 import Nav from '../components/Nav.jsx';
-
 import { useNavigate } from 'react-router-dom';
+
+// Servicios
+import { createNewUser } from '../api/usersService';
+import { getBarrios } from '../api/authService';
+import { getRoles } from '../api/rolesService';
 
 function FormAddUser() {
     const [menuCollapsed, setMenuCollapsed] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
+    const [loading, setLoading] = useState(false); // 👈 estado para el botón
     const navigate = useNavigate();
 
-    // Estado para todos los datos del formulario, incluyendo la foto
+    const [barriosList, setBarriosList] = useState([]);
+    const [rolesList, setRolesList] = useState([]);
+
     const [userData, setUserData] = useState({
         tipoIdentificacion: '',
         numeroIdentificacion: '',
@@ -27,59 +34,106 @@ function FormAddUser() {
         fotoPerfil: null,
     });
 
-    // Estado para la previsualización de la foto
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
-    const toggleMenu = () => {
-        setMenuCollapsed(!menuCollapsed);
-    };
+    // Cargar barrios y roles
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const bData = await getBarrios();
+                setBarriosList(Array.isArray(bData) ? bData : bData.data || []);
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
+                const rData = await getRoles();
+                setRolesList(Array.isArray(rData) ? rData : rData.data || []);
+            } catch (error) {
+                console.error("❌ Error al cargar datos de API:", error.message);
+                showMessage(`Error al cargar datos: ${error.message}.`, 'error');
+            }
+        };
+        loadData();
+    }, []);
 
+    const toggleMenu = () => { setMenuCollapsed(!menuCollapsed); };
+    const togglePasswordVisibility = () => { setShowPassword(!showPassword); };
     const showMessage = (text, type) => {
         setMessage({ text, type });
-        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+        setTimeout(() => setMessage({ text: '', type: '' }), 5000);
     };
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
 
-        // Manejo especial para el input de tipo 'file'
         if (name === 'fotoPerfil') {
             const file = files[0];
             if (file) {
                 setUserData(prev => ({ ...prev, [name]: file }));
                 const reader = new FileReader();
-                reader.onloadend = () => {
-                    setImagePreviewUrl(reader.result);
-                };
+                reader.onloadend = () => { setImagePreviewUrl(reader.result); };
                 reader.readAsDataURL(file);
             } else {
                 setUserData(prev => ({ ...prev, [name]: null }));
                 setImagePreviewUrl(null);
             }
         } else {
-            // Manejo para el resto de los inputs
             setUserData(prev => ({ ...prev, [name]: value }));
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        const requiredFields = [
+            'tipoIdentificacion', 'numeroIdentificacion', 'correoElectronico',
+            'nombre', 'apellido', 'celular', 'barrio', 'direccion', 'rol',
+            'nombreUsuario', 'passwordTemporal', 'confirmarPasswordTemporal'
+        ];
+
+        const missingField = requiredFields.find(field => !userData[field]);
+        if (missingField) {
+            const friendlyName = missingField.replace(/([A-Z])/g, ' $1').toLowerCase();
+            showMessage(`El campo '${friendlyName}' es obligatorio.`, 'error');
+            return;
+        }
 
         if (userData.passwordTemporal !== userData.confirmarPasswordTemporal) {
             showMessage('Las contraseñas no coinciden.', 'error');
             return;
         }
 
-        console.log('Datos del usuario a guardar:', userData);
-        showMessage('Usuario guardado exitosamente!', 'success');
+        try {
 
-        setTimeout(() => {
-            navigate('/usuarios');
-        }, 1000);
+            const formData = new FormData();
+            formData.append('Tipo_Documento', userData.tipoIdentificacion);
+            formData.append('Documento', userData.numeroIdentificacion);
+            formData.append('Email', userData.correoElectronico);
+            formData.append('Nombre_Completo', userData.nombre);
+            formData.append('Apellido', userData.apellido);
+            formData.append('NumeroContacto', userData.celular);
+            formData.append('Direccion', userData.direccion);
+            formData.append('Id_Barrio', Number(userData.barrio));
+            formData.append('Id_Rol', Number(userData.rol));
+            formData.append('Nombre_Usuario', userData.nombreUsuario);
+            formData.append('Password', userData.passwordTemporal);
+            if (userData.fotoPerfil) {
+                formData.append('File', userData.fotoPerfil);
+            }
+
+
+            const nuevoUsuario = await createNewUser(formData);
+
+            // 📌 Navegar a /usuarios con mensaje de éxito
+            navigate('/usuarios', {
+                state: {
+                    successMessage: `Usuario ${nuevoUsuario.nombre_Usuario || userData.nombreUsuario} creado exitosamente `
+                }
+            });
+
+        } catch (error) {
+            console.error('Error al agregar usuario:', error);
+            showMessage(`Error al guardar: ${error.message} ❌`, 'error');
+        } finally {
+            setLoading(false); // 👈 resetear estado
+        }
     };
 
     return (
@@ -97,6 +151,7 @@ function FormAddUser() {
                     <p className="form-info">Información para registrar usuarios, selecciona un tipo de rol y guarda el usuario.</p><br /><br />
 
                     <form onSubmit={handleSubmit} className="role-form">
+
                         {/* Tipo de identificación */}
                         <div className="form-group">
                             <label className="label-heading">Tipo de Identificación<span className="required-asterisk">*</span></label>
@@ -133,6 +188,8 @@ function FormAddUser() {
                                 required
                             />
                         </div>
+
+                        {/* Correo electrónico */}
                         <div className="form-group">
                             <label htmlFor="correoElectronico">Correo electrónico: <span className="required-asterisk">*</span></label>
                             <input
@@ -149,12 +206,12 @@ function FormAddUser() {
 
                         {/* Nombre */}
                         <div className="form-group">
-                            <label htmlFor="nombre" className="label-heading">Nombre Completo:<span className="required-asterisk">*</span></label>
+                            <label htmlFor="nombre" className="label-heading">Nombre:<span className="required-asterisk">*</span></label>
                             <input
                                 id="nombre"
                                 name="nombre"
                                 className="input-field"
-                                placeholder="Ingresar nombre completo"
+                                placeholder="Ingresar nombre"
                                 value={userData.nombre}
                                 onChange={handleChange}
                                 required
@@ -192,10 +249,19 @@ function FormAddUser() {
                         {/* Barrio */}
                         <div className="form-group">
                             <label htmlFor="barrio">Barrio: <span className="required-asterisk">*</span></label>
-                            <select id="barrio" name="barrio" value={userData.barrio} onChange={handleChange} required className="barrio-select">
+                            <select
+                                id="barrio"
+                                name="barrio"
+                                value={userData.barrio}
+                                onChange={handleChange}
+                                required
+                                className="input-field"
+                            >
                                 <option value="">Selecciona un Barrio:</option>
-                                {['Niquia', 'Bellavista', 'San Martin', 'Villa Linda', 'Trapiche'].map(b => (
-                                    <option key={b} value={b}>{b}</option>
+                                {barriosList.map(b => (
+                                    <option key={b.id} value={String(b.id)}>
+                                        {b.nombre}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -223,11 +289,13 @@ function FormAddUser() {
                                 value={userData.rol}
                                 onChange={handleChange}
                                 required
-                                className="barrio-select"
+                                className="input-field"
                             >
                                 <option value="">Selecciona el rol</option>
-                                {['Admin', 'Gestor', 'Promotor', 'Usuario'].map(r => (
-                                    <option key={r} value={r}>{r}</option>
+                                {rolesList.map(r => (
+                                    <option key={r.id_Rol} value={String(r.id_Rol)}>
+                                        {r.nombre_Rol}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -291,10 +359,10 @@ function FormAddUser() {
                                 type="file"
                                 accept="image/*"
                                 onChange={handleChange}
-                                className="input-field"
+                                style={{ display: 'none' }}
                             />
-                            <label htmlFor="fotoPerfil" className="custom-upload-button">
-                                {imagePreviewUrl ? 'Cambiar Foto' : 'Subir Foto'}
+                            <label htmlFor="fotoPerfil" className="custom-file">
+                                {imagePreviewUrl ? 'Cambiar Foto' : 'Subir Foto ✅'}
                             </label>
                             {imagePreviewUrl && (
                                 <img src={imagePreviewUrl} alt="Previsualización" className="preview-image" />
@@ -304,8 +372,8 @@ function FormAddUser() {
                         {/* Botones */}
                         <div className="form-buttons">
                             <button type="button" className="cancel-button" onClick={() => navigate(-1)}>Cancelar</button>
-                            <button type="submit" className="save-button">
-                                Guardar Usuario
+                            <button type="submit" className="save-button" disabled={loading}>
+                                {loading ? 'Guardando...' : 'Guardar Usuario'}
                             </button>
                         </div>
                     </form>
