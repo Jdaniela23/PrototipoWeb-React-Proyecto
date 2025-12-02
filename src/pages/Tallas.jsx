@@ -2,28 +2,49 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Page.css';
 import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import Nav from '../components/Nav.jsx';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Footer from '../components/Footer.jsx';
 import { getTallas, deleteTalla } from '../api/tallasService';
 import ToastNotification from '../components/ToastNotification.jsx';
-import DeleteTalla from './DeleteTallas.jsx'; 
-import DetallesTalla from '../components/DetallesTalla.jsx'; // 👈 Modal detalles
+import DeleteTalla from './DeleteTallas.jsx';
+import DetallesTalla from '../components/DetallesTalla.jsx'; //Modal detalles
 
 export default function TallasPage() {
     const [allTallas, setAllTallas] = useState([]);
     const [filteredTallas, setFilteredTallas] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [menuCollapsed, setMenuCollapsed] = useState(false);
-
+    const location = useLocation();
     const [successMessage, setSuccessMessage] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const [selectedTalla, setSelectedTalla] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showDetalleModal, setShowDetalleModal] = useState(false); // 👈 Nuevo estado detalles
+    const [showDetalleModal, setShowDetalleModal] = useState(false); 
 
     const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 5;
+
+    // === LÓGICA DE PAGINACIÓN ===
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredTallas.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(filteredTallas.length / recordsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
 
     // === CARGAR TALLAS ===
     const fetchTallas = useCallback(async () => {
@@ -39,6 +60,33 @@ export default function TallasPage() {
         }
     }, []);
 
+
+// === MANEJAR DATOS DE CREACIÓN INMEDIATA ===
+useEffect(() => {
+
+    if (location.state?.nuevaTalla) {
+        const { nuevaTalla, successMessage } = location.state;
+    
+        setAllTallas(prevTallas => {
+      
+            const tallaParaMostrar = {
+                ...nuevaTalla,
+            
+                id_Talla: nuevaTalla.id_Talla || `temp-${Date.now()}` 
+            };
+            return [tallaParaMostrar, ...prevTallas];
+        });
+        
+
+        if (successMessage) {
+            setSuccessMessage(successMessage);
+            setErrorMessage(null);
+        }
+
+ 
+        window.history.replaceState({}, document.title, location.pathname);
+    }
+}, [location.state]); 
     useEffect(() => {
         fetchTallas();
     }, [fetchTallas]);
@@ -66,20 +114,30 @@ export default function TallasPage() {
     };
 
     // === CONFIRMAR ELIMINACIÓN ===
+   
     const handleConfirmDelete = async (talla) => {
-        try {
-            await deleteTalla(talla.id_Talla);
-            setShowDeleteModal(false);
-            setSelectedTalla(null);
-            await fetchTallas();
-            setSuccessMessage(`Talla '${talla.nombre_Talla}' eliminada correctamente.`);
-            setErrorMessage(null);
-        } catch (err) {
-            console.error(err);
-            setErrorMessage(`No se pudo eliminar la talla '${talla.nombre_Talla}'.`);
-            setSuccessMessage(null);
-        }
-    };
+    try {
+        await deleteTalla(talla.id_Talla);
+        setShowDeleteModal(false);
+        setSelectedTalla(null);
+        await fetchTallas();
+        setSuccessMessage(`Talla '${talla.nombre_Talla}' eliminada correctamente.`);
+        setErrorMessage(null);
+    } catch (err) {
+   
+        console.error("Error al confirmar eliminación:", err); 
+
+        const serverMessage = err.response?.data?.message || `No se pudo eliminar la talla '${talla.nombre_Talla}'. Inténtalo de nuevo.`;
+        
+
+        setErrorMessage(serverMessage); 
+        setSuccessMessage(null);
+        
+        // Opcional: Cerrar el modal si el error no depende de él
+        //setShowDeleteModal(false); 
+        setSelectedTalla(null);
+    }
+};
 
     return (
         <div className="page-wrapper">
@@ -99,7 +157,10 @@ export default function TallasPage() {
                                 type="text"
                                 placeholder="Buscar Tallas"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                  onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1); 
+                                }}
                             />
                             <button className="search-button">
                                 <FaSearch color="#fff" />
@@ -129,14 +190,14 @@ export default function TallasPage() {
                                                 Cargando tallas...
                                             </td>
                                         </tr>
-                                    ) : filteredTallas.length > 0 ? (
-                                        filteredTallas.map(talla => (
+                                    ) : currentRecords.length > 0 ? (
+                                        currentRecords.map(talla => (
                                             <tr key={talla.id_Talla}>
                                                 <td>{talla.nombre_Talla}</td>
                                                 <td>{talla.descripcion}</td>
                                                 <td style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                                                     <Link
-                                                       to={`/edittalla/${talla.id_Talla}`}
+                                                        to={`/edittalla/${talla.id_Talla}`}
                                                         state={{ talla }}
                                                         className="icon-button blue"
                                                         title="Editar"
@@ -169,11 +230,36 @@ export default function TallasPage() {
                                     )}
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
+                                {filteredTallas.length > recordsPerPage && (
+                                <div className="pagination-container">
+                                    <button
+                                        className="pagination-arrow"
+                                        onClick={handlePrevPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        ‹
+                                    </button>
 
-                    <div className='footer-page'>
-                        <Footer />
+                                    {[...Array(totalPages)].map((_, index) => (
+                                        <button
+                                            key={index + 1}
+                                            className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                                            onClick={() => handlePageChange(index + 1)}
+                                        >
+                                            {index + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        className="pagination-arrow"
+                                        onClick={handleNextPage}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

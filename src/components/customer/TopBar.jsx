@@ -17,7 +17,7 @@ function TopBar({ userName, foto }) {
         <div className="topbar-profile">
           {foto ? (
             <img
-              // ⭐ CORRECCIÓN: Usar la URL de Cloudinary directamente ⭐
+              //Usa la URL de Cloudinary directamente
               src={foto}
               alt="Customer Profile"
               className="topbar-profile-image"

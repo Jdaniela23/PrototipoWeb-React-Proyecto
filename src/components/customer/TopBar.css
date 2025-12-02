@@ -1,4 +1,3 @@
-/* src/components/customer/TopBar.css */
 .topbar-container {
     display: flex;
     justify-content: space-between;
@@ -9,16 +8,15 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     position: fixed; /* Fijo en la parte superior */
     top: 0;
-    left: 220px; /* Ajusta este valor al ancho de tu sidebar para que empiece después */
+    left: 220px; 
     right: 0;
     z-index: 99; /* Asegura que esté por encima del contenido */
-    height: 70px; /* Altura fija para la barra superior */
-    box-sizing: border-box; /* Incluye padding en el height */
+    height: 70px;
+    box-sizing: border-box; 
 }
 
-/* Ajusta el left para cuando el sidebar esté colapsado */
 .topbar-container.collapsed-sidebar {
-    left: 70px; /* Ancho del sidebar colapsado */
+    left: 50px; /* Ancho del sidebar colapsado  */
 }
 
 .topbar-left .topbar-page-title {
@@ -57,7 +55,12 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid #eee;
+    border: 3px solid #b59b64;
+}
+
+.topbar-profile-image:hover{
+    width: 70px;
+    height: 70px;
 }
 
 .topbar-profile-name {

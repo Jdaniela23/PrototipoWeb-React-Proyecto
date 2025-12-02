@@ -1,28 +1,29 @@
-import { useState } from 'react';
-import './Nav.css';
-import { FaBars, FaStore, FaSignOutAlt, FaUser, FaHistory, FaClock} from 'react-icons/fa';
-import LogoUno from '../../assets/img/Logo.png';
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import '../Nav.css';
+import { FaBars, FaStore, FaSignOutAlt, FaUser, FaHistory, FaClock } from 'react-icons/fa';
+import LogoUno from '../../assets/img/Logo.png';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
-export default function Nav() {
-  const [menuCollapsed, setMenuCollapsed] = useState(false);
-
+export default function NavCustomer({ menuCollapsed, toggleMenu }) {
   const navigate = useNavigate();
-
-  const toggleMenu = () => {
-    setMenuCollapsed(!menuCollapsed);
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userRole');
-    navigate('/');
+    setLoading(true);
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("userRole");
+    setTimeout(() => navigate("/"), 1500);
   };
 
-  
+  if (loading) {
+    return <LoadingSpinner message="Cerrando sesión..." />;
+  }
+
   return (
-    <div className="container">
-      <div className={`sidebar ${menuCollapsed ? 'collapsed' : ''}`}>
+    <div className="nav-container">
+      {/* Sidebar (Navegador) */}
+      <div className={`sidebar ${menuCollapsed ? "collapsed" : ""}`}>
         <div className="sidebar-header">
           {!menuCollapsed && <h3><img src={LogoUno} className="logo-nav" alt="Logo" /></h3>}
           <button className="toggle-menu-btn" onClick={toggleMenu}>
@@ -32,39 +33,74 @@ export default function Nav() {
 
         {!menuCollapsed && (
           <div className="sidebar-menu-items">
+            
             {/* Mi perfil */}
-            <Link to="/pagecustomers" className="menu-item link-menu">
-              <FaUser style={{ color: '#fff' }} />
-              <p className="nombre-modulo"><strong>Mi perfil</strong></p>
-            </Link>
+            <div className="menu-item-group">
+              <div className='link-menu'>
+                <p>
+                  <Link to='/pagecustomers' className='nombre'> 
+                    <strong>Mi perfil</strong>
+                  </Link>
+                </p>
+              <FaUser style={{ color: '#fff', fontSize: '15px' }} />
+              </div>
+            </div>
 
             {/* Tienda */}
-            <Link to="/tienda" className="menu-item link-menu">
-              <FaStore style={{ color: '#fff' }} />
-              <p><strong className='nombre-modulo'>Tienda</strong></p>
-            </Link>
+            <div className="menu-item-group">
+              <div className='link-menu'>
+                <p>
+                  <Link to='/tienda' className='nombre'> 
+                    <strong>Tienda</strong>
+                  </Link>
+                </p>
+                <FaStore style={{ color: '#fff' }} />
+              </div>
+            </div>
 
             {/* Historial de pedidos */}
-            <Link to="/historialpedidos" className="menu-item link-menu">
-              <FaHistory style={{ color: '#fff' }} />
-              <p><strong className='nombre-modulo'>Historial de pedidos</strong></p>
-            </Link>
+            <div className="menu-item-group">
+              <div className='link-menu'>
+                <p>
+                  <Link to='/historialpedidos' className='nombre'> 
+                    <strong>Historial de pedidos</strong>
+                  </Link>
+                </p>
+                <FaHistory style={{ color: '#fff', fontSize: '24px' }}/>
+              </div>
+            </div>
 
             {/* Pedidos pendientes */}
-            <Link to="/pedidospendientes" className="menu-item link-menu">
-              <FaClock style={{ color: '#fff' }} />
-              <p><strong className='nombre-modulo'>Pedidos pendientes</strong></p>
-            </Link>
-
-            {/* Cerrar sesión */}
-            <div onClick={handleLogout} className='menu-item link-menu'>
-              <FaSignOutAlt style={{ color: '#fff' }} />
-                 <p><strong className='nombre-modulo'>Cerrar sesión</strong></p>
+            <div className="menu-item-group">
+              <div className='link-menu'>
+                <p>
+                  <Link to='/pedidospendientes' className='nombre'> 
+                    <strong>Pedidos pendientes</strong>
+                  </Link>
+                </p>
+                <FaClock style={{ color: '#fff', fontSize: '24px' }} />
+              </div>
             </div>
+
+            {/* Cerrar sesión (no desplegable) */}
+            <div className="menu-item-group">
+              <div onClick={handleLogout} className='link-menu'>
+                <p>
+                  <strong className='nombre'>Cerrar sesión</strong>
+                </p>
+                <FaSignOutAlt style={{ color: '#fff', fontSize: '24px' }} /> 
+              </div>
+            </div>
+
           </div>
         )}
       </div>
-
+      <div className={`main ${menuCollapsed ? 'expanded' : ''}`}>
+         <p>Contenido principal de la aplicación aquí...</p>
+      </div> 
+      
+      
     </div>
+    
   );
 }

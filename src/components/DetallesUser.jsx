@@ -22,9 +22,9 @@ export default function DetallesUser({ usuario, onClose }) {
                         </div>
 
                         <p><strong><FaEnvelope ></FaEnvelope> Correo:</strong> {usuario.correo}✉️</p>
-                        <p><strong><FaIdCard /> Id:</strong> {usuario.id}</p>
+                        <p><strong><FaIdCard /> Código:</strong> {usuario.id}</p>
                         <p><strong>Estado:</strong> {usuario.estado ? '✅ Activo' : '❌ Inactivo'}</p>
-                        <p><strong><FaUser /> Nombre Completo:</strong> {usuario.nombre_Completo}</p>
+                        <p><strong><FaUser /> Nombre:</strong> {usuario.nombre_Completo}</p>
                         <p><strong>Apellido:</strong> {usuario.apellido}</p>
                         <p><strong><FaUser /> Rol de Usuario:</strong> {usuario.rol}</p>
                         <p><strong>Tipo de Identificación:</strong> {usuario.tipo_Identificacion}</p>

@@ -31,7 +31,7 @@
 }
 
 .header h1 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #c89b3c;
   margin: 0;
@@ -63,7 +63,7 @@
   position: relative;
   flex-grow: 1;
   display: flex;
-  border: 1px solid #ddd;
+
   border-radius: 6px;
   overflow: hidden;
 }
@@ -93,9 +93,7 @@
   text-decoration: beige;
 }
 
-.search-button:hover {
-  background-color: #333;
-}
+
 
 /* Botón "Agregar Producto +" */
 .add-button {
@@ -177,6 +175,16 @@ table th {
   font-size: 0.85rem;
   letter-spacing: 0.5px;
   color: #ffffff;
+}
+
+.search-container input:focus {
+    border: none;
+    outline: none;
+}
+
+.search-container:focus-within {
+    box-shadow: 0 0 0 2px #c89b3c; 
+    border-radius: 15px;
 }
 
 table tbody tr:nth-child(even) {
@@ -390,6 +398,7 @@ table {
   
 }
 
+
 .custom-file:hover {
   background-color: #b8892f;
   transform: translateY(-1px);
@@ -398,4 +407,276 @@ table {
 
 .custom-file:active {
   transform: translateY(0);
+}
+/* === PAGINACIÓN === */
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 15px;
+    padding: 10px 0;
+}
+
+.pagination-arrow,
+.pagination-number {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.25s ease;
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-arrow {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 6px 12px;
+}
+
+.pagination-arrow:disabled {
+    background-color: #e8e8e8;
+    color: #aaa;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+.pagination-number:hover:not(.active),
+.pagination-arrow:hover:not(:disabled) {
+    background-color: #c89b3c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(200, 155, 60, 0.3);
+}
+
+.pagination-number.active {
+    background-color: #c89b3c;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(200, 155, 60, 0.4);
+    transform: scale(1.05);
+}
+
+.pagination-arrow:active:not(:disabled),
+.pagination-number:active {
+    transform: scale(0.95);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .pagination-container {
+        gap: 4px;
+        padding: 8px 0;
+    }
+    
+    .pagination-arrow,
+    .pagination-number {
+        padding: 5px 8px;
+        font-size: 0.75rem;
+        min-width: 28px;
+        height: 28px;
+    }
+    
+    .pagination-arrow {
+        padding: 5px 10px;
+    }
+}
+/* Estilos Críticos de la Tabla en Page.css */
+.products-table {
+    width: 100%; /* La tabla debe ocupar el 100% del contenedor */
+    min-width: 600px; /* Puedes reducir este valor, pero sirve como respaldo */
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.8em; /* ⭐ Muy importante: reducir el tamaño de la fuente */
+    table-layout: fixed; /* ⭐ CRÍTICO: Fuerza al navegador a respetar los anchos de columna */
+}
+
+.products-table th,
+.products-table td {
+    border: 1px solid #ddd;
+    padding: 5px; /* Padding mínimo */
+    text-align: left;
+    overflow: hidden; /* Oculta si el contenido es muy largo */
+}
+
+/* 🎯 Ajuste de Columna Producto (la más ancha) */
+.products-table th:nth-child(1), /* Producto */
+.products-table td:nth-child(1) {
+    width: 25%; /* Le das un ancho fijo */
+    white-space: normal; /* Permite que el texto se envuelva */
+    word-wrap: break-word; /* ⭐ CRÍTICO: Fuerza la ruptura de palabras largas */
+}
+
+/* 🎯 Ajuste de Columnas Compactas */
+.products-table th:nth-child(2), /* Talla/Color */
+.products-table td:nth-child(2) {
+    width: 15%; 
+    text-align: center;
+}
+
+.products-table th:nth-child(3), /* Stock Disp. */
+.products-table td:nth-child(3) {
+    width: 12%; 
+    text-align: center;
+}
+
+.products-table th:nth-child(4), /* Precio Unit. */
+.products-table td:nth-child(4) {
+    width: 14%; 
+    text-align: right;
+}
+
+.products-table th:nth-child(5), /* Cantidad (Input) */
+.products-table td:nth-child(5) {
+    width: 10%; /* Lo más pequeño posible */
+    text-align: center;
+}
+.input-cantidad {
+    width: 40px; /* ⭐ Muy pequeño para caber en la celda */
+    padding: 3px;
+    font-size: 0.8em;
+}
+
+.products-table th:nth-child(6), /* Subtotal */
+.products-table td:nth-child(6) {
+    width: 16%;
+    text-align: right;
+}
+
+.products-table th:nth-child(7), /* Acción (Botón de eliminar) */
+.products-table td:nth-child(7) {
+    width: 10%;
+    text-align: center;
+}
+
+/* ⭐ Contenedor específico para el formulario de Edición de Pedidos */
+.formulario-edicion-pedido {
+    /* Le damos un ancho máximo amplio para que quepa la tabla */
+    max-width: 1000px; 
+    width: 90%; /* Asegura que sea responsivo */
+    margin: 30px auto; /* Centra el formulario */
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+/* Encabezado de la tabla de productos (se ve más profesional) */
+.products-table thead tr {
+    background-color:   #b59b64;/* Color oscuro consistente */
+    color: white;
+}
+
+.products-table th {
+    font-weight: 700;
+    font-size: 0.9em;
+    
+    border-color: #2b2b2b; /* Borde oscuro entre celdas */
+}
+
+/* Filas de datos de la tabla de productos */
+.products-table tbody tr:nth-child(even) {
+    background-color: #f7f7f7; /* Rayas ligeras */
+}
+
+.products-table tbody tr:hover {
+    background-color: #f0f0f0; /* Efecto hover suave */
+}
+
+.products-table td {
+    vertical-align: middle;
+}
+
+/* ⭐ ESTILO DEL BOTÓN ELIMINAR (delete-button-small) ⭐ */
+.delete-button-small {
+    background-color: transparent; /* Fondo transparente */
+    color: #ec3a3a; /* Color rojo vibrante para el icono */
+    border: 1px solid #cc0000; /* Borde rojo */
+    padding: 5px 8px; /* Pequeño padding */
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto; /* Centrar el botón dentro de la celda */
+    font-size: 1.1em; /* Icono un poco más grande */
+}
+
+.delete-button-small:hover {
+    background-color: #ec4e4e; /* Al pasar el mouse, el fondo se vuelve rojo */
+    color: white; /* El icono se vuelve blanco */
+    transform: scale(1.05); /* Efecto sutil de crecimiento */
+}
+
+.delete-button-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #ffcccc;
+    color: #cc0000;
+}
+.form-section-productos{
+  color: #000;
+}
+
+.add-button-productospedido{
+  color: #fff;
+  background-color: #b59b64;;
+}
+
+.total-calculation-summary {
+    width: 350px; /* Ancho fijo para centrar la atención */
+    margin-top: 20px;
+    margin-left: auto; /* Mover a la derecha */
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    font-size: 1em;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #eee; /* Línea separadora tenue */
+}
+
+/* El estilo de la caja principal del total */
+.total-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px 0;
+    border-top: 2px solid #c89b3c; /* Línea dorada/principal */
+    font-size: 1.2em; /* Texto un poco más grande */
+    font-weight: bold;
+    color: #000;
+}
+.summary-line-pedido
+{
+  color: #000;
+}
+
+.total-amount {
+    color:#b59b64;; /* Color de énfasis azul */
+    font-size: 1em;
+}
+.input-cantidad {
+    width: 70px; /* Ancho más generoso */
+    padding: 8px 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center; /* Centrar el número */
+    box-sizing: border-box;
 }

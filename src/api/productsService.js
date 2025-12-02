@@ -1,17 +1,13 @@
 import axios from 'axios';
 import { ENDPOINTS } from './apiConfig'; 
 
-
-/**
- * Obtener todos los productos (sin detalles completos)
- */
+//Obtener todos los productos (sin detalles completos)
 export const getProducts = async () => {
     try {
         const response = await axios.get(ENDPOINTS.PRODUCTS.GET_ALL);
         
         // La lógica de asignar imágenes locales temporales debe mantenerse aquí si ENDPOINTS.PRODUCTS.GET_ALL 
-        // no te devuelve el DTO completo con imágenes.
-        return response.data; // Aquí va la data, ajusta si mantienes el mapeo de imágenes temporales.
+        return response.data; 
     } catch (error) {
         console.error("Error al obtener los productos:", error.response?.data || error.message);
         throw error; 
@@ -45,10 +41,6 @@ const getAuthToken = () => {
     return token;
 };
 
-/**
- * Crea un nuevo producto (solo admin)
- * @param {FormData} formData
- */
 export const createProduct = async (formData) => {
     const authToken = getAuthToken();
     if (!authToken) throw new Error("No autorizado. Inicia sesión como administrador.");
@@ -56,8 +48,7 @@ export const createProduct = async (formData) => {
     try {
         const config = {
             headers: {
-                'Authorization': `Bearer ${authToken}`,
-                // NO pongas Content-Type, axios lo calcula automáticamente para FormData
+                "Authorization": `Bearer ${authToken}`,
             }
         };
 
@@ -65,14 +56,9 @@ export const createProduct = async (formData) => {
         return response.data;
 
     } catch (error) {
-        const errorMessage = error.response?.data?.message || error.response?.data?.title || error.message;
-        console.error("Error al crear el producto:", errorMessage);
-
-        if (error.response?.status === 401) {
-            throw new Error("No autorizado. Tu sesión ha expirado o no tienes permisos de administrador.");
-        }
-
-        throw new Error(errorMessage || "Error desconocido al crear el producto.");
+        console.log("--------- ERROR COMPLETO AXIOS ---------");
+        console.log("DATA RAW:", error.response?.data);
+        throw error; 
     }
 };
 
@@ -125,9 +111,6 @@ export const changeProductState = async (id, nuevoEstado) => {
         throw error;
     }
 };
-
-
-
 
 export const deleteProduct = async (id) => {
     const token = localStorage.getItem('userToken');

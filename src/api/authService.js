@@ -1,4 +1,3 @@
-// src/api/authService.js
 import axios from 'axios';
 import { ENDPOINTS } from './apiConfig'; // <-- Importa desde aquí
 
@@ -15,15 +14,54 @@ export const loginUser = async (email, password) => {
   }
 };
 
-// ⭐ Función para registrar/crear cuenta nuevos usuarios ⭐
-export const registerUser = async (userData) => { 
-  try {
-    const response = await axios.post(ENDPOINTS.AUTH.REGISTER, userData);
-    return response.data;
-  } catch (error) {
-    console.error("Error al registrar el usuario:", error.response ? error.response.data : error.message);
-    throw error;
-  }
+// Función para registrar/crear cuenta nuevos usuarios
+export const registerUser = async (formDataToSend) => { 
+    // formDataToSend ya es un objeto FormData
+    
+    try {
+        // Axios se encarga de enviar el FormData con Content-Type: multipart/form-data
+        const response = await axios.post(
+            ENDPOINTS.AUTH.REGISTER, 
+            formDataToSend 
+        );
+        return response.data;
+        
+    } catch (error) {
+        console.error("Error completo de registro (Axios):", error);
+        
+        let errorMessage = "Error de red o desconocido.";
+        
+        if (axios.isAxiosError(error) && error.response) {
+            const responseData = error.response.data;
+
+            // CRÍTICO: Captura la cadena de texto simple de tu BadRequest("Mensaje...")
+            if (typeof responseData === 'string') {
+                errorMessage = responseData;
+            
+            // Captura los errores de validación de ModelState (si devuelve un objeto JSON)
+            } else if (typeof responseData === 'object' && responseData.errors) {
+                let validationMessages = [];
+                for (const key in responseData.errors) {
+                    if (responseData.errors[key] && Array.isArray(responseData.errors[key])) {
+                        validationMessages.push(responseData.errors[key][0]); 
+                    }
+                }
+                errorMessage = "Validación fallida: " + validationMessages.join('; ');
+
+            // Captura errores con una propiedad 'message'
+            } else if (typeof responseData === 'object' && responseData.message) {
+                 errorMessage = responseData.message;
+            } else {
+                 errorMessage = `Error ${error.response.status}: Ha ocurrido un error al procesar la solicitud.`;
+            }
+        } else if (axios.isAxiosError(error) && error.request) {
+            errorMessage = "No se pudo conectar al servidor. Verifica tu red.";
+        } else {
+            errorMessage = error.message;
+        }
+
+        throw new Error(errorMessage); 
+    }
 };
 
 //Función para obtener los Barrios
@@ -72,7 +110,6 @@ export const resendForgotPasswordCode = async (email) => {
 // Función para restablecer la contraseña
 export const resetPassword = async (email, code, newPassword) => {
     try {
-        // ⭐ Usa el endpoint correcto de tu archivo de configuración
         const response = await fetch(ENDPOINTS.AUTH.RESET_PASSWORD, {
             method: 'POST',
             headers: {
@@ -194,14 +231,7 @@ export const changePassword = async (passwordDto) => {
     throw error;
   }
 };
-
-
-
-// ⭐ FUNCIÓN PARA ACTUALIZAR EL PERFIL ⭐
-// --- src/api/authService.js (VERSIÓN FINAL CON FETCH) ---
-
 export const updateMyProfile = async (profileData) => {
-    // profileData es un objeto FormData
     const token = localStorage.getItem('userToken');
 
     if (!token) {
@@ -209,25 +239,27 @@ export const updateMyProfile = async (profileData) => {
     }
 
     try {
-        const response = await fetch(ENDPOINTS.USUARIOS.UPDATE_PROFILE, {
-            method: 'PUT',
-            // ⭐ CRÍTICO: NO incluimos Content-Type. El navegador lo calcula para FormData.
-            headers: {
-                'Authorization': `Bearer ${token}`, // Solo enviamos el token
-            },
-            body: profileData, // Enviamos el objeto FormData directamente
-        });
+        const isFormData = profileData instanceof FormData;
 
-        const text = await response.text();
+        const response = await axios.put(
+            ENDPOINTS.USUARIOS.UPDATE_PROFILE,
+            profileData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+                }
+            }
+        );
 
-        if (!response.ok) {
-            throw new Error(text || `Error de la API con estado: ${response.status}`);
-        }
+        console.log("✅ RESPUESTA DEL BACKEND:", response.data);
+        return response.data;
 
-        return text ? JSON.parse(text) : {}; 
     } catch (error) {
-        console.error('Error en updateProfile (fetch):', error);
+        console.error("❌ ERROR DEL BACKEND:", error.response?.data || error);
         throw error;
     }
 };
+
+
   

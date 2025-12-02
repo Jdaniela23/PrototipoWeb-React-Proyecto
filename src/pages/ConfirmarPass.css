@@ -1,22 +1,8 @@
-.recuperar-contrasena-page-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    width: 100vw;
-    padding: 0;
-    box-sizing: border-box;
-    margin-bottom: 20%;
-   
-}
-
-
 .recuperar-contrasena-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 15px;
     max-width: 900px;
     width: 100%;
@@ -27,8 +13,7 @@
     text-align: center;
     padding: 25px 20px;
     color: #333;
-    margin-top: 3%;
-
+    margin-top: 7%;
 }
 
 .titulo-recuperar-contrasena,
@@ -53,10 +38,12 @@
     margin-bottom: 0;
 }
 
-.strong-recuperar-contrasena {
+.strong-recuperar-contrasena-saludo {
     font-size: large;
     color: black;
     font-weight: bold;
+    text-align: center;
+    margin-left: 150px;
 }
 
 .input-group {
@@ -133,9 +120,7 @@
     width: 100%;
     box-sizing: border-box;
     text-decoration: none;
-    /* Para enlaces que se ven como botones */
     display: flex;
-    /* Para centrar texto/contenido dentro del botón si es un link */
     justify-content: center;
     align-items: center;
 }
@@ -157,19 +142,14 @@
     /* Define 2 columnas. Cada una ocupa al menos 150px o se estira (1fr) */
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
-    /* Espacio entre los botones */
     width: 90%;
-    /* Ajusta el ancho de la cuadrícula de botones */
     max-width: 450px;
-    /* Limita el ancho máximo para que no sea demasiado grande */
     margin-top: 20px;
-    /* Espacio superior para separar de los mensajes/inputs */
 }
 
 .btn-enviar-nuevo-codigo,
 .btn-volver,
-.btn-iniciar-sesion
-    {
+.btn-iniciar-sesion {
     background-color: #c89b3c;
     color: white;
     padding: 12px 15px;
@@ -203,12 +183,33 @@
 .btn-volver-link,
 .btn-iniciar-sesion-link {
     text-decoration: none;
-    /* Esto quita el subrayado del enlace */
     display: contents;
-    /* Hace que el Link no cree una caja propia, sino que sus hijos se adapten a la cuadrícula */
 }
 
 .btn-verificar-codigo {
     background-color: #1a941e;
     color: white;
+}
+
+.recuperar-contrasena-page-container .mensaje-error-confirmar {
+    background: #fdeaea;
+    color: #b32020;
+    border: 1px solid #f5b3b3;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin: 10px auto;
+    width: fit-content;
+    margin-left: 30%;
+
+}
+.recuperar-contrasena-page-container .mensaje-exito {
+    color: #025306;
+    border: 1px solid #2e7d32;
+    background-color: #e8f5e9;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin: 10px auto;
+    width: fit-content;
 }

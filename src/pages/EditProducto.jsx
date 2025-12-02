@@ -7,7 +7,6 @@ import ToastNotification from "../components/ToastNotification.jsx";
 import { getCategorias, updateProduct } from "../api/productsService";
 import { getColores } from "../api/colorsService";
 import { getTallas } from "../api/tallasService";
-import { FaList } from 'react-icons/fa';
 
 
 export default function EditProducto() {
@@ -15,6 +14,7 @@ export default function EditProducto() {
   const location = useLocation();
   const productoEdit = location.state?.producto;
   const navigate = useNavigate();
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
@@ -23,14 +23,28 @@ export default function EditProducto() {
   const [colores, setColores] = useState([]);
   const [tallas, setTallas] = useState([]);
 
+  const formatPrice = (price) => {
+    if (!price) return '';
+    const cleanValue = price.toString().replace(/\./g, '');
+    const numberValue = parseInt(cleanValue, 10);
+    if (isNaN(numberValue)) return '';
+    return new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0 }).format(numberValue);
+  };
+
+
   const [productData, setProductData] = useState({
     id_Producto: productoEdit?.id_Producto || 0,
     nombreProducto: productoEdit?.nombre_Producto || "",
     descripcion: productoEdit?.descripcion || "",
     categoria: productoEdit?.id_Categoria_Producto || "",
-    precio: productoEdit?.precio || "",
+    precio: formatPrice(productoEdit?.precio || ""),
     marcaProducto: productoEdit?.marca_Producto || "",
   });
+  const handlePriceChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // solo números
+    const formatted = formatPrice(value);
+    setProductData(prev => ({ ...prev, precio: formatted }));
+  };
 
   const [variaciones, setVariaciones] = useState(
     productoEdit?.detalles?.map((d) => ({
@@ -146,6 +160,76 @@ export default function EditProducto() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoadingSubmit(true);
+    setFieldErrors({});
+    const errors = {};
+    let isValid = true;
+    let variationErrors = [];
+
+
+    if (!productData.nombreProducto.trim()) {
+      errors.nombreProducto = "El nombre es obligatorio.";
+      isValid = false;
+    } else if (/\d/.test(productData.nombreProducto)) {
+      // Usamos 'else if' porque si el campo está vacío, no necesitamos comprobar si tiene números.
+      errors.nombreProducto = 'El nombre del producto no debe contener números.';
+      isValid = false;
+    }
+
+    const precioPattern = /^\d{1,3}(\.\d{3})*$/;
+
+    if (!productData.precio || productData.precio.trim() === '') {
+      errors.precio = 'El precio es obligatorio.';
+      isValid = false;
+    } else if (!precioPattern.test(productData.precio)) {
+      errors.precio = 'El precio debe estar en formato de miles (ej: 1.000, 60.000).';
+      isValid = false;
+    }
+
+    // Validar Variaciones (Stock, Color, Talla, y Unicidad)
+    const existingCombinations = new Set();
+
+    variationErrors = variaciones.map((v, index) => {
+      const vErrors = {};
+      const stockNum = parseInt(v.stock, 10);
+      const combinationKey = `${v.color}-${v.talla}`;
+
+      // Campos obligatorios y Stock
+      if (!v.color) { vErrors.color = "Color obligatorio."; isValid = false; }
+      if (!v.talla) { vErrors.talla = "Talla obligatoria."; isValid = false; }
+
+      if (isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum)) {
+        vErrors.stock = "El Stock debe ser un número entero no negativo.";
+        isValid = false;
+      }
+
+      // CValidar Unicidad (Color + Talla)
+      // Solo verificamos la unicidad si ambos campos están seleccionados
+      if (v.color && v.talla) {
+        if (existingCombinations.has(combinationKey)) {
+          vErrors.color = "Esta variación (Color/Talla) ya existe.";
+          vErrors.talla = "Esta variación (Color/Talla) ya existe.";
+          isValid = false;
+        } else {
+          existingCombinations.add(combinationKey);
+        }
+      }
+      if ((!v.imagenesExistentes || v.imagenesExistentes.length === 0) &&
+        (!v.nuevasImagenes || v.nuevasImagenes.length === 0)) {
+        vErrors.imagen = "Se requiere al menos una imagen para esta variación.";
+        isValid = false;
+      }
+      return vErrors;
+    });
+
+    if (!isValid) {
+      setFieldErrors({
+        ...errors,
+        variations: variationErrors // Pasamos los errores de variaciones anidadas
+      });
+      setErrorMessage("Verifica los campos con errores.");
+      setLoadingSubmit(false);
+      return; // Detiene el envío del formulario.
+    }
 
     try {
       const formData = new FormData();
@@ -153,7 +237,8 @@ export default function EditProducto() {
       formData.append("Nombre_Producto", productData.nombreProducto);
       formData.append("Descripcion", productData.descripcion);
       formData.append("Id_Categoria_Producto", productData.categoria);
-      formData.append("Precio", productData.precio);
+      formData.append("Precio", productData.precio.replace(/\./g, ''));
+
       formData.append("Marca_Producto", productData.marcaProducto);
 
       // Variaciones activas
@@ -173,7 +258,7 @@ export default function EditProducto() {
             );
         });
 
-        // NUEVO: enviar nuevas imágenes con índice
+        // enviar nuevas imágenes con índice
         (v.nuevasImagenes || []).forEach((file, i) => {
           formData.append(
             `Detalles[${index}].NuevasImagenes[${i}]`,
@@ -194,6 +279,34 @@ export default function EditProducto() {
     } catch (error) {
       console.error("Error al actualizar producto:", error);
       setErrorMessage("Error al actualizar el producto.");
+      if (error.response && error.response.status === 400 && error.response.data) {
+
+        const serverErrors = error.response.data.errors || error.response.data;
+        const newFieldErrors = {};
+
+        // Manejar el error de unicidad (Nombre_Producto)
+        if (serverErrors.Nombre_Producto && serverErrors.Nombre_Producto.length > 0) {
+          newFieldErrors.nombreProducto = serverErrors.Nombre_Producto[0];
+        }
+
+        if (serverErrors.Nombre_Producto) {
+          newFieldErrors.nombreProducto = serverErrors.Nombre_Producto[0];
+        }
+
+
+        setFieldErrors(newFieldErrors);
+
+
+        if (Object.keys(newFieldErrors).length === 0) {
+          setErrorMessage("Error al actualizar el producto. Por favor, verifica los datos.");
+        } else {
+          setErrorMessage("Verifica los campos con errores."); // Mensaje general para Toast
+        }
+
+      } else {
+        // Manejo de errores no 400 (ej. 500, network error)
+        setErrorMessage("Error de conexión o error desconocido al actualizar el producto.");
+      }
     } finally {
       setLoadingSubmit(false);
     }
@@ -212,7 +325,7 @@ export default function EditProducto() {
           <p className="form-info">
             Modifica los datos del producto y guarda los cambios 👩🏻‍💻.
           </p><br /><br></br>
-          <form onSubmit={handleSubmit} className="role-form">
+          <form onSubmit={handleSubmit} className="role-form two-columns">
             {/* PRODUCTO */}
             <div className="form-group">
               <label>Nombre: <span className="required-asterisk">*</span></label>
@@ -223,6 +336,9 @@ export default function EditProducto() {
                 required
                 className="input-field"
               />
+              {fieldErrors.nombreProducto && (
+                <p className="error-message-rol">{fieldErrors.nombreProducto}</p>
+              )}
             </div>
 
             <div className="form-group">
@@ -257,13 +373,16 @@ export default function EditProducto() {
             <div className="form-group">
               <label>Precio:  <span className="required-asterisk">*</span></label>
               <input
-                type="number"
+                type="text"
                 name="precio"
                 value={productData.precio}
                 onChange={handleProductChange}
                 required
                 className="input-field"
+                placeholder="Ej: 1.000"
+                pattern="^\d{1,3}(\.\d{3})*$"
               />
+
             </div>
 
             <div className="form-group">
@@ -278,7 +397,7 @@ export default function EditProducto() {
             </div>
 
             <hr />
-            <h3 className="subtitle-variacion"> <FaList /> Variaciones: </h3>
+            <p className="form-subtitle">Variaciones: </p><br />
             {variaciones.map((v, index) => (
               <div key={index} className="variation-row">
                 <h4 className="subtitle-variacion">Variación #{index + 1}</h4>
@@ -299,6 +418,9 @@ export default function EditProducto() {
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.variations && fieldErrors.variations[index]?.color && (
+                    <p className="error-message-rol">{fieldErrors.variations[index].color}</p>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -317,6 +439,9 @@ export default function EditProducto() {
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.variations && fieldErrors.variations[index]?.talla && (
+                    <p className="error-message-rol">{fieldErrors.variations[index].talla}</p>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -329,6 +454,9 @@ export default function EditProducto() {
                     required
                     className="input-field"
                   />
+                  {fieldErrors.variations && fieldErrors.variations[index]?.stock && (
+                    <p className="error-message-rol">{fieldErrors.variations[index].stock}</p>
+                  )}
                 </div>
 
                 {/* Imágenes existentes */}
@@ -363,6 +491,10 @@ export default function EditProducto() {
                     accept="image/*"
                     style={{ display: "none" }}
                   />
+                  {fieldErrors.variations && fieldErrors.variations[index]?.imagen && (
+                    <p className="error-message-rol">{fieldErrors.variations[index].imagen}</p>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => fileInputRefs.current[index].click()}
@@ -402,13 +534,7 @@ export default function EditProducto() {
                 <hr />
               </div>
             ))}
-            <button
-              type="button"
-              className="cancel-button"
-              onClick={() => navigate(-1)}
-            >
-              Cancelar
-            </button>
+
             <button
               type="button"
               onClick={handleAddVariationRow}
@@ -416,7 +542,7 @@ export default function EditProducto() {
             >
               Añadir otra variación +
             </button>
-            
+
 
             <div className="form-actions">
               <button type="submit" className="save-button">
@@ -424,6 +550,13 @@ export default function EditProducto() {
               </button>
 
             </div>
+            <button
+              type="button"
+              className="cancel-button-editproducto"
+              onClick={() => navigate(-1)}
+            >
+              Cancelar
+            </button>
           </form>
         </div>
       </div>

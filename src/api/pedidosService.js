@@ -37,6 +37,18 @@ export const getPedidos = async () => {
     throw error;
   }
 };
+export const getPedidoDetalles = async (id) => {
+  try {
+    const { data } = await axios.get(
+      ENDPOINTS.PEDIDOS.GET_DETALLES(id),
+      getAuthConfig()
+    );
+    return data;
+  } catch (error) {
+    console.error("Error al obtener detalles del pedido:", error);
+    throw error;
+  }
+};
 
 // ✅ Crear un nuevo pedido
 export const createPedido = async (pedido) => {

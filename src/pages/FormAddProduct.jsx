@@ -12,9 +12,11 @@ function FormAddProducts() {
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const navigate = useNavigate();
 
+
   const [categorias, setCategorias] = useState([]);
   const [colores, setColores] = useState([]);
   const [tallas, setTallas] = useState([]);
+  const [backendErrors, setBackendErrors] = useState({});
 
   const [productData, setProductData] = useState({
     nombreProducto: '',
@@ -39,6 +41,15 @@ function FormAddProducts() {
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
+  // ESTADO DE ERRORES PARA INCLUIR TODOS LOS CAMPOS
+  const [fieldErrors, setFieldErrors] = useState({
+    nombreProducto: '',
+    descripcion: '',
+    categoria: '',
+    precio: '',
+    marcaProducto: '',
+  });
+
   // Cargar datos iniciales
   useEffect(() => {
     const fetchData = async () => {
@@ -61,7 +72,12 @@ function FormAddProducts() {
 
   const handleProductChange = (e) => {
     const { name, value } = e.target;
+    // Limpiar el error del campo al escribir
+    setFieldErrors((prev) => ({ ...prev, [name]: '' }));
     setProductData({ ...productData, [name]: value });
+
+
+
   };
 
   const handleVariationChange = (e, index) => {
@@ -82,6 +98,8 @@ function FormAddProducts() {
           : variation
       )
     );
+    // Limpiar el input de archivo para poder seleccionar los mismos archivos de nuevo
+    e.target.value = null;
   };
 
   const handleRemoveImage = (variationIndex, imgIndex) => {
@@ -107,67 +125,156 @@ function FormAddProducts() {
   const handleRemoveVariationRow = (index) => {
     if (productVariations.length > 1) {
       setProductVariations(productVariations.filter((_, i) => i !== index));
+      fileInputRefs.current.splice(index, 1);
     } else {
       setErrorMessage('Debe haber al menos una variación de producto.');
     }
   };
 
+  const validateProductData = () => {
+    let errors = {};
+    let isValid = true;
+
+    if (!productData.nombreProducto.trim()) {
+      errors.nombreProducto = 'El nombre del producto es obligatorio.';
+      isValid = false;
+    }
+
+    // Verifica si hay un error de nombre repetido ya establecido
+    // Esta es la clave para detener el avance
+    if (fieldErrors.nombreProducto) {
+      errors.nombreProducto = fieldErrors.nombreProducto;
+      isValid = false;
+    }
+
+    // No permite números 
+    else if (/\d/.test(productData.nombreProducto)) {
+      errors.nombreProducto = 'El nombre del producto no debe contener números.';
+      isValid = false;
+    }
+    if (!productData.descripcion.trim()) {
+      errors.descripcion = 'La descripción es obligatoria.';
+      isValid = false;
+    }
+    if (!productData.categoria) {
+      errors.categoria = 'La categoría es obligatoria.';
+      isValid = false;
+    }
+
+    // Validación de precio: solo múltiplos de mil con punto como separador
+    const precioPattern = /^\d{1,3}(\.\d{3})*$/;
+
+    if (!productData.precio || productData.precio.trim() === '') {
+      errors.precio = 'El precio es obligatorio.';
+      isValid = false;
+    } else if (!precioPattern.test(productData.precio)) {
+      errors.precio = 'El precio debe estar en formato de miles (ej: 1.000, 60.000).';
+      isValid = false;
+    }
+
+
+    setFieldErrors(errors);
+    return isValid;
+  };
+
   const handleProceedToVariations = (e) => {
     e.preventDefault();
-    if (
-      !productData.nombreProducto ||
-      !productData.descripcion ||
-      !productData.categoria ||
-      !productData.precio ||
-      !productData.marcaProducto
-    ) {
-      setErrorMessage('Por favor, completa todos los campos obligatorios antes de continuar.');
-      return;
+    if (validateProductData()) {
+      setErrorMessage(null); // Limpiar cualquier error anterior de formulario
+      setShowVariationForm(true);
+    } else {
+      setErrorMessage('Por favor, revisa y completa todos los campos obligatorios antes de continuar.');
     }
-    setShowVariationForm(true);
   };
+
 
   const handleSubmitCompleteProduct = async (e) => {
     e.preventDefault();
     setLoadingSubmit(true);
+    setErrorMessage(null); // Limpiar mensajes de error previos
 
+    // Validación de Variaciones 
     const valid = productVariations.every(
-      (v) => v.color && v.tallas && v.cantidad && v.imagenes.length > 0
+      (v) => v.color && v.tallas && parseInt(v.cantidad) > 0 && v.imagenes.length > 0
     );
 
     if (!valid) {
-      setErrorMessage('Todas las variaciones deben tener color, talla, cantidad e imágenes.');
+      setErrorMessage('Todas las variaciones deben tener color, talla, cantidad (>0) e imágenes.');
       setLoadingSubmit(false);
       return;
     }
 
     try {
+      // Construir el FormData
       const formData = new FormData();
+
       formData.append('Nombre_Producto', productData.nombreProducto);
       formData.append('Descripcion', productData.descripcion);
-      formData.append('Id_Categoria_Producto', productData.categoria);
-      formData.append('Precio', productData.precio);
+      formData.append('Id_Categoria_Producto', parseInt(productData.categoria));
+      const precioNumerico = parseInt(productData.precio.replace(/\./g, ''), 10);
+      formData.append('Precio', precioNumerico);
+
       formData.append('Marca_Producto', productData.marcaProducto);
 
       productVariations.forEach((variation, index) => {
-        formData.append(`Detalles[${index}].Id_Color`, variation.color);
-        formData.append(`Detalles[${index}].Id_Talla`, variation.tallas);
-        formData.append(`Detalles[${index}].Stock`, variation.cantidad);
+        formData.append(`Detalles[${index}].Id_Color`, parseInt(variation.color));
+        formData.append(`Detalles[${index}].Id_Talla`, parseInt(variation.tallas));
+        formData.append(`Detalles[${index}].Stock`, parseInt(variation.cantidad));
+
         variation.imagenes.forEach((file) => {
           formData.append(`Detalles[${index}].Files`, file);
         });
       });
 
+      //  Llamada a la API
       await createProduct(formData);
+
+
       setSuccessMessage('✅ Producto creado exitosamente.');
       navigate('/productos');
+
     } catch (error) {
-      console.error(error);
-      setErrorMessage('❌ Ocurrió un error al crear el producto.');
+
+      console.log("ERROR BACK", error.response?.data);
+
+      if (error.response?.status === 400 && error.response?.data) {
+
+        const e = error.response.data; // El objeto de errores del servidor
+
+        if (typeof e === 'object' && e !== null) {
+
+          let newFieldErrors = {};
+
+          if (e.Nombre_Producto) {
+            newFieldErrors.nombreProducto = e.Nombre_Producto[0];
+            setShowVariationForm(false);
+          }
+
+          if (e.Descripcion) newFieldErrors.descripcion = e.Descripcion[0];
+          if (e.Id_Categoria_Producto) newFieldErrors.categoria = e.Id_Categoria_Producto[0];
+          if (e.Precio) newFieldErrors.precio = e.Precio[0];
+          if (e.Marca_Producto) newFieldErrors.marcaProducto = e.Marca_Producto[0];
+
+          // Actualiza los errores del formulario y muestra el toast
+          setFieldErrors(prev => ({ ...prev, ...newFieldErrors }));
+          setErrorMessage('❌ El producto no se pudo guardar. Revisa los errores marcados.');
+          return;
+        }
+      }
+
+      if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+        return;
+      }
+
+      // Error de Red o Desconocido
+      setErrorMessage(error.message || 'Error de conexión desconocido.');
+
     } finally {
       setLoadingSubmit(false);
     }
   };
+
 
   return (
     <div className="role-form-container">
@@ -182,8 +289,9 @@ function FormAddProducts() {
           </p><br />
 
           {/* Paso 1 */}
-          <form onSubmit={handleProceedToVariations} className="role-form"><br />
-            <p className="form-subtitle"><FaTag /> Información Principal del Producto</p>
+          <form onSubmit={handleProceedToVariations} className="role-form two-columns">
+            <p className="form-subtitle"><FaTag /> Información Principal del Producto</p><br />
+
 
             <div className="form-group">
               <label className="label-heading">Nombre del Producto <span className="required-asterisk">*</span></label>
@@ -193,8 +301,14 @@ function FormAddProducts() {
                 value={productData.nombreProducto}
                 onChange={handleProductChange}
                 required
+                placeholder="Ingresa nombre del producto"
                 className="input-field"
               />
+
+              {fieldErrors.nombreProducto && (
+                <p className="error-message-rol">{fieldErrors.nombreProducto}</p>
+              )}
+
             </div>
 
             <div className="form-group">
@@ -204,8 +318,13 @@ function FormAddProducts() {
                 value={productData.descripcion}
                 onChange={handleProductChange}
                 required
+                placeholder="Ingresa descripción"
                 className="input-field input-field-categoria-producto"
               ></textarea>
+              {/* MUESTRA EL ERROR ESPECÍFICO */}
+              {fieldErrors.descripcion && (
+                <p className="error-message-rol">{fieldErrors.descripcion}</p>
+              )}
             </div>
 
             <div className="form-group">
@@ -224,18 +343,28 @@ function FormAddProducts() {
                   </option>
                 ))}
               </select>
+              {/* MUESTRA EL ERROR ESPECÍFICO */}
+              {fieldErrors.categoria && (
+                <p className="error-message-rol">{fieldErrors.categoria}</p>
+              )}
             </div>
 
             <div className="form-group">
               <label className="label-heading">Precio <span className="required-asterisk">*</span></label>
               <input
-                type="number"
+                type="text"
                 name="precio"
                 value={productData.precio}
                 onChange={handleProductChange}
                 required
                 className="input-field"
+                placeholder="Ej: 1.000"
+                pattern="^\d{1,3}(\.\d{3})*$"
               />
+              {/* MUESTRA EL ERROR ESPECÍFICO */}
+              {fieldErrors.precio && (
+                <p className="error-message-rol">{fieldErrors.precio}</p>
+              )}
             </div>
 
             <div className="form-group">
@@ -247,7 +376,12 @@ function FormAddProducts() {
                 onChange={handleProductChange}
                 required
                 className="input-field"
+                placeholder="Ingresa marca "
               />
+              {/* MUESTRA EL ERROR ESPECÍFICO */}
+              {fieldErrors.marcaProducto && (
+                <p className="error-message-rol">{fieldErrors.marcaProducto}</p>
+              )}
             </div>
 
             <div className="form-buttons-row">
@@ -334,6 +468,7 @@ function FormAddProducts() {
                         value={variation.cantidad}
                         onChange={(e) => handleVariationChange(e, index)}
                         required
+                        min="1"
                         className="input-field"
                       />
                     </div>

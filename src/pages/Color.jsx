@@ -60,26 +60,52 @@ export default function ColoresPage() {
     };
 
     // === CONFIRMAR ELIMINACIÓN ===
-    const handleConfirmDelete = async (color) => {
-        try {
-            await deleteColor(color.id_Color);
-            setShowDeleteModal(false);
-            setSelectedColor(null);
-            await fetchColores();
-            setSuccessMessage(`Color '${color.nombre_Color}' eliminado correctamente.`);
-            setErrorMessage(null);
-        } catch (err) {
-            console.error(err);
-            setErrorMessage(`No se pudo eliminar el color '${color.nombre_Color}'.`);
-            setSuccessMessage(null);
-        }
-    };
+    const handleConfirmDelete = async (color) => {
+        try {
+            await deleteColor(color.id_Color);
+            
+            // Lógica de éxito
+            setShowDeleteModal(false);
+            setSelectedColor(null);
+            await fetchColores();
+            setSuccessMessage(`Color '${color.nombre_Color}' eliminado correctamente.`);
+            setErrorMessage(null);
+
+        } catch (err) {
+            console.error(err);
+            // Este 'err.message' ahora contiene el mensaje detallado del backend (DbUpdateException)
+            const messageToShow = err.message || `No se pudo eliminar el color '${color.nombre_Color}'. Error desconocido.`;
+
+            setErrorMessage(messageToShow);
+            setSuccessMessage(null);
+        }
+    };
 
     // === ABRIR MODAL DE DETALLES ===
     const handleVerDetalles = (color) => {
         setSelectedColor(color);
         setShowDetalleModal(true);
     };
+    const [currentPage, setCurrentPage] = useState(1);
+        const recordsPerPage = 7;
+    
+        // === LÓGICA DE PAGINACIÓN ===
+        const indexOfLastRecord = currentPage * recordsPerPage;
+        const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+        const currentRecords = filteredColores.slice(indexOfFirstRecord, indexOfLastRecord);
+        const totalPages = Math.ceil(filteredColores.length / recordsPerPage);
+    
+        const handlePageChange = (pageNumber) => {
+            setCurrentPage(pageNumber);
+        };
+    
+        const handlePrevPage = () => {
+            if (currentPage > 1) setCurrentPage(currentPage - 1);
+        };
+    
+        const handleNextPage = () => {
+            if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+        };
 
     return (
         <div className="page-wrapper">
@@ -130,8 +156,8 @@ export default function ColoresPage() {
                                                 Cargando colores...
                                             </td>
                                         </tr>
-                                    ) : filteredColores.length > 0 ? (
-                                        filteredColores.map(color => (
+                                    ) : currentRecords.length > 0 ? (
+                                        currentRecords.map(color => (
                                             <tr key={color.id_Color}>
                                                 <td>{color.nombre_Color}</td>
                                                 <td>{color.descripcion}</td>
@@ -180,12 +206,38 @@ export default function ColoresPage() {
                                     )}
                                 </tbody>
                             </table>
+                             {filteredColores.length > recordsPerPage && (
+                                <div className="pagination-container">
+                                    <button
+                                        className="pagination-arrow"
+                                        onClick={handlePrevPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        ‹
+                                    </button>
+
+                                    {[...Array(totalPages)].map((_, index) => (
+                                        <button
+                                            key={index + 1}
+                                            className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                                            onClick={() => handlePageChange(index + 1)}
+                                        >
+                                            {index + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        className="pagination-arrow"
+                                        onClick={handleNextPage}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className='footer-page'>
-                        <Footer />
-                    </div>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import profilePic from '../assets/img/fotoAdmin.jpg';
+
 
 // ✨ SIMULACIÓN: Aquí se importaría el contexto o estado global del usuario logueado.
 // Por ahora, simularemos un objeto de usuario fijo.
@@ -17,7 +17,7 @@ const usuarioLogueado = {
   direccion: 'Calle 10 # 20-30',
   rol: 'Administrador', // Este campo no se edita en el perfil
   nombre_Usuario: 'Jessica_1234', 
-  fotoPerfil: profilePic, 
+
 };
 
 

@@ -6,21 +6,20 @@ import { Link, useLocation } from 'react-router-dom';
 import Footer from '../components/Footer.jsx';
 import DetallesUser from '../components/DetallesUser.jsx';
 import DeleteUser from './DeleteUsuarios.jsx';
-// Importamos la función de toggle dedicada junto a las demás
-import { getAllUsers, deleteUser, toggleUserState } from '../api/usersService.js'; 
+import { getAllUsers, deleteUser, toggleUserState } from '../api/usersService.js';
 import ToastNotification from '../components/ToastNotification.jsx';
 
 export default function UsuariosPage() {
-    
+
     const location = useLocation();
-    const navSuccessMessage = location.state?.successMessage; 
+    const navSuccessMessage = location.state?.successMessage;
 
     // ESTADOS
     const [menuCollapsed, setMenuCollapsed] = useState(false);
-    const [usuarios, setUsuarios] = useState([]); 
-    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null); 
-    const [usuarioAEliminar, setUsuarioAEliminar] = useState(null); 
-    
+    const [usuarios, setUsuarios] = useState([]);
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+    const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
+
     // Estados de API/UI
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -33,31 +32,25 @@ export default function UsuariosPage() {
         setMenuCollapsed(!menuCollapsed);
     };
 
-    /**
-     * Función unificada para cargar usuarios desde la API.
-     */
     const fetchUsuarios = async () => {
         setLoading(true);
         try {
             const data = await getAllUsers();
-            
-            // Mapeo de la data de la API (PascalCase) al estado local
             const mappedUsers = data.map(u => ({
-                id: u.id_Usuario, 
+                id: u.id_Usuario,
                 nombre_Completo: u.nombre_Completo,
                 nombreUsuario: u.nombre_Usuario,
                 apellido: u.apellido,
-                correo: u.email, 
-                // Mapeo del entero de la API (0 o 1) a booleano (true/false) para el switch
-                estado: u.estado_Usuario === true, // Nota: Si tu API devuelve 'true'/'false' se mantiene, si es 1/0, ajusta a `u.estado_Usuario === 1`
-                rol: u.rol?.nombre_Rol || 'N/A', 
+                correo: u.email,
+                estado: u.estado_Usuario === true,
+                rol: u.rol?.nombre_Rol || 'N/A',
                 foto: u.foto,
                 tipo_Identificacion: u.tipo_Documento,
                 numero_Identificacion: u.documento,
                 numero_Contacto: u.numeroContacto,
-                barrio: u.barrio?.nombre || 'N/A', 
+                barrio: u.barrio?.nombre || 'N/A',
                 direccion: u.direccion,
-                fecha_Creacion: u.fecha_Creacion || 'N/A' 
+                fecha_Creacion: u.fecha_Creacion || 'N/A'
             }));
 
             setUsuarios(mappedUsers);
@@ -70,27 +63,22 @@ export default function UsuariosPage() {
         }
     };
 
-
-    // 1. Carga inicial de usuarios
     useEffect(() => {
         fetchUsuarios();
     }, []);
 
-    // 2. TOGGLE (CAMBIO DE ESTADO CON LLAMADA A LA API)
+
     const toggleEstadoUsuario = async (idUsuario) => {
         const usuarioActual = usuarios.find(u => u.id === idUsuario);
         if (!usuarioActual) return;
-        
-        // El nuevo estado que queremos aplicar (el opuesto al actual)
+
+        // ... (código para determinar nuevoEstadoLogico y nuevoEstadoApi)
         const nuevoEstadoLogico = !usuarioActual.estado;
-        // La API espera un valor booleano (true/false) en el query string.
-        const nuevoEstadoApi = nuevoEstadoLogico; 
+        const nuevoEstadoApi = nuevoEstadoLogico;
 
         try {
-            // 🚨 CAMBIO CLAVE: Llamada a la nueva función de servicio simplificada
-            await toggleUserState(usuarioActual.id, nuevoEstadoApi); 
-            
-            // Si la API es exitosa, actualiza el estado local (Definitiva)
+            await toggleUserState(usuarioActual.id, nuevoEstadoApi);
+
             setUsuarios(prevUsuarios => prevUsuarios.map(u =>
                 u.id === idUsuario ? { ...u, estado: nuevoEstadoLogico } : u
             ));
@@ -100,18 +88,20 @@ export default function UsuariosPage() {
 
         } catch (err) {
             console.error("Error al cambiar el estado del usuario:", err);
-            // Si falla, mostramos el mensaje de error que viene del servicio/API.
-            setErrorMessage(err.message || `Error al actualizar el estado de '${usuarioActual.nombreUsuario}'.`);
+
+            const serverErrorMessage = err.message || `Error al actualizar el estado de '${usuarioActual.nombreUsuario}'.`;
+
+            setErrorMessage(serverErrorMessage);
             setSuccessMessage(null);
         }
     };
-    
-    // 3. ELIMINAR USUARIO (HANDLER DE CONFIRMACIÓN)
+
+    // ELIMINAR USUARIO (HANDLER DE CONFIRMACIÓN)
     const handleConfirmarEliminar = async (usuario) => {
         try {
-            await deleteUser(usuario.id); 
+            await deleteUser(usuario.id);
 
-            handleCerrarModalEliminar(); 
+            handleCerrarModalEliminar();
 
             // Actualiza el estado local
             setUsuarios(prevUsuarios => prevUsuarios.filter(u => u.id !== usuario.id));
@@ -125,8 +115,6 @@ export default function UsuariosPage() {
             setSuccessMessage(null);
         }
     }
-
-    // --- MANEJO DE MODALES Y FILTRADO ---
 
     // Funciones para modales (Detalles)
     const handleVerDetalles = (usuario) => {
@@ -145,21 +133,41 @@ export default function UsuariosPage() {
     const handleCerrarModalEliminar = () => {
         setUsuarioAEliminar(null);
     };
-    
+
     // Filtrado (basado en el estado `usuarios` real)
     const filteredUsuarios = usuarios.filter(usuario =>
         Object.values(usuario).some(value =>
             String(value).toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 6;
+
+    // === LÓGICA DE PAGINACIÓN ===
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredUsuarios.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(filteredUsuarios.length / recordsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
 
     // Renderizado de la tabla
     const renderTable = () => {
         if (loading) return <tr><td colSpan="5" className="loading-message">Cargando usuarios...</td></tr>;
-        if (error && filteredUsuarios.length === 0) return <tr><td colSpan="5" className="error-message">Error: {error}</td></tr>;
-        if (filteredUsuarios.length === 0) return <tr><td colSpan="5" className="no-data-message">No se encontraron usuarios.</td></tr>;
+        if (error && currentRecords.length === 0) return <tr><td colSpan="5" className="error-message">Error: {error}</td></tr>;
+        if (currentRecords.length === 0) return <tr><td colSpan="5" className="no-data-message">No se encontraron usuarios.</td></tr>;
 
-        return filteredUsuarios.map(u => (
+        return currentRecords.map(u => (
             <tr key={u.id}>
                 <td>{u.nombreUsuario}</td>
                 <td>{u.correo}</td>
@@ -168,7 +176,7 @@ export default function UsuariosPage() {
                         <input
                             type="checkbox"
                             checked={u.estado}
-                            onChange={() => toggleEstadoUsuario(u.id)} // 👈 Llama a la función de cambio de estado
+                            onChange={() => toggleEstadoUsuario(u.id)}
                         />
                         <span className="slider round"></span>
                     </label>
@@ -198,17 +206,14 @@ export default function UsuariosPage() {
         ));
     };
 
-    // ----------------------------------------------------------------------
     // RENDERIZADO PRINCIPAL
-    // ----------------------------------------------------------------------
-
     return (
         <div className="page-wrapper">
             <div className="container">
                 <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
 
                 <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
-                    
+
                     {error && loading === false && <div className="alert alert-error">{error}</div>}
 
                     <div className="header">
@@ -223,10 +228,13 @@ export default function UsuariosPage() {
                                 type="text"
                                 placeholder="Buscar Usuarios"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1); 
+                                }}
                             />
                             <button className="search-button">
-                                <FaSearch color="#fff" /> 
+                                <FaSearch color="#fff" />
                             </button>
                         </div>
 
@@ -252,11 +260,38 @@ export default function UsuariosPage() {
                                     {renderTable()}
                                 </tbody>
                             </table>
+                            {filteredUsuarios.length > recordsPerPage && (
+                                <div className="pagination-container">
+                                    <button
+                                        className="pagination-arrow"
+                                        onClick={handlePrevPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        ‹
+                                    </button>
+
+                                    {[...Array(totalPages)].map((_, index) => (
+                                        <button
+                                            key={index + 1}
+                                            className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                                            onClick={() => handlePageChange(index + 1)}
+                                        >
+                                            {index + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        className="pagination-arrow"
+                                        onClick={handleNextPage}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <div className='footer-page'>
-                        <Footer />
-                    </div>
+             
                 </div>
 
                 {/* Modales */}
@@ -268,10 +303,10 @@ export default function UsuariosPage() {
                     <DeleteUser
                         usuario={usuarioAEliminar}
                         onClose={handleCerrarModalEliminar}
-                        onConfirm={handleConfirmarEliminar} 
+                        onConfirm={handleConfirmarEliminar}
                     />
                 )}
-                
+
                 {/* Notificaciones Toast */}
                 <ToastNotification
                     message={successMessage}

@@ -63,6 +63,12 @@ import EditColor from './pages/EditColor';
 import EditTalla from './pages/EditTalla';
 import DetallesColor from './components/DetallesColor';
 import DetallesTalla from './components/DetallesTalla';
+import Store from './pages/store/Store';
+import ProductsShop from './pages/ProductsShop';
+import NavHome from './components/Navhome';
+
+import VentasPage from './pages/VentasPage';
+
 
 function App() {
   return (
@@ -125,11 +131,15 @@ function App() {
         <Route path='/editcolor/:id' element={<EditColor />} />
         <Route path='/detalletalla/:id' element={<DetallesTalla />} />
         <Route path='/detallecolor/:id' element={<DetallesColor />} />
+        <Route path ='/shop' element={<ProductsShop/>}/>
+        <Route path='/navhome' element={<NavHome/>}/>
+        <Route path='/ventas' element={<VentasPage/>}/>
 
         {/* ⭐ Rutas protegidas ⭐ */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pagecustomers" element={<CustomerPage />} />
+          <Route path="/tienda" element={<Store />} />
 
 
         </Route>

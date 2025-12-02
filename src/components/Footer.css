@@ -1,14 +1,14 @@
 .main-footer {
-  background-color: #c89b3c;
+  background-color: #b59b64;
   color: #fdfcfc;
-  padding: 5px 0px;   /* antes 10px → más compacto */
+  padding: 5px 0px;   
   font-family: 'DM Sans', sans-serif;
   width: 100%;
 }
 
 .footer-top {
   text-align: center;
-  margin-bottom: 10px; /* antes 20px */
+  margin-bottom: 10px;
 }
 
 .footer-brand {
@@ -49,14 +49,16 @@
 .contact-column {
   border-left: 1px solid #ffffff;
   border-right: 1px solid #ffffff;
-  padding-left: 20px;  /* antes 30px */
-  padding-right: 20px; /* antes 30px */
+  padding-left: 20px;  
+  padding-right: 20px; 
 }
-
+.logo-column{
+  border-left: 1px solid #ffffff;
+}
 .column-title {
-  font-size: 1em;     /* antes 1.2em */
+  font-size: 1em;     
   font-weight: bold;
-  margin-bottom: 8px; /* antes 15px */
+  margin-bottom: 8px; 
   color: #ffffff;
 }
 
@@ -67,7 +69,7 @@
 }
 
 .footer-list li {
-  margin-bottom: 5px; /* antes 8px */
+  margin-bottom: 5px; 
 }
 
 .footer-list a {
@@ -81,12 +83,12 @@
 }
 
 .footer-column p {
-  margin-bottom: 5px; /* antes 8px */
+  margin-bottom: 5px; 
   color: #eeeaea;
 }
 
 .footer-column p a {
-  color: #25D366; /* verde WhatsApp */
+  color: #25D366; 
   font-weight: bold;
 }
 
@@ -104,17 +106,44 @@
   .footer-column {
     width: 100%;
     text-align: center;
-    margin-bottom: 15px; /* antes 20px */
+    margin-bottom: 15px; 
   }
 
   .contact-column {
     border-left: none;
     border-right: none;
-    padding-left: 10px; /* antes 15px */
+    padding-left: 10px; 
     padding-right: 10px;
   }
 }
 
 .main-content-area {
   flex-grow: 1;
+}
+.scroll-to-top {
+    /* 🚨 ESTAS TRES PROPIEDADES SON LAS QUE FALTAN Y CAUSAN EL PROBLEMA 🚨 */
+    position: fixed; /* Hace que el botón flote con la ventana */
+    bottom: 20px;    /* 20px desde el borde inferior */
+    right: 20px;     /* 20px desde el borde derecho */
+    z-index: 1000;   /* Asegura que esté por encima de otros elementos */
+    
+    /* Propiedades ya definidas (para dimensiones y color) */
+    width: 45px;
+    height: 45px;
+    background-color: #9d6d28; 
+    color: white; 
+    display: flex; 
+    pointer-events: auto;
+
+    /* Estilos adicionales que te sugiero para que se vea bien */
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%; /* Lo hace circular */
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.3s, background-color 0.3s; 
+}
+
+.scroll-to-top:hover {
+    opacity: 0.8;
 }

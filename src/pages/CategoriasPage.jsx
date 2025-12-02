@@ -1,4 +1,3 @@
-// src/pages/CategoriasPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaSearch, FaPlus, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
@@ -14,6 +13,7 @@ export default function CategoriasPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Estados
   const [categorias, setCategorias] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [menuCollapsed, setMenuCollapsed] = useState(false);
@@ -24,6 +24,10 @@ export default function CategoriasPage() {
 
   const [successMessage, setSuccessMessage] = useState(location.state?.successMessage || null);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  // Estados de Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 6;
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
@@ -53,12 +57,6 @@ export default function CategoriasPage() {
     fetchCategorias();
   }, []);
 
-  // Filtrado por nombre o descripción
-  const filteredCategorias = categorias.filter(categoria =>
-    (categoria.nombre_Categoria?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (categoria.descripcion?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
-
   // Modales y acciones
   const handleVerDetalles = (categoria) => setCategoriaSeleccionada(categoria);
   const handleCerrarModalDetalles = () => setCategoriaSeleccionada(null);
@@ -66,19 +64,71 @@ export default function CategoriasPage() {
   const handleAbrirModalEliminar = (categoria) => setCategoriaAEliminar(categoria);
   const handleCerrarModalEliminar = () => setCategoriaAEliminar(null);
 
-  const handleConfirmarEliminacion = async (categoria) => {
+ const handleConfirmarEliminacion = async (categoria) => {
     try {
-      await deleteCategoria(categoria.id_Categoria_Producto);
-      setCategorias(prev => prev.filter(c => c.id_Categoria_Producto !== categoria.id_Categoria_Producto));
-      setCategoriaAEliminar(null);
-      setSuccessMessage(`Categoría '${categoria.nombre_Categoria}' eliminada exitosamente`);
-      setErrorMessage(null);
+        await deleteCategoria(categoria.id_Categoria_Producto);
+        
+        // --- ÉXITO ---
+        setCategorias(prev => prev.filter(c => c.id_Categoria_Producto !== categoria.id_Categoria_Producto));
+        setCategoriaAEliminar(null);
+        setSuccessMessage(`Categoría '${categoria.nombre_Categoria}' eliminada exitosamente`);
+        setErrorMessage(null);
+
+        // ... (Lógica de paginación)
+        if (currentRecords.length === 1 && currentPage > 1) {
+            setCurrentPage(prev => prev - 1);
+        } else if (currentPage > totalPages) {
+            setCurrentPage(totalPages > 0 ? totalPages : 1);
+        }
     } catch (err) {
-      console.error('Error al eliminar:', err);
-      setErrorMessage(`No se pudo eliminar la categoría '${categoria.nombre_Categoria}'`);
-      setSuccessMessage(null);
+        console.error('Error al eliminar:', err);
+        
+        //  CAPTURAR el mensaje específico del Backend
+        const errorMsg = err.response?.data?.mensaje ||
+            `No se pudo eliminar la categoría '${categoria.nombre_Categoria}'. Error de conexión.`;
+        
+        //  ASIGNAR el mensaje del servidor al estado.
+        setErrorMessage(errorMsg); 
+        
+        // LIMPIAR el mensaje de éxito y CERRAR el modal de eliminación.
+        setSuccessMessage(null);
+       
+    }
+};
+
+  const filteredCategorias = categorias.filter(categoria =>
+    (categoria.nombre_Categoria?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (categoria.descripcion?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+  );
+
+  // Cálculo de Paginación
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+
+  const currentRecords = filteredCategorias.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredCategorias.length / recordsPerPage);
+
+  // Manejadores de Paginación
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
     }
   };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
 
   return (
     <div className="page-wrapper">
@@ -131,14 +181,15 @@ export default function CategoriasPage() {
                       {error}
                     </td>
                   </tr>
-                ) : filteredCategorias.length === 0 ? (
+                ) : currentRecords.length === 0 ? (
                   <tr>
                     <td colSpan="3" style={{ textAlign: 'center', color: '#555' }}>
                       No se encontraron categorías
                     </td>
                   </tr>
                 ) : (
-                  filteredCategorias.map((c, index) => (
+                  // Usamos currentRecords para renderizar la tabla
+                  currentRecords.map((c, index) => (
                     <tr key={`categoria-${c.id_Categoria_Producto}-${index}`}>
                       <td>{c.nombre_Categoria}</td>
                       <td>{c.descripcion || 'Sin descripción'}</td>
@@ -162,10 +213,38 @@ export default function CategoriasPage() {
                 )}
               </tbody>
             </table>
-          </div>
 
-          <div className="footer-page">
-            <Footer />
+            {/* Componente de Paginación */}
+            {totalPages > 1 && (
+              <div className="pagination-container">
+                <button
+                  className="pagination-arrow"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  ‹
+                </button>
+
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index + 1}
+                    className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+
+                <button
+                  className="pagination-arrow"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  ›
+                </button>
+              </div>
+            )}
+
           </div>
         </div>
       </div>

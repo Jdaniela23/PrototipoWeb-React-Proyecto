@@ -64,7 +64,7 @@ const FeaturedProducts = () => {
                             />
                             <div className="product-info">
                                 <h3 className="product-name">{product.nombre_Producto}</h3>
-                                <p className="product-price">COP {product.precio.toLocaleString()}$</p>
+                                <p className="product-price">COP {product.precio.toLocaleString()}</p>
 
                                 {/* Stock */}
                                 <p className="product-stock">
@@ -95,7 +95,7 @@ const FeaturedProducts = () => {
                                 {/* Botones */}
                                 <div className="product-buttons">
                                     <Link to={`/productos/${product.id_Producto}`} className="details-button">Ver más</Link>
-                                    <button className="add-to-cart-button"> 🛒</button>
+                                   
                                 </div>
                             </div>
                         </div>

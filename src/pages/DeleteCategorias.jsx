@@ -2,17 +2,26 @@
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import './DeleteModal.css';
+import { useState } from 'react';
 
 export default function DeleteCategorias({ categoria, onClose, onConfirm }) {
+    const [isDeleting, setIsDeleting] = useState(false);
     if (!categoria) return null;
-
+ const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await onConfirm(categoria);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
     return (
         <div className="delete-overlay">
             <div className="delete-content">
                 <h2>Confirmar Eliminación de Categoría</h2>
                 <p className="delete-message">
-                    Estás a punto de eliminar la categoría <strong>{categoria.nombre_Categoria}</strong>. 
-                    Esta acción es irreversible.<br/>
+                    Estás a punto de eliminar la categoría <strong>{categoria.nombre_Categoria}</strong>.
+                    Esta acción es irreversible.<br />
                     ¿Estás seguro de que deseas continuar?
                 </p>
 
@@ -31,9 +40,11 @@ export default function DeleteCategorias({ categoria, onClose, onConfirm }) {
                     </button>
                     <button
                         className="confirm-delete-button"
-                        onClick={() => onConfirm(categoria)}
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
                     >
-                        Sí, Eliminar Definitivamente <FaTrash style={{ marginLeft: '5px' }} />
+                        {isDeleting ? 'Eliminando...' : 'Sí, Eliminar Definitivamente'} <FaTrash />
                     </button>
                 </div>
             </div>

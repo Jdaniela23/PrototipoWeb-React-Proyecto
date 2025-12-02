@@ -1,5 +1,4 @@
-// src/api/apiConfig.js
-const BASE_URL = 'http://192.168.1.8:5282/api';
+const BASE_URL = 'http://localhost:5282/api';
 
 export const ENDPOINTS = {
   AUTH: {
@@ -15,8 +14,8 @@ export const ENDPOINTS = {
     GET_ALL: `${BASE_URL}/Productos`,
     GET_BY_ID: (id) => `${BASE_URL}/Productos/${id}`, // GET: Detalle completo con detalles e imágenes
     CREATE: `${BASE_URL}/Productos`, // POST: Crear producto con detalles y archivos
-    UPDATE: (id) => `${BASE_URL}/Productos/${id}`, // PUT: Edición completa
-    DELETE: (id) => `${BASE_URL}/Productos/${id}`, // DELETE: Eliminar producto
+    UPDATE: (id) => `${BASE_URL}/Productos/${id}`,
+    DELETE: (id) => `${BASE_URL}/Productos/${id}`,
     CHANGE_STATE: (id) => `${BASE_URL}/Productos/${id}/estado`, // PUT: Cambiar estado (activo/inactivo)
     GET_CATEGORIAS: `${BASE_URL}/CategoriaProductos`,
     GET_ADMIN: `${BASE_URL}/Productos/admin`,
@@ -24,7 +23,8 @@ export const ENDPOINTS = {
   USUARIOS: {
     MI_PERFIL: `${BASE_URL}/Usuarios/MiPerfil`,
     CAMBIAR_PASSWORD: `${BASE_URL}/Usuarios/CambiarContrasena`,
-    UPDATE_PROFILE: `${BASE_URL}/Usuarios/ActualizarPerfil`,
+    UPDATE_PROFILE: `${BASE_URL}/Auth/update-profile`,
+
     LISTAR: `${BASE_URL}/Usuarios`,
     ELIMINAR: (id) => `${BASE_URL}/Usuarios/${id}`,
     DETALLE: (id) => `${BASE_URL}/Usuarios/${id}`,
@@ -61,6 +61,8 @@ export const ENDPOINTS = {
     UPDATE: (id) => `${BASE_URL}/Pedidos/${id}`,
     DELETE: (id) => `${BASE_URL}/Pedidos/${id}`,
     GET_BY_CLIENTE: (idUsuario) => `${BASE_URL}/Pedidos/cliente/${idUsuario}`,
+    GET_DETALLES: (id) => `${BASE_URL}/Pedidos/detalles/${id}`,
+
   },
   DETALLE_PRODUCTOS: {
     GET_ALL: `${BASE_URL}/detalleProductos`,
@@ -88,6 +90,17 @@ export const ENDPOINTS = {
     GET_ALL: `${BASE_URL}/DetalleCompras`,
     DELETE: `${BASE_URL}/DetalleCompras`,
   },
+  BARRIOS: {
+    GET_ALL: `${BASE_URL}/Barrios`,     
+    GET_BY_ID: (id) => `${BASE_URL}/Barrios/${id}`,
+    CREATE: `${BASE_URL}/Barrios`,
+    UPDATE: (id) => `${BASE_URL}/Barrios/${id}`,
+    DELETE: (id) => `${BASE_URL}/Barrios/${id}`,
+  },
+  MUNICIPIOS:{
+    GET_ALL: `${BASE_URL}/Municipios`, 
+  }
+
   // añadir más controladores aquí, como:
   // BARRIOS: {
   //   GET_ALL: `${BASE_URL}/Barrios/GetAll`,

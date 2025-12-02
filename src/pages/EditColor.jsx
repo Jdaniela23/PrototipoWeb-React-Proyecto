@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import Footer from '../components/Footer.jsx';
 import { FaSave } from 'react-icons/fa';
 import ToastNotification from '../components/ToastNotification.jsx';
 import { getColorById, updateColor } from '../api/colorsService';
@@ -15,15 +14,27 @@ export default function EditColor() {
     const [submitting, setSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const [colorData, setColorData] = useState({
         id_Color: '',
         nombre_Color: '',
         descripcion: '',
-        hex_color:  '#000000' // valor por defecto
+
     });
 
     const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
+
+    // Función auxiliar para mostrar mensajes de error/éxito temporales
+    const showMessage = (text, type) => {
+        if (type === 'error') {
+            setErrorMessage(text);
+            setSuccessMessage(null);
+        } else if (type === 'success') {
+            setSuccessMessage(text);
+            setErrorMessage(null);
+        }
+    };
 
     useEffect(() => {
         if (id) fetchColor();
@@ -37,7 +48,7 @@ export default function EditColor() {
                 id_Color: data.id_Color,
                 nombre_Color: data.nombre_Color || '',
                 descripcion: data.descripcion || '',
-                hex_color: data.hex_color ||'#000'
+                hex_color: data.hex_color || '#000000' 
             });
         } catch (error) {
             console.error(error);
@@ -50,13 +61,40 @@ export default function EditColor() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setColorData(prev => ({ ...prev, [name]: value }));
+        // Limpiar el error de campo al escribir
+        setFieldErrors(prev => ({ ...prev, [name]: null }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        setFieldErrors({});
+        setErrorMessage(null);
+        setSuccessMessage(null);
+        
+        const hasNumbers = /\d/.test(colorData.nombre_Color);
+        
+        // 1. Validación de obligatoriedad del Nombre
         if (!colorData.nombre_Color.trim()) {
-            setErrorMessage('El nombre del color es obligatorio');
+            setFieldErrors({ nombre_Color: 'El nombre del color es obligatorio.' });
+            showMessage('El nombre del color es obligatorio.', 'error');
+            return;
+        }
+        
+        // 2. Validación de obligatoriedad del Tono
+        if (!colorData.hex_color || colorData.hex_color.trim() === '' || !/^#([0-9A-F]{3}){1,2}$/i.test(colorData.hex_color)) {
+            setFieldErrors({
+                hex_color: 'El tono del color (valor hexadecimal) es obligatorio y debe ser válido.'
+            });
+            showMessage('Debes seleccionar un tono de color válido.', 'error');
+            return;
+        }
+        
+        // 3. Validación de Números en el Nombre
+        if (hasNumbers) {
+            setFieldErrors({
+                nombre_Color: 'El nombre del color no debe contener números.'
+            });
+            showMessage('Por favor, corrige el nombre del color.', 'error');
             return;
         }
 
@@ -66,21 +104,44 @@ export default function EditColor() {
                 id_Color: parseInt(id),
                 nombre_Color: colorData.nombre_Color.trim(),
                 descripcion: colorData.descripcion?.trim() || '',
-                 hex_color: colorData.hex_color
+                hex_color: colorData.hex_color
             });
+            
             setSuccessMessage(`Color '${colorData.nombre_Color}' actualizado exitosamente`);
-            setErrorMessage(null);
-
-            setTimeout(() => navigate('/colores'), 1500);
+            setTimeout(() => navigate('/colores', { state: { successMessage: `Color ${colorData.nombre_Color} actualizado exitosamente.` } }), 1500);
+            
         } catch (error) {
             console.error(error);
-            const msg = error.response?.data?.mensaje || 'Error al actualizar el color';
-            setErrorMessage(msg);
-            setSuccessMessage(null);
+            
+            //  Manejar error 409 (Unicidad del backend)
+            if (error.response?.status === 409) {
+                const errorMessageText = error.response.data.message || 'Error de unicidad al actualizar.';
+                let newFieldErrors = {};
+                
+                // Identificar qué campo falló basándose en el mensaje del backend
+                if (errorMessageText.includes("nombre de color") || errorMessageText.includes("mismo nombre")) {
+                    newFieldErrors.nombre_Color = errorMessageText;
+                } else if (errorMessageText.includes("tono de color") || errorMessageText.includes("valor hexadecimal")) {
+                    newFieldErrors.hex_color = errorMessageText;
+                }
+                
+                if (Object.keys(newFieldErrors).length > 0) {
+                    setFieldErrors(newFieldErrors);
+                    showMessage(errorMessageText, 'error');
+                } else {
+                    // Si el error 409 es ambiguo, se muestra solo en la alerta
+                    showMessage(errorMessageText, 'error');
+                }
+            } else {
+                // Error genérico (404, 500, etc.)
+                const msg = error.response?.data?.message || 'Error al actualizar el color';
+                showMessage(msg, 'error');
+            }
         } finally {
             setSubmitting(false);
         }
     };
+    //---
 
     if (loading) {
         return (
@@ -104,12 +165,13 @@ export default function EditColor() {
                         Modifica los datos del color y guarda los cambios 👩🏻‍💻
                     </p><br />
                     <p className="form-info">
-                        Color: {colorData.nombre_Color}
+                        Color actual: **{colorData.nombre_Color}**
                     </p>
                     <br /><br />
 
                     <form onSubmit={handleSubmit} className="role-form">
-                        {/* ID */}
+                        
+                        {/* ID (Mantener aquí el ID, pero sin error del nombre) */}
                         <div className="form-group">
                             <label htmlFor="id_Color" className="label-heading">ID:</label>
                             <input
@@ -138,6 +200,10 @@ export default function EditColor() {
                                 disabled={submitting}
                                 className="input-field"
                             />
+                            {/* 🚩 ERROR DEL NOMBRE - REUBICADO */}
+                            {fieldErrors.nombre_Color && (
+                                <p className="error-talla">{fieldErrors.nombre_Color}</p>
+                            )}
                         </div>
 
                         {/* Descripción */}
@@ -152,10 +218,13 @@ export default function EditColor() {
                                 maxLength={500}
                                 disabled={submitting}
                                 className="input-field"
+                                required
                             />
                         </div>
+                        
+                        {/* Tono del Color (Hex) */}
                         <div className="form-group">
-                            <label htmlFor="hex_color" className="label-heading">Tono del Color <span className="required-asterisk">*</span></label>
+                            <label htmlFor="hex_color" className="label-heading">Tono del Color: <span className="required-asterisk">*</span></label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <input
                                     type="color"
@@ -177,20 +246,24 @@ export default function EditColor() {
                                 }} />
                                 <span>{colorData.hex_color}</span>
                             </div>
+                            {/* 🚩 ERROR DEL TONO */}
+                            {fieldErrors.hex_color && (
+                                <p className="error-talla">{fieldErrors.hex_color}</p>
+                            )}
                         </div>
 
                         {/* Botones */}
-                        <button type="button" className="cancel-button" onClick={() => navigate('/colores')} disabled={submitting}>
-                            Cancelar
-                        </button>
-                        <button type="submit" className="save-button" disabled={submitting}>
-                            <FaSave style={{ marginRight: '8px' }} />
-                            {submitting ? 'Actualizando...' : 'Actualizar Color'}
-                        </button>
+                        <div className="form-buttons">
+                            <button type="button" className="cancel-button" onClick={() => navigate('/colores')} disabled={submitting}>
+                                Cancelar
+                            </button>
+                            <button type="submit" className="save-button" disabled={submitting}>
+                                <FaSave style={{ marginRight: '8px' }} />
+                                {submitting ? 'Actualizando...' : 'Actualizar Color'}
+                            </button>
+                        </div>
                     </form>
                 </div>
-
-
             </div>
 
             {/* Toasts */}

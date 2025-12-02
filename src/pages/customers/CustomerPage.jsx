@@ -5,6 +5,7 @@ import TopBar from '../../components/customer/TopBar';
 import { getMyProfile } from '../../api/authService';
 import { FaEdit } from 'react-icons/fa';
 import './CustomerPage.css';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 function CustomerPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -40,7 +41,9 @@ function CustomerPage() {
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
-  if (isLoading) return null;
+ if (isLoading) {
+  return <LoadingSpinner message="Cargando tu perfil..." />;
+}
 
   if (error)
     return (
@@ -115,7 +118,7 @@ function CustomerPage() {
 
             <div className="details-grid-customer">
               <div className="detail-item-customer">
-                <label>Teléfono</label>
+                <label>Número Contacto</label>
                 <p>{numeroContacto || 'N/A'}</p>
               </div>
               <div className="detail-item-customer">

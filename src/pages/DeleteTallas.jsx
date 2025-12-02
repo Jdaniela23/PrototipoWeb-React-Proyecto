@@ -1,16 +1,27 @@
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import './DeleteModal.css';
+import { useState } from 'react';
 
 export default function DeleteTalla({ talla, onClose, onConfirm }) {
+    const [isDeleting, setIsDeleting] = useState(false);
     if (!talla) return null;
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await onConfirm(talla);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     return (
         <div className="delete-overlay">
             <div className="delete-content">
                 <h2>Confirmar Eliminación de Talla</h2>
                 <p className="delete-message">
-                    Estás a punto de eliminar la talla <strong>{talla.nombre_Talla}</strong>. Esta acción es irreversible.<br/>
+                    Estás a punto de eliminar la talla <strong>{talla.nombre_Talla}</strong>. Esta acción es irreversible.<br />
                     ¿Estás seguro de que deseas continuar?
                 </p>
 
@@ -24,8 +35,13 @@ export default function DeleteTalla({ talla, onClose, onConfirm }) {
                     <button className="cancel-button" onClick={onClose}>
                         No, Cancelar
                     </button>
-                    <button className="confirm-delete-button" onClick={() => onConfirm(talla)}>
-                        Sí, Eliminar Definitivamente <FaTrash />
+                    <button
+                        className="confirm-delete-button"
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? 'Eliminando...' : 'Sí, Eliminar Definitivamente'} <FaTrash />
                     </button>
                 </div>
             </div>

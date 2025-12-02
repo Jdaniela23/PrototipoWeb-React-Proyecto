@@ -1,15 +1,21 @@
 import './DeleteModal.css'; 
 import { FaTrash } from 'react-icons/fa';
+import { useState } from 'react';
 
 export default function DeleteUser({ usuario, onClose, onConfirm }) {
-  // El componente ahora recibe 'usuario', 'onClose' y 'onConfirm' como props.
-  // Ya no necesita 'useLocation' ni 'useNavigate' porque no navega a otra página.
+    const [isDeleting, setIsDeleting] = useState(false); 
 
-  // Si no se pasa un usuario, no se renderiza nada.
   if (!usuario) {
     return null;
   }
-
+ const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onConfirm(usuario); 
+    } finally {
+      setIsDeleting(false); 
+    }
+  };
   return (
     <div className="delete-overlay">
       <div className="delete-content">
@@ -33,8 +39,13 @@ export default function DeleteUser({ usuario, onClose, onConfirm }) {
             No, Cancelar
           </button>
 
-          <button className="confirm-delete-button" onClick={() => onConfirm(usuario)}>
-            Sí, Eliminar Definitivamente <FaTrash />
+            <button
+            className="confirm-delete-button"
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting} 
+          >
+            {isDeleting ? 'Eliminando...' : 'Sí, Eliminar Definitivamente'} <FaTrash />
           </button>
         </div>
       </div>

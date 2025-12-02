@@ -1,0 +1,128 @@
+/* --- CONTENEDOR PRINCIPAL DE LAS CARDS --- */
+.contenedor-cards-categorias {
+    display: flex; /* Para colocar las cards una al lado de la otra */
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 20px; /* Espacio entre las cards */
+    padding: 20px; 
+    width: 100%; 
+    height: 80%; /* Altura definida */
+    box-sizing: border-box; 
+    background-color: #f0f0f0; 
+}
+
+/* --- ESTILO BASE DE CADA TARJETA (CARD) --- */
+.categoria-card {
+    flex: 1; 
+    min-width: 300px; 
+    max-width: 48%; 
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; 
+    background-color: white; 
+    border-radius: 8px; 
+    overflow: hidden; /* CLAVE: Oculta la segunda imagen del carrusel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    text-align: center; 
+    font-family: 'DM Sans', sans-serif;
+    position: relative; /* Asegura que el z-index de hover funcione bien */
+}
+
+/* --- EFECTO HOVER DE LA TARJETA COMPLETA --- */
+.categoria-card:hover {
+    transform: translateY(-5px); 
+    box-shadow: 0 0 20px 5px rgba(207, 181, 30, 0.75); 
+    z-index: 10; 
+}
+
+/* ------------------------------------------------------------------ */
+/* --- SECCIÓN CARRUSEL DE DOBLE IMAGEN (REEMPLAZA .card-imagen) --- */
+/* ------------------------------------------------------------------ */
+
+/* 1. CONTENEDOR DE DOBLE IMAGEN (CARRUSEL) */
+.card-imagenes-carrusel {
+    display: flex; 
+    flex-direction: row; 
+    width: 200%; /* CLAVE: El ancho es 200% */
+    height: 300px; 
+    position: relative; 
+    
+    /* Transición de deslizamiento suave */
+    transition: transform 0.5s ease-in-out; 
+}
+
+/* 2. CADA IMAGEN INDIVIDUAL (ITEM) */
+.card-imagen-carrusel-item {
+    width: 50%; /* Cada item es el 50% del contenedor 200% */
+    height: 100%;
+    
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    position: relative; 
+}
+
+/* 3. EFECTO HOVER DE DESLIZAMIENTO */
+.categoria-card:hover .card-imagenes-carrusel {
+    /* Desplaza el contenedor 50% a la izquierda para mostrar la segunda imagen */
+    transform: translateX(-50%);
+}
+
+.card-titulo-overlay {
+    color: white; 
+    font-size: 2.5em; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); 
+    margin: 0; 
+    padding: 10px;
+    font-family: 'DM Sans', sans-serif;
+    position: absolute; 
+    left: 50%; 
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+}
+/* --- ESTILOS DEL CONTENIDO DE TEXTO DEBAJO DE LA IMAGEN --- */
+.card-contenido {
+    padding: 20px;
+}
+.card-titulo {
+    font-size: 1.5em;
+    color: #333; 
+    margin-bottom: 10px;
+    text-transform: uppercase; 
+}
+
+.card-descripcion {
+    font-size: 0.9em;
+    color: #666; 
+    line-height: 1.5;
+}
+
+.negro-estilo {
+    background-color: #fefefe; 
+}
+
+.negro-estilo .card-titulo {
+    color: #333; 
+}
+.negro-estilo .card-descripcion {
+    color: #555; 
+}
+
+.dorado-estilo {
+    background-color: #fefefe; 
+}
+
+.dorado-estilo .card-titulo {
+    color: #CBB51E; 
+}
+
+.dorado-estilo .card-descripcion {
+    color: #555;
+}
+
+/* --- MEDIA QUERIES para responsividad (cuando la pantalla es pequeña) --- */
+@media (max-width: 768px) {
+    .categoria-card {
+        max-width: 100%; 
+    }
+}

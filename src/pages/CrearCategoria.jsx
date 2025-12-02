@@ -1,12 +1,10 @@
-// src/pages/CrearCategoria.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaSave } from 'react-icons/fa';
 import Nav from '../components/Nav.jsx';
-import Footer from '../components/Footer.jsx';
 import ToastNotification from '../components/ToastNotification.jsx';
 import { createCategoria } from '../api/categoriasService';
-import './FormAdd.css'; // mismo CSS que colores
+import './FormAdd.css';
 
 export default function CrearCategoria() {
   const navigate = useNavigate();
@@ -14,6 +12,7 @@ export default function CrearCategoria() {
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({ nombre_Categoria: '', descripcion: '' });
   const [errors, setErrors] = useState({});
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
@@ -25,8 +24,18 @@ export default function CrearCategoria() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.nombre_Categoria.trim()) newErrors.nombre_Categoria = 'El nombre es obligatorio';
-    if (formData.descripcion && formData.descripcion.length > 500) newErrors.descripcion = 'Máx 500 caracteres';
+    const name = formData.nombre_Categoria.trim();
+    const descripcion = formData.descripcion.trim();
+    if (!name) {
+      // Campo obligatorio
+      newErrors.nombre_Categoria = 'El nombre es obligatorio';
+    } else if (/\d/.test(name)) { 
+      newErrors.nombre_Categoria = 'El nombre no debe contener números (dígitos)';
+    }
+    if (formData.descripcion && formData.descripcion.length > 1000) newErrors.descripcion = 'Solo se permite 1000 caracteres';
+    if (!descripcion) {
+      newErrors.descripcion = 'El campo es obligatorio';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -39,14 +48,14 @@ export default function CrearCategoria() {
       setSubmitting(true);
       await createCategoria(formData);
 
-      // 🚀 Pasamos el mensaje al estado de la página de categorías
+      // Pasamos el mensaje al estado de la página de categorías
       navigate('/categorias', {
         state: { successMessage: `Categoría '${formData.nombre_Categoria}' creada exitosamente` }
       });
 
     } catch (error) {
-      console.error(error);
-      alert('Error al crear la categoría');
+      const errorMsg = error.response?.data?.mensaje || 'Error al crear la categoría.';
+      setErrorMessage(errorMsg); 
     } finally {
       setSubmitting(false);
     }
@@ -59,7 +68,7 @@ export default function CrearCategoria() {
       <div className={`formulario-rol-main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
         <div className="formulario-roles">
           <h1 className="form-title">Crear Nueva Categoría</h1>
-          <p className="form-info">Completa todos los campos antes de Guardar 👩🏻‍💻</p><br /><br />
+          <p className="form-info">Completa todos los campos antes de Guardar: </p><br /><br />
 
           <form onSubmit={handleSubmit} className="role-form">
             <div className="form-group">
@@ -75,8 +84,8 @@ export default function CrearCategoria() {
                 value={formData.nombre_Categoria}
                 onChange={handleChange}
                 disabled={submitting}
-              />
-              {errors.nombre_Categoria && <span className="error-message">{errors.nombre_Categoria}</span>}
+              /><br />
+              {errors.nombre_Categoria && <span className="error-message-rol">{errors.nombre_Categoria}</span>}
             </div>
 
             <div className="form-group">
@@ -92,8 +101,8 @@ export default function CrearCategoria() {
                 onChange={handleChange}
                 rows="4"
                 disabled={submitting}
-              />
-              {errors.descripcion && <span className="error-message">{errors.descripcion}</span>}
+              /><br />
+              {errors.descripcion && <span className="error-message-rol">{errors.descripcion}</span>}
             </div>
 
             <div className="form-buttons">
@@ -117,7 +126,11 @@ export default function CrearCategoria() {
         </div>
       </div>
 
-
+      <ToastNotification
+        message={errorMessage}
+        type="error"
+        onClose={() => setErrorMessage(null)}
+      />
     </div>
   );
 }

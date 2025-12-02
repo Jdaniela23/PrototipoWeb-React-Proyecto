@@ -70,7 +70,9 @@ export const deleteTalla = async (id) => {
     });
     return response.data;
   } catch (error) {
-    console.error(`Error al eliminar la talla ${id}:`, error.response?.data || error.message);
-    throw error;
+    const errorMessage = error.response?.data?.message || error.message;
+    console.error(`Error al eliminar la talla ${id}:`, errorMessage);
+    
+    throw error;
   }
 };

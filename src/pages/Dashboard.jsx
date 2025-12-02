@@ -6,59 +6,100 @@ import Chart from 'react-apexcharts';
 import './Dashboard.css';
 import { getCompras } from "../api/comprasService.js";
 import { getPedidos } from "../api/pedidosService.js";
-import { getMyProfile } from "../api/authService"; // Traer perfil admin
+import { getMyProfile } from "../api/authService";
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [menuCollapsed, setMenuCollapsed] = useState(false);
-
-    // Perfil admin
     const [profile, setProfile] = useState(null);
-
-    // Datos de la API
     const [comprasData, setComprasData] = useState([]);
     const [pedidosData, setPedidosData] = useState([]);
-    const [ventasPorMes, setVentasPorMes] = useState([]);
-    const [ventasProyectadas, setVentasProyectadas] = useState([]);
-    const [costoPorCategoria, setCostoPorCategoria] = useState({});
-    const [ventasPorCategoria, setVentasPorCategoria] = useState({});
-    const [costoProyectado, setCostoProyectado] = useState({});
-    const [ventasProyectadasCategoria, setVentasProyectadasCategoria] = useState({});
+    const [filtroReal, setFiltroReal] = useState('mes');
+    const [filtroProyectado, setFiltroProyectado] = useState('mes');
+    const [fechaReal, setFechaReal] = useState({ dia: '', mes: '', año: '' });
+    const [fechaProyectada, setFechaProyectada] = useState({ dia: '', mes: '', año: '' });
 
     const navigate = useNavigate();
 
-    // --- Cargar perfil y datos ---
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const profileData = await getMyProfile();
                 setProfile(profileData);
-
                 const [compras, pedidos] = await Promise.all([getCompras(), getPedidos()]);
                 setComprasData(compras);
                 setPedidosData(pedidos);
-                procesarDatos(compras, pedidos);
+                
+                const hoy = new Date();
+                setFechaReal({ dia: hoy.getDate(), mes: hoy.getMonth() + 1, año: hoy.getFullYear() });
+                setFechaProyectada({ dia: hoy.getDate(), mes: hoy.getMonth() + 1, año: hoy.getFullYear() });
             } catch (error) {
                 console.error("Error al cargar datos:", error);
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
-    const procesarDatos = (compras, pedidos) => {
-        const pedidosFinalizados = pedidos.filter(p => p.estado_Pedido === 'Completado');
-        const pedidosActivos = pedidos.filter(p => p.estado_Pedido !== 'Cancelado');
+    const obtenerFechasDisponibles = (pedidos) => {
+        const fechas = new Set();
+        pedidos.forEach(p => {
+            const fecha = new Date(p.fecha_Creacion);
+            fechas.add(`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`);
+        });
+        return Array.from(fechas).map(f => {
+            const [año, mes, dia] = f.split('-');
+            return { año: parseInt(año), mes: parseInt(mes), dia: parseInt(dia) };
+        });
+    };
 
-        setVentasPorMes(calcularVentasPorMes(pedidosFinalizados));
-        setVentasProyectadas(calcularVentasPorMes(pedidosActivos));
+    const obtenerMesesDisponibles = (pedidos, año) => {
+        const meses = new Set();
+        pedidos.forEach(p => {
+            const fecha = new Date(p.fecha_Creacion);
+            if (fecha.getFullYear() === parseInt(año)) {
+                meses.add(fecha.getMonth() + 1);
+            }
+        });
+        return Array.from(meses).sort((a, b) => a - b);
+    };
 
-        setCostoPorCategoria(calcularCostosPorCategoria(compras));
-        setVentasPorCategoria(calcularVentasPorCategoria(pedidosFinalizados));
-        setVentasProyectadasCategoria(calcularVentasPorCategoria(pedidosActivos));
-        setCostoProyectado(calcularCostosPorCategoria(compras));
+    const obtenerDiasDisponibles = (pedidos, año, mes) => {
+        const dias = new Set();
+        pedidos.forEach(p => {
+            const fecha = new Date(p.fecha_Creacion);
+            if (fecha.getFullYear() === parseInt(año) && fecha.getMonth() + 1 === parseInt(mes)) {
+                dias.add(fecha.getDate());
+            }
+        });
+        return Array.from(dias).sort((a, b) => a - b);
+    };
+
+    const obtenerAñosDisponibles = (pedidos) => {
+        const años = new Set();
+        pedidos.forEach(p => {
+            const fecha = new Date(p.fecha_Creacion);
+            años.add(fecha.getFullYear());
+        });
+        return Array.from(años).sort((a, b) => b - a);
+    };
+
+    const filtrarPorPeriodo = (pedidos, filtro, fecha) => {
+        return pedidos.filter(p => {
+            const fechaPedido = new Date(p.fecha_Creacion);
+            if (filtro === 'dia') {
+                return fechaPedido.getDate() === parseInt(fecha.dia) && 
+                       fechaPedido.getMonth() + 1 === parseInt(fecha.mes) && 
+                       fechaPedido.getFullYear() === parseInt(fecha.año);
+            } else if (filtro === 'mes') {
+                return fechaPedido.getMonth() + 1 === parseInt(fecha.mes) && 
+                       fechaPedido.getFullYear() === parseInt(fecha.año);
+            } else {
+                return fechaPedido.getFullYear() === parseInt(fecha.año);
+            }
+        });
     };
 
     const calcularVentasPorMes = (pedidos) => {
@@ -93,25 +134,39 @@ const Dashboard = () => {
     };
 
     const calcularTotales = (obj) => Object.values(obj).reduce((sum, val) => sum + val, 0);
-
     const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
-    if (isLoading) return <div className="loading-container">Cargando...</div>;
+    if (isLoading) return <LoadingSpinner message="Cargando datos del Dashboard..." />;
 
-    // --- Datos del perfil ---
     const nombreUsuario = profile?.nombreUsuario || 'Administrador';
     const foto = profile?.foto || null;
 
-    // --- Totales y ganancias ---
+    const pedidosFinalizados = pedidosData.filter(p => p.estado_Pedido === 'Completado');
+    const pedidosActivos = pedidosData.filter(p => p.estado_Pedido !== 'Cancelado');
+
+    const añosReales = obtenerAñosDisponibles(pedidosFinalizados);
+    const mesesReales = obtenerMesesDisponibles(pedidosFinalizados, fechaReal.año);
+    const diasReales = obtenerDiasDisponibles(pedidosFinalizados, fechaReal.año, fechaReal.mes);
+
+    const añosProyectados = obtenerAñosDisponibles(pedidosActivos);
+    const mesesProyectados = obtenerMesesDisponibles(pedidosActivos, fechaProyectada.año);
+    const diasProyectados = obtenerDiasDisponibles(pedidosActivos, fechaProyectada.año, fechaProyectada.mes);
+
+    const pedidosFinalizadosFiltrados = filtrarPorPeriodo(pedidosFinalizados, filtroReal, fechaReal);
+    const pedidosActivosFiltrados = filtrarPorPeriodo(pedidosActivos, filtroProyectado, fechaProyectada);
+
+    const ventasPorMes = calcularVentasPorMes(pedidosFinalizados);
+    const costoPorCategoria = calcularCostosPorCategoria(comprasData);
+    const ventasPorCategoria = calcularVentasPorCategoria(pedidosFinalizadosFiltrados);
     const totalCostos = calcularTotales(costoPorCategoria);
     const totalVentas = calcularTotales(ventasPorCategoria);
     const gananciaReal = totalVentas - totalCostos;
 
-    const totalCostosProyectado = calcularTotales(costoProyectado);
+    const ventasProyectadas = calcularVentasPorMes(pedidosActivos);
+    const ventasProyectadasCategoria = calcularVentasPorCategoria(pedidosActivosFiltrados);
     const totalVentasProyectadas = calcularTotales(ventasProyectadasCategoria);
-    const gananciaProyectada = totalVentasProyectadas - totalCostosProyectado;
+    const gananciaProyectada = totalVentasProyectadas - totalCostos;
 
-    // --- Gráficos ---
     const ventasOptions = {
         chart: { id: 'ventas-chart', toolbar: { show: false } },
         xaxis: { categories: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'] },
@@ -128,9 +183,15 @@ const Dashboard = () => {
 
     const costData = { labels: Object.keys(costoPorCategoria), values: Object.values(costoPorCategoria) };
     const salesData = { labels: Object.keys(ventasPorCategoria), values: Object.values(ventasPorCategoria) };
-
-    const costDataProyectado = { labels: Object.keys(costoProyectado), values: Object.values(costoProyectado) };
     const salesDataProyectado = { labels: Object.keys(ventasProyectadasCategoria), values: Object.values(ventasProyectadasCategoria) };
+
+    const selectStyle = {
+        padding: '8px 12px',
+        border: '1px solid #ddd',
+        borderRadius: '5px',
+        fontSize: '14px',
+        cursor: 'pointer'
+    };
 
     return (
         <div className="app-container size-a">
@@ -151,7 +212,6 @@ const Dashboard = () => {
                 </p>
 
                 <div className="dashboard-content">
-                    {/* Ventas completadas */}
                     <div className="dashboard-row">
                         <div className="dashboard-card large">
                             <div className="card-header">
@@ -162,9 +222,32 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Métricas reales */}
                     <div className="dashboard-row">
                         <div className='contenedor-cartas'>
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px', flexWrap:'wrap', gap:'10px'}}>
+                                <h3>Ventas Completadas</h3>
+                                <div style={{display:'flex', gap:'10px', alignItems:'center', flexWrap:'wrap'}}>
+                                    <button onClick={() => setFiltroReal('dia')} style={{padding:'8px 15px', backgroundColor: filtroReal==='dia'?'#c89b3c':'#f0f0f0', border:'none', borderRadius:'5px', cursor:'pointer'}}>Día</button>
+                                    <button onClick={() => setFiltroReal('mes')} style={{padding:'8px 15px', backgroundColor: filtroReal==='mes'?'#c89b3c':'#f0f0f0', border:'none', borderRadius:'5px', cursor:'pointer'}}>Mes</button>
+                                    <button onClick={() => setFiltroReal('año')} style={{padding:'8px 15px', backgroundColor: filtroReal==='año'?'#c89b3c':'#f0f0f0', border:'none', borderRadius:'5px', cursor:'pointer'}}>Año</button>
+                                    
+                                    <select value={fechaReal.año} onChange={(e) => setFechaReal({...fechaReal, año: e.target.value})} style={selectStyle}>
+                                        {añosReales.map(año => <option key={año} value={año}>{año}</option>)}
+                                    </select>
+                                    
+                                    {(filtroReal === 'mes' || filtroReal === 'dia') && (
+                                        <select value={fechaReal.mes} onChange={(e) => setFechaReal({...fechaReal, mes: e.target.value})} style={selectStyle}>
+                                            {mesesReales.map(mes => <option key={mes} value={mes}>{['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][mes-1]}</option>)}
+                                        </select>
+                                    )}
+                                    
+                                    {filtroReal === 'dia' && (
+                                        <select value={fechaReal.dia} onChange={(e) => setFechaReal({...fechaReal, dia: e.target.value})} style={selectStyle}>
+                                            {diasReales.map(dia => <option key={dia} value={dia}>{dia}</option>)}
+                                        </select>
+                                    )}
+                                </div>
+                            </div>
                             <hr />
                             <div className="metrics-container">
                                 <div className="metric-card">
@@ -180,7 +263,7 @@ const Dashboard = () => {
                                 </div>
 
                                 <div className="metric-card">
-                                    <h2>Ventas (Completadas)</h2>
+                                    <h2>Ventas</h2>
                                     <ul className="data-list">
                                         {salesData.labels.length > 0 ? salesData.labels.map((cat,i)=>(
                                             <li key={i}>
@@ -205,7 +288,6 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Ventas proyectadas */}
                     <div className="dashboard-row">
                         <div className="dashboard-card large">
                             <div className="card-header">
@@ -219,21 +301,41 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Métricas proyectadas */}
                     <div className="dashboard-row">
                         <div className='contenedor-cartas'>
-                            <h3 style={{textAlign:'center', color:'#c89b3c', marginBottom:'20px'}}>
-                                📊 Ganancias Proyectadas (Si todos los pedidos se completan)
-                            </h3>
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px', flexWrap:'wrap', gap:'10px'}}>
+                                <h3 style={{color:'#c89b3c'}}>📊 Ganancias Proyectadas</h3>
+                                <div style={{display:'flex', gap:'10px', alignItems:'center', flexWrap:'wrap'}}>
+                                    <button onClick={() => setFiltroProyectado('dia')} style={{padding:'8px 15px', backgroundColor: filtroProyectado==='dia'?'#c89b3c':'#f0f0f0', border:'none', borderRadius:'5px', cursor:'pointer'}}>Día</button>
+                                    <button onClick={() => setFiltroProyectado('mes')} style={{padding:'8px 15px', backgroundColor: filtroProyectado==='mes'?'#c89b3c':'#f0f0f0', border:'none', borderRadius:'5px', cursor:'pointer'}}>Mes</button>
+                                    <button onClick={() => setFiltroProyectado('año')} style={{padding:'8px 15px', backgroundColor: filtroProyectado==='año'?'#c89b3c':'#f0f0f0', border:'none', borderRadius:'5px', cursor:'pointer'}}>Año</button>
+                                    
+                                    <select value={fechaProyectada.año} onChange={(e) => setFechaProyectada({...fechaProyectada, año: e.target.value})} style={selectStyle}>
+                                        {añosProyectados.map(año => <option key={año} value={año}>{año}</option>)}
+                                    </select>
+                                    
+                                    {(filtroProyectado === 'mes' || filtroProyectado === 'dia') && (
+                                        <select value={fechaProyectada.mes} onChange={(e) => setFechaProyectada({...fechaProyectada, mes: e.target.value})} style={selectStyle}>
+                                            {mesesProyectados.map(mes => <option key={mes} value={mes}>{['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][mes-1]}</option>)}
+                                        </select>
+                                    )}
+                                    
+                                    {filtroProyectado === 'dia' && (
+                                        <select value={fechaProyectada.dia} onChange={(e) => setFechaProyectada({...fechaProyectada, dia: e.target.value})} style={selectStyle}>
+                                            {diasProyectados.map(dia => <option key={dia} value={dia}>{dia}</option>)}
+                                        </select>
+                                    )}
+                                </div>
+                            </div>
                             <hr />
                             <div className="metrics-container">
                                 <div className="metric-card" style={{borderColor:'#c89b3c'}}>
                                     <h2>Costo de Compras (Proyectado)</h2>
                                     <ul className="data-list">
-                                        {costDataProyectado.labels.length > 0 ? costDataProyectado.labels.map((cat,i)=>(
+                                        {costData.labels.length > 0 ? costData.labels.map((cat,i)=>(
                                             <li key={i}>
                                                 <span className="category">{cat}:</span>
-                                                <span className="value">${costDataProyectado.values[i].toLocaleString('es-CO', {minimumFractionDigits:2})}</span>
+                                                <span className="value">${costData.values[i].toLocaleString('es-CO', {minimumFractionDigits:2})}</span>
                                             </li>
                                         )) : <li>No hay datos disponibles</li>}
                                     </ul>
@@ -258,7 +360,7 @@ const Dashboard = () => {
                                     </div>
                                     <div style={{textAlign:'center', fontSize:'0.9em', color:'#666', marginTop:'10px'}}>
                                         <div>Total Ventas: ${totalVentasProyectadas.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
-                                        <div>Total Costos: ${totalCostosProyectado.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
+                                        <div>Total Costos: ${totalCostos.toLocaleString('es-CO', {minimumFractionDigits:2})}</div>
                                     </div>
                                 </div>
                             </div>

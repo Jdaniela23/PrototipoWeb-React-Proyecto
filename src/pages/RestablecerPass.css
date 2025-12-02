@@ -1,60 +1,47 @@
-/* Importa los estilos base de RecuperarPass.css */
-@import url('./RecuperarPass.css');
-
 .password-input-container {
-    position: relative; /* Esencial para posicionar el icono */
-    width: 100%; /* Hereda de .input-group si lo usas como padre, o define aquí */
-    max-width: 400px; /* Limita el ancho como los otros inputs */
-    margin-bottom: 15px; /* Espacio debajo del input de contraseña */
-   
-   
+    width: 100%; 
+    max-width: 400px; 
+    margin-top: 20px;
+    position: relative; 
 }
-
-/* Estilos para los inputs de contraseña */
+.contenido-card{
+    margin-left: -30px;
+    margin-top: 40px;
+}
 .password-input {
-    width: 500px; /* Ocupa todo el ancho de su contenedor (.password-input-container) */
-    height: 45px;
+    width: 100%;
+    height: 50px; 
     padding: 10px 15px;
+
     border: 1px solid #ccc;
-    border-radius: 10px; /* Bordes redondeados como en RecuperarPass */
+    border-radius: 10px; 
     font-size: 1em;
-    box-sizing: border-box;
-    margin-top: 5px;
+    box-sizing: border-box; 
     transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
- 
 }
 
-/* Estilos para el icono de mostrar/ocultar contraseña */
-.password-toggle-icon {
-    position: absolute;
-    right: 10px; /* Ajusta la posición del icono desde la derecha */
-    top: 50%; /* Centra verticalmente */
-    transform: translateY(-50%); /* Ajuste fino para centrado vertical */
-    cursor: pointer;
-    color: #888; /* Color del icono */
-    font-size: 1.2em; /* Tamaño del icono */
-    z-index: 10; /* Asegura que el icono esté por encima del input */
-    margin-top: 1px;
-    
-}
-
-/* Estilos de hover y focus para los inputs de contraseña (igual que en RecuperarPass) */
-.password-input:hover {
-    border-color: #DAA520; /* Dorado */
+.password-input:hover{
+    border-color: #DAA520;
 }
 
 .password-input:focus {
-    border-color: #DAA520; /* Dorado */
+    border-color: #DAA520;
     outline: none;
     box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.5);
 }
 
-
-/* Estilo para el botón de "Guardar nueva contraseña" */
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%; /* Lo posiciona a la mitad del contenedor. */
+    transform: translateY(-50%); /* Ajuste fino para centrado vertical. */
+    cursor: pointer;
+    color: #888;
+    font-size: 1.2em;
+    z-index: 10;
+}
 .btn-guardar-contrasena {
-    /* Hereda las propiedades de .btn-primary-golden que esta en RecuperarPass.css */
-
-    background-color: #c89b3c; /* Dorado/Marrón */
+    background-color: #b59b64;; 
     color: white;
     padding: 12px 15px;
     font-size: 1em;
@@ -62,9 +49,11 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: 130%; /* Para que se alinee con el ancho de los inputs */
-
-    margin-top: 20px; /* Espacio para separarlo de los mensajes/inputs */
+    
+    width: 120%;
+    margin-top: 20px;
+    margin-left: 0; 
+    
     box-sizing: border-box;
     text-decoration: none;
     display: flex;
@@ -73,26 +62,80 @@
 }
 
 .btn-guardar-contrasena:hover {
-    background-color: #9d6d28; /* Dorado más oscuro en hover */
+    background-color: #9d6d28;
 }
 
-/* Estilo para el enlace "Volver a Iniciar sesión" */
+
+.titulo-restablecerpass{
+    text-align: center; 
+    margin-right: 0; 
+    margin-top: 8%;
+    margin-left: 60px;
+}
+
+.password-input-restablecer:hover { 
+    border-color: #DAA520; 
+}
+
+.password-input-restablecer:focus { 
+    border-color: #DAA520; 
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.5);
+}
+
 .boton2-restablecer {
-    color: #c89b3c; /* Dorado/Marrón para el texto */
-    text-decoration: none; /* Quita el subrayado por defecto */
-    margin-top: 15px; /* Espacio entre el botón y el enlace */
+    color: #c89b3c;
+    text-decoration: none;
+    margin-top: 15px;
     font-size: 0.95em;
     transition: color 0.3s ease;
 }
 
 .boton2-restablecer:hover {
-    color: #9d6d28; /* Dorado más oscuro en hover */
-    text-decoration: underline; /* Subraya en hover si lo deseas */
+    color: #9d6d28;
+    text-decoration: underline;
 }
 
-.titulo-restablecerpass{
+.instrucciones{
     text-align: center;
-    font-size: larger;
-    margin-right: -10%;
-    
+    margin-right: -30px;
 }
+.mensaje-confirmacion {
+  text-align: center;           
+  color: #2e8b57;              
+  font-size: 1em;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  background-color: #eafaf1;  
+  border: 1px solid #a3d9a5;
+  border-radius: 8px;
+  padding: 10px 15px;
+  width: 100%;
+  max-width: 400px;            
+  margin-left: 10%;           /*  Esto centra el bloque */
+  box-sizing: border-box;
+
+}
+
+.mensaje-error-pass {
+  text-align: center;
+  color: #b22222;                /* rojo oscuro */
+  font-size: 1em;
+  
+  margin-top: 15px;
+  margin-bottom: 10px;
+  background-color: #fdecea;     /* fondo rojo muy claro */
+  border: 1px solid #f5c2c0;     /* borde rosado suave */
+  border-radius: 8px;
+  padding: 10px 15px;
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;             /* centra horizontalmente */
+  margin-right: -10%;
+  box-sizing: border-box;
+  word-wrap: break-word;         /* evita desbordes */
+  overflow-wrap: break-word;     /* rompe texto largo */
+  
+}
+
+

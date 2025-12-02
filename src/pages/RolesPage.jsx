@@ -15,7 +15,7 @@ export default function RolesPage() {
 
     // ESTADOS
     const [menuCollapsed, setMenuCollapsed] = useState(false);
-    const [rolSeleccionado, setRolSeleccionado] = useState(null); 
+    const [rolSeleccionado, setRolSeleccionado] = useState(null);
     const [rolAEliminar, setRolAEliminar] = useState(null);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -65,20 +65,21 @@ export default function RolesPage() {
         const nuevoEstado = !rolActual.estado;
 
         try {
-            // 👇 Mapeo PascalCase para el backend
+            // Mapeo PascalCase para el backend 
             const rolActualizado = {
                 Id_Rol: rolActual.id,
                 Nombre_Rol: rolActual.nombreRol,
                 Descripcion_Rol: rolActual.descripcion,
                 Estado_Rol: nuevoEstado,
-                // 🔑 Enviar permisos como array de strings (ej: ["Usuarios_Leer", "Usuarios_Crear"])
                 Permisos: Object.entries(rolActual.permisos || {}).flatMap(([modulo, acciones]) =>
                     acciones.map((accion) => `${modulo}_${accion}`)
                 ),
             };
 
+            // 1. LLAMADA AL API PUT 
             await updateRol(rolActualizado);
 
+            // 2. Si es exitoso, actualiza el estado local (frontend)
             setRoles(prevRoles =>
                 prevRoles.map(r => r.id === idRol ? { ...r, estado: nuevoEstado } : r)
             );
@@ -87,27 +88,53 @@ export default function RolesPage() {
                 `El estado del rol '${rolActual.nombreRol}' se actualizó a ${nuevoEstado ? 'Activo' : 'Inactivo'}.`
             );
             setErrorMessage(null);
+
         } catch (err) {
             console.error("Error al cambiar estado:", err);
-            setErrorMessage(`Error al actualizar el rol '${rolActual.nombreRol}'.`);
+
+            const apiErrorMessage = err.response?.data?.message || err.message;
+
+            // Detectar si el error es el conflicto de "Rol en Uso"
+            if (apiErrorMessage && apiErrorMessage.includes('Conflicto: El rol')) {
+
+                // 3. Muestra el mensaje específico de conflicto
+                setErrorMessage(apiErrorMessage);
+
+                // NOTA: Si falló, NO actualizamos el estado local (el switch se mantiene en 'Activo')
+            } else {
+                // 4. Si es otro error (red, servidor, etc.)
+                setErrorMessage(`Error al actualizar el rol '${rolActual.nombreRol}'.`);
+            }
             setSuccessMessage(null);
         }
     };
-
     // === ELIMINAR ROL ===
     const handleConfirmarEliminar = async (rol) => {
         try {
             await deleteRol(rol.id);
 
             setRoles(prevRoles => prevRoles.filter(r => r.id !== rol.id));
-            setRolAEliminar(null);
 
-            setSuccessMessage(`El rol '${rol.nombreRol}' fue eliminado con éxito.`);
+            // 1. ÉXITO: Cerramos el modal y mostramos éxito
+            setRolAEliminar(null);
             setErrorMessage(null);
+            setSuccessMessage(`El rol '${rol.nombreRol}' fue eliminado con éxito.`);
+
         } catch (err) {
             console.error("Error al eliminar:", err);
-            setErrorMessage(`No se pudo eliminar el rol '${rol.nombreRol}'.`);
+
+            let customErrorMessage = `No se pudo eliminar el rol '${rol.nombreRol}'.`;
+
+            const apiErrorMessage = err.response?.data?.message || err.message;
+
+            if (apiErrorMessage && apiErrorMessage.includes('Conflicto: El rol')) {
+                customErrorMessage = apiErrorMessage.replace('Error de API: ', '');
+            }
+
+            // 2. ERROR: Mostramos el error, pero NO cerramos el modal aquí.
+            setErrorMessage(customErrorMessage);
             setSuccessMessage(null);
+            // NO HACER setRolAEliminar(null) AQUÍ
         }
     };
 
@@ -125,6 +152,27 @@ export default function RolesPage() {
         )
     );
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 5;
+
+    // === LÓGICA DE PAGINACIÓN ===
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredRoles.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(filteredRoles.length / recordsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
+
     // === RENDER TABLA ===
     const renderTable = () => {
         if (loading) return (
@@ -137,7 +185,9 @@ export default function RolesPage() {
             <tr><td colSpan="4" className="no-data-message">No se encontraron roles.</td></tr>
         );
 
-        return filteredRoles.map(rol => (
+
+
+        return currentRecords.map(rol => (
             <tr key={rol.id}>
                 <td>{rol.nombreRol}</td>
                 <td>{rol.descripcion}</td>
@@ -198,10 +248,13 @@ export default function RolesPage() {
                             type="text"
                             placeholder="Buscar Roles"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                             onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1); 
+                                }}
                         />
                         <button className="search-button">
-                            <FaSearch color="#fff" size={15}  /> 
+                            <FaSearch color="#fff" size={15} />
                         </button>
                     </div>
 
@@ -225,19 +278,44 @@ export default function RolesPage() {
                             {renderTable()}
                         </tbody>
                     </table>
-                </div>
-                
-                <div className="footer-page"> 
-                    <Footer />
+                    {/* 👇 COMPONENTE DE PAGINACIÓN */}
+                    {filteredRoles.length > recordsPerPage && (
+                        <div className="pagination-container">
+                            <button
+                                className="pagination-arrow"
+                                onClick={handlePrevPage}
+                                disabled={currentPage === 1}
+                            >
+                                ‹
+                            </button>
+
+                            {[...Array(totalPages)].map((_, index) => (
+                                <button
+                                    key={index + 1}
+                                    className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                                    onClick={() => handlePageChange(index + 1)}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))}
+
+                            <button
+                                className="pagination-arrow"
+                                onClick={handleNextPage}
+                                disabled={currentPage === totalPages}
+                            >
+                                ›
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* MODAL DETALLES */}
+
             {rolSeleccionado && (
                 <DetallesRol rol={rolSeleccionado} onClose={handleCerrarDetalles} />
             )}
 
-            {/* MODAL ELIMINACIÓN */}
             {rolAEliminar && (
                 <DeleteRol
                     rol={rolAEliminar}

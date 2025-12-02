@@ -6,13 +6,15 @@
 
 .customer-main-content {
     flex-grow: 1;
-    margin-left: 250px; /* Ancho del sidebar */
     padding-top: 90px;
     transition: margin-left 0.3s ease;
     overflow-y: auto;
-    display: flex; /* Añadido para usar flexbox */
-    justify-content: center; /* Centra el contenido horizontalmente */
-    align-items: flex-start; /* Alinea la tarjeta en la parte superior del contenedor */
+    display: flex; 
+    /* Centra horizontalmente el contenido hijo */
+    justify-content: center; 
+    align-items: center; 
+    margin-right: 10%;
+    width: 400%;
 }
 
 /* Estilos de la tarjeta de información del cliente */
@@ -22,9 +24,7 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     padding: 30px;
     width: 100%; /* Ocupa todo el ancho disponible */
-    max-width: 900px; /* Ancho máximo de la tarjeta */
-    /* Se elimina 'margin: 0 auto' ya que flexbox se encargará del centrado */
-}
+    max-width: 900px; }
 
 .titulo-miperfil-customer {
     font-size: 1.5em;
@@ -57,7 +57,7 @@
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #e6f7ff;
+    border: 3px solid #b59b64;
     transition: transform 0.5s ease;
        
 }

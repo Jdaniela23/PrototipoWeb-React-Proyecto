@@ -138,6 +138,9 @@ function CambiarPasswordPage() {
             <button type="submit" disabled={isSaving}>
               {isSaving ? 'Guardando...' : 'Cambiar contraseña'}
             </button>
+            <button type="button" className="cancel-button" onClick={() => navigate(-1)}>
+              Cancelar
+            </button>
           </form>
 
           {/* Mensaje en negro */}

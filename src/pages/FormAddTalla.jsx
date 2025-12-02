@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import './FormAdd.css';
 import Nav from '../components/Nav.jsx';
 import { useNavigate } from 'react-router-dom';
-import { createTalla } from '../api/tallasService'; // Ajusta según tu servicio
+import { createTalla } from '../api/tallasService'; 
 
 function FormAddTalla() {
     const [menuCollapsed, setMenuCollapsed] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const [tallaData, setTallaData] = useState({
         nombre_Talla: '',
@@ -24,28 +27,43 @@ function FormAddTalla() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setTallaData(prev => ({ ...prev, [name]: value }));
+        setFieldErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+    e.preventDefault();
+    setLoading(true);
+    setFieldErrors({});
 
-        if (!tallaData.nombre_Talla) {
-            showMessage('El nombre de la talla es obligatorio.', 'error');
-            setLoading(false);
-            return;
+    if (!tallaData.nombre_Talla) {
+        setFieldErrors({ nombre_Talla: 'El nombre de la talla es obligatorio.' });
+        setLoading(false);
+        return;
+    }
+
+    try {
+        await createTalla(tallaData);
+        navigate('/tallas', { 
+            state: { successMessage: `Talla ${tallaData.nombre_Talla} creada exitosamente.` } 
+        });
+    } catch (error) {
+        console.error('Error al guardar la talla:', error);
+
+        // Revisar si el error es 409 del backend
+        if (error.response?.status === 409) {
+            setFieldErrors({ 
+                nombre_Talla: error.response.data.message || 'Este nombre de talla ya está en uso.' 
+            });
+        } else {
+            // Error genérico
+            showMessage(`Error al guardar: ${error.response?.data?.message || error.message}`, 'error');
         }
 
-        try {
-            await createTalla(tallaData);
-            navigate('/tallas', { state: { successMessage: `Talla ${tallaData.nombre_Talla} creada exitosamente.` } });
-        } catch (error) {
-            console.error(error);
-            showMessage(`Error al guardar: ${error.message}`, 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     return (
         <div className="role-form-container">
@@ -67,6 +85,9 @@ function FormAddTalla() {
                                 onChange={handleChange}
                                 required
                             />
+                            {fieldErrors.nombre_Talla && (
+                                <p className="error-talla">{fieldErrors.nombre_Talla}</p>
+                            )}
                         </div>
 
                         <div className="form-group">
@@ -78,6 +99,7 @@ function FormAddTalla() {
                                 placeholder="Descripción de la talla"
                                 value={tallaData.descripcion}
                                 onChange={handleChange}
+                                required
                             />
                         </div>
 

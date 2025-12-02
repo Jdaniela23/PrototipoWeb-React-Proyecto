@@ -1,4 +1,3 @@
-// src/api/usersService.js
 import axios from 'axios';
 import { ENDPOINTS } from './apiConfig';
 
@@ -16,10 +15,7 @@ const getAuthToken = () => {
     return token;
 };
 
-// -------------------------------------------------------------------
 // FUNCIONES DEL SERVICIO DE USUARIOS (ADMIN)
-// -------------------------------------------------------------------
-
 /**
  * Obtiene la lista completa de usuarios del sistema (función para el Admin).
  * @returns {Promise<Array<Object>>} Promesa que resuelve con el array de usuarios.
@@ -40,8 +36,6 @@ export const getAllUsers = async () => {
         };
 
         const response = await axios.get(ENDPOINTS.USUARIOS.LISTAR, config);
-
-        // Asumiendo que la API devuelve un array de objetos de usuario
         return response.data;
     } catch (error) {
         const errorMessage = error.response
@@ -59,14 +53,11 @@ export const getAllUsers = async () => {
 };
 
 /**
- * Crea un nuevo usuario en el sistema (función para el Admin),
- * incluyendo la capacidad de subir un archivo (foto de perfil) usando FormData.
  * @param {FormData} formData - Objeto FormData con los datos del nuevo usuario, incluyendo la foto (File).
- * @returns {Promise<Object>} Promesa que resuelve con los datos de respuesta de la creación.
- * @throws {Error} Si no hay token o si falla la creación.
+ * @returns {Promise<Object>} 
+ * @throws {Error} 
  */
 export const createNewUser = async (formData) => {
-    // Asume que getAuthToken, axios y ENDPOINTS están definidos
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -77,20 +68,15 @@ export const createNewUser = async (formData) => {
         const config = {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
-                // ⭐ CRÍTICO: No definir Content-Type aquí. 
-                // Axios lo establecerá automáticamente como 'multipart/form-data'
-                // con el boundary correcto cuando le pasamos un objeto FormData.
             }
         };
 
-        // El 'payload' ahora es el objeto FormData completo
         const response = await axios.post(ENDPOINTS.USUARIOS.LISTAR, formData, config); 
 
         return response.data;
 
     } catch (error) {
         const errorResponse = error.response;
-        // ... (Tu manejo de errores es bueno, lo dejamos)
         const errorMessage = errorResponse?.data?.title || errorResponse?.data?.message || JSON.stringify(errorResponse?.data) || error.message;
 
         console.error("Error al crear nuevo usuario:", errorMessage);
@@ -104,11 +90,10 @@ export const createNewUser = async (formData) => {
 };
 
 /**
- * Actualiza la información de un usuario existente (función para el Admin).
  * @param {number} userId - ID del usuario a editar.
- * @param {Object} userData - Objeto con los datos actualizados del usuario.
- * @returns {Promise<Object>} Promesa que resuelve con los datos de la respuesta.
- * @throws {Error} Si no hay token, no hay ID, o falla la actualización.
+ * @param {Object} userData 
+ * @returns {Promise<Object>} 
+ * @throws {Error}
  */
 export const updateUserAdmin = async (userId, userData) => {
     const authToken = getAuthToken();
@@ -120,8 +105,6 @@ export const updateUserAdmin = async (userId, userData) => {
     if (!userId) {
         throw new Error("El ID del usuario es requerido para la actualización.");
     }
-
-    // El payload ya debe estar en el formato PascalCase que espera la API (ej: {Estado_Usuario: 1})
     const payload = userData;
     const url = ENDPOINTS.USUARIOS.DETALLE(userId);
 
@@ -132,8 +115,6 @@ export const updateUserAdmin = async (userId, userData) => {
                 'Content-Type': 'application/json'
             }
         };
-
-        // 🚨 Usamos axios.put, asumiendo que el controlador de Usuarios usa PUT para editar por ID
         const response = await axios.put(url, payload, config);
 
         return response.data;
@@ -152,14 +133,10 @@ export const updateUserAdmin = async (userId, userData) => {
     }
 };
 
-
-
-
 /**
- * Elimina un usuario del sistema por su ID (función para el Admin).
- * @param {number} userId - ID del usuario a eliminar.
- * @returns {Promise<Object>} Promesa que resuelve con la respuesta de la API.
- * @throws {Error} Si no hay token, no hay ID, o falla la eliminación.
+ * @param {number} userId 
+ * @returns {Promise<Object>} 
+ * @throws {Error} 
  */
 export const deleteUser = async (userId) => {
     const authToken = getAuthToken();
@@ -200,7 +177,6 @@ export const deleteUser = async (userId) => {
     }
 };
 
-
 //Función para el cambio de estado swicht
 export const toggleUserState = async (userId, nuevoEstado) => {
     const authToken = getAuthToken();
@@ -213,7 +189,7 @@ export const toggleUserState = async (userId, nuevoEstado) => {
         throw new Error("El ID del usuario es requerido.");
     }
 
-    //  Usamos la función CAMBIAR_ESTADO definida en apiConfig
+    // Usamos la función CAMBIAR_ESTADO definida en apiConfig
     const baseUrl = ENDPOINTS.USUARIOS.CAMBIAR_ESTADO(userId);
 
 
@@ -232,10 +208,14 @@ export const toggleUserState = async (userId, nuevoEstado) => {
         return response.data;
 
     } catch (error) {
-        // ... ( manejo de errores) ...
         const errorResponse = error.response;
-        const errorMessage = errorResponse?.data?.message || errorResponse?.data?.title || JSON.stringify(errorResponse?.data) || error.message;
+        
+        const rawErrorMessage = errorResponse?.data?.message || errorResponse?.data?.title || JSON.stringify(errorResponse?.data) || error.message;
 
+        let errorMessage = String(rawErrorMessage);
+        
+        errorMessage = errorMessage.replace(/^"|"$/g, ''); 
+        
         console.error(`Error al cambiar el estado del usuario ID ${userId}:`, errorMessage);
 
         if (errorResponse && errorResponse.status === 401) {
@@ -259,7 +239,7 @@ export const updateUser = async (userId, profileData) => {
 
     try {
 
-        const url = ENDPOINTS.USUARIOS.DETALLE(userId); // /api/Usuarios/{id}
+        const url = ENDPOINTS.USUARIOS.DETALLE(userId); 
 
         const response = await fetch(url, {
             method: 'PUT',

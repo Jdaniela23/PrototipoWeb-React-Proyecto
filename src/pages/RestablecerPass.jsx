@@ -4,8 +4,8 @@ import { FaEyeSlash, FaEye } from 'react-icons/fa';
 import './RestablecerPass.css';
 import { resetPassword } from '../api/authService';
 import Footer from '../components/Footer';
-import LogoUno from '../assets/img/Logo.png';
-import { FaShoppingCart, FaUserCircle, FaUsers, FaHome } from 'react-icons/fa';
+import NavHome from '../components/Navhome';
+import { FaLock } from 'react-icons/fa';
 
 function RestablecerContrasena() {
     const navigate = useNavigate();
@@ -21,6 +21,9 @@ function RestablecerContrasena() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    // ESTADO DE CARGA
+    const [isSaving, setIsSaving] = useState(false);
+
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<>,.?/~`]).{8,}$/;
 
     useEffect(() => {
@@ -32,7 +35,7 @@ function RestablecerContrasena() {
             setEmail(emailFromUrl);
             setCode(codeFromUrl);
         } else {
-            // ⭐ Si faltan los parámetros, redirige a la página inicial de recuperación.
+            //  Si faltan los parámetros, redirige a la página inicial de recuperación.
             navigate('/recuperar');
         }
     }, [location, navigate]);
@@ -63,120 +66,116 @@ function RestablecerContrasena() {
         setErrorMensaje('');
         setMensajeExito('');
 
-        // Validaciones del front-end
+        // Iniciar el estado de carga
+        setIsSaving(true);
+
+        // Validaciones 
         if (!newPassword.trim() || !confirmPassword.trim()) {
             setErrorMensaje('Todos los campos de contraseña son requeridos.');
+            setIsSaving(false); // Detener la carga si hay un error de validación
             return;
         }
 
         if (!passwordRegex.test(newPassword)) {
             setErrorMensaje('La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales.');
+            setIsSaving(false); // Detener la carga si hay un error de validación
             return;
         }
 
         if (newPassword !== confirmPassword) {
             setErrorMensaje('Las contraseñas no coinciden.');
+            setIsSaving(false); // Detener la carga si hay un error de validación
             return;
         }
 
         try {
             await resetPassword(email, code, newPassword);
-            setMensajeExito('¡Contraseña restablecida con éxito! Redireccionando al Login 👩🏻‍💻');
+            setMensajeExito('¡Contraseña restablecida con éxito! Redireccionando al Login 🔄️');
+
+            setIsSaving(false); // Detener la carga después del éxito
 
             setTimeout(() => {
                 navigate('/login');
             }, 4000);
 
         } catch (error) {
-            // ⭐ LÍNEA CORREGIDA AQUÍ
-            // Accede al mensaje de error del objeto error que lanza la función en authService.js
             const errorMessage = error.message || 'Ocurrió un error al restablecer la contraseña. Asegúrate de que el código y el email son correctos.';
             setErrorMensaje(errorMessage);
+            setIsSaving(false); // Detener la carga si hay un error de API
         }
     };
 
     return (
         <div className='recuperar-contrasena-page-container'>
-            <div className="container-titulo">
-                <img src={LogoUno} className="logo-home" alt="Logo de Home" /> <strong className="Titulo-home">  JULIETA STREAMLINE</strong>
-            </div>
-            <div className="botones-home">
-                <Link to="/" ><FaHome /></Link>
-                <Link to="/quienessomos" className="enlace-con-icono">
-                    <span>Quienes Somos</span> <FaUsers />
-                </Link>
-                <Link to="/login" className="enlace-con-icono">
-                    <span>Productos Shop</span> <FaShoppingCart />
-                </Link>
-                <Link to="/login" className="enlace-con-icono">
-                    <span>Iniciar sesión | Crear Cuenta</span> <FaUserCircle />
-                </Link>
-            </div>
+            <NavHome/>
             <div className='recuperar-contrasena-card'>
-                <h2 className="titulo-restablecerpass">Restablecer Contraseña👩🏻‍💻</h2 >
+                <div className='contenido-card'>
+                    <h2 className="titulo-restablecerpass">Restablecer  Contraseña <FaLock /> </h2 >
 
-                <form onSubmit={handleGuardarContrasena}>
-                    <p className='instrucciones'>
-                        Ingrese su nueva contraseña:
-                    </p>
-                    <div className='input-group password-input-container'>
-                        <input
-                            type={showNewPassword ? 'text' : 'password'}
-                            placeholder='Ingresa nueva contraseña'
-                            className='password-input'
-                            aria-label='Nueva contraseña'
-                            id='new-password-id'
-                            value={newPassword}
-                            onChange={handleNewPasswordChange}
-                            required
-                        />
-                        <span
-                            className="password-toggle-icon"
-                            onClick={toggleNewPasswordVisibility}
-                        >
-                            {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-                        </span>
-                    </div>
-                    <p className='instrucciones'>
-                        Confirmar contraseña:
-                    </p>
-                    <div className='input-group password-input-container'>
-                        <input
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            placeholder='Confirma la contraseña'
-                            className='password-input'
-                            aria-label='Confirmar contraseña'
-                            id='confirm-password-id'
-                            value={confirmPassword}
-                            onChange={handleConfirmPasswordChange}
-                            required
-                        />
-                        <span
-                            className="password-toggle-icon"
-                            onClick={toggleConfirmPasswordVisibility}
-                        >
-                            {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                        </span>
-                    </div>
-                    {errorMensaje && (
-                        <p className='mensaje-error'>
-                            {errorMensaje}
+                    <form onSubmit={handleGuardarContrasena}>
+                        <p className='instrucciones'>
+                            Ingrese su nueva contraseña:
                         </p>
-                    )}
-                    {mensajeExito && (
-                        <p className='mensaje-confirmacion'>
-                            {mensajeExito}
+                        <div className='input-group password-input-container'>
+                            <input
+                                type={showNewPassword ? 'text' : 'password'}
+                                placeholder='Ingresa nueva contraseña'
+                                className='password-input'
+                                aria-label='Nueva contraseña'
+                                id='new-password-id'
+                                value={newPassword}
+                                onChange={handleNewPasswordChange}
+                                required
+                            />
+                            <span
+                                className="password-toggle-icon"
+                                onClick={toggleNewPasswordVisibility}
+                            >
+                                {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
+                        </div>
+                        <p className='instrucciones'>
+                            Confirmar  nueva contraseña:
                         </p>
-                    )}
-                    <button
-                        type='submit'
-                        className='btn-guardar-contrasena btn-gris'
-                    >
-                        Guardar nueva contraseña
-                    </button>
-                </form>
+                        <div className='input-group password-input-container'>
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                placeholder='Confirma la contraseña'
+                                className='password-input'
+                                aria-label='Confirmar contraseña'
+                                id='confirm-password-id'
+                                value={confirmPassword}
+                                onChange={handleConfirmPasswordChange}
+                                required
+                            />
+                            <span
+                                className="password-toggle-icon"
+                                onClick={toggleConfirmPasswordVisibility}
+                            >
+                                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
+                        </div>
+                        {errorMensaje && (
+                            <p className='mensaje-error-pass'>
+                                {errorMensaje}
+                            </p>
+                        )}
+                        {mensajeExito && (
+                            <p className='mensaje-confirmacion'>
+                                {mensajeExito}
+                            </p>
+                        )}
+                        <button
+                            type='submit'
+                            className='btn-guardar-contrasena btn-gris'
+                            disabled={isSaving} // ⭐ Deshabilita el botón mientras se guarda
+                        >
+                            {isSaving ? 'Guardando...' : 'Guardar nueva contraseña'}
+                        </button>
 
-            </div><br/>
+                    </form>
+                </div>
+            </div><br />
             <Footer />
         </div>
     );

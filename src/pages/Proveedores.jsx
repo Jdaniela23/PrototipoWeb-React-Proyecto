@@ -12,14 +12,19 @@ const ProveedoresPage = () => {
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
+
   const [proveedores, setProveedores] = useState([]);
   const [proveedorSeleccionadoId, setProveedorSeleccionadoId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchTrigger, setSearchTrigger] = useState('');
   const [cargandoDetalles, setCargandoDetalles] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 7;
+
   const [toastMessage, setToastMessage] = useState(location.state?.successMessage || '');
   const [toastType, setToastType] = useState('success');
+
 
   useEffect(() => {
     const fetchProveedores = async () => {
@@ -50,8 +55,8 @@ const ProveedoresPage = () => {
   const cambiarEstadoProveedor = async (proveedor) => {
     try {
       const proveedoresActualizados = proveedores.map(p =>
-        p.idProveedor === proveedor.idProveedor 
-          ? { ...p, estado: !p.estado } 
+        p.idProveedor === proveedor.idProveedor
+          ? { ...p, estado: !p.estado }
           : p
       );
       setProveedores(proveedoresActualizados);
@@ -59,8 +64,8 @@ const ProveedoresPage = () => {
       await toggleEstadoProveedor(proveedor);
 
       setToastMessage(
-        proveedor.estado ? "✅ El proveedor fue ANULADO correctamente." : 
-                           "✅ El proveedor fue ACTIVADO correctamente."
+        proveedor.estado ? "✅ El proveedor fue ANULADO correctamente." :
+          "✅ El proveedor fue ACTIVADO correctamente."
       );
       setToastType("success");
 
@@ -70,8 +75,8 @@ const ProveedoresPage = () => {
     } catch (error) {
       console.error(error);
       const proveedoresOriginales = proveedores.map(p =>
-        p.idProveedor === proveedor.idProveedor 
-          ? { ...p, estado: proveedor.estado } 
+        p.idProveedor === proveedor.idProveedor
+          ? { ...p, estado: proveedor.estado }
           : p
       );
       setProveedores(proveedoresOriginales);
@@ -92,6 +97,26 @@ const ProveedoresPage = () => {
       estadoTexto.includes(term)
     );
   });
+
+  
+  // === LÓGICA DE PAGINACIÓN ===
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredProveedores.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredProveedores.length / recordsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
 
   return (
     <div className="container">
@@ -117,13 +142,16 @@ const ProveedoresPage = () => {
               placeholder="Buscar Proveedor"
               className="form-control"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
             />
-            <button 
+            <button
               className="search-button"
               onClick={() => setSearchTrigger(searchTerm)}
             >
-              <FaSearch color="#fff" /> 
+              <FaSearch color="#fff" />
             </button>
           </div>
 
@@ -145,8 +173,8 @@ const ProveedoresPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProveedores.length > 0 ? (
-                filteredProveedores.map((proveedor) => (
+              {currentRecords.length > 0 ? (
+                currentRecords.map((proveedor) => (
                   <tr key={proveedor.idProveedor}>
                     <td>{proveedor.nombre}</td>
                     <td>{proveedor.telefono}</td>
@@ -190,9 +218,38 @@ const ProveedoresPage = () => {
               )}
             </tbody>
           </table>
+          {filteredProveedores.length > recordsPerPage && (
+            <div className="pagination-container">
+              <button
+                className="pagination-arrow"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                ‹
+              </button>
+
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+
+              <button
+                className="pagination-arrow"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
 
-      
+
         {cargandoDetalles && (
           <div className="modal-overlay">
             <div className="modal-content">
@@ -202,9 +259,9 @@ const ProveedoresPage = () => {
         )}
 
         {proveedorSeleccionadoId && !cargandoDetalles && (
-          <DetallesProveedor 
-            proveedorId={proveedorSeleccionadoId} 
-            onClose={cerrarModal} 
+          <DetallesProveedor
+            proveedorId={proveedorSeleccionadoId}
+            onClose={cerrarModal}
           />
         )}
       </div>

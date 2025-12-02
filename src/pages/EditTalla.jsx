@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import Footer from '../components/Footer.jsx';
 import { FaSave } from 'react-icons/fa';
 import ToastNotification from '../components/ToastNotification.jsx';
 import { getTallaById, updateTalla } from '../api/tallasService';
@@ -14,8 +13,7 @@ export default function EditTalla() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState(null);
-    const [errorMessage, setErrorMessage] = useState(null);
-
+    const [fieldErrors, setFieldErrors] = useState({});
     const [tallaData, setTallaData] = useState({
         id_Talla: '',
         nombre_Talla: '',
@@ -40,7 +38,7 @@ export default function EditTalla() {
             });
         } catch (error) {
             console.error(error);
-            setErrorMessage('Error al cargar la talla');
+            setFieldErrors({ global: 'Error al cargar la talla' });
         } finally {
             setLoading(false);
         }
@@ -49,13 +47,15 @@ export default function EditTalla() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setTallaData(prev => ({ ...prev, [name]: value }));
+        setFieldErrors(prev => ({ ...prev, [name]: '' })); // limpiar error al escribir
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        setFieldErrors({});
         if (!tallaData.nombre_Talla.trim()) {
-            setErrorMessage('El nombre de la talla es obligatorio');
+            setFieldErrors({ nombre_Talla: 'El nombre de la talla es obligatorio' });
             return;
         }
 
@@ -66,14 +66,21 @@ export default function EditTalla() {
                 nombre_Talla: tallaData.nombre_Talla.trim(),
                 descripcion: tallaData.descripcion?.trim() || ''
             });
-            setSuccessMessage(`Talla '${tallaData.nombre_Talla}' actualizada exitosamente`);
-            setErrorMessage(null);
 
+            setSuccessMessage(`Talla '${tallaData.nombre_Talla}' actualizada exitosamente`);
+            setFieldErrors({});
             setTimeout(() => navigate('/tallas'), 1500);
+
         } catch (error) {
             console.error(error);
-            const msg = error.response?.data?.mensaje || 'Error al actualizar la talla';
-            setErrorMessage(msg);
+
+            // Captura error de nombre duplicado (409)
+            if (error.response?.status === 409) {
+                setFieldErrors({ nombre_Talla: error.response.data.message || 'Este nombre ya está en uso' });
+            } else {
+                setFieldErrors({ global: error.response?.data?.mensaje || 'Error al actualizar la talla' });
+            }
+
             setSuccessMessage(null);
         } finally {
             setSubmitting(false);
@@ -98,13 +105,11 @@ export default function EditTalla() {
             <div className={`formulario-rol-main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
                 <div className="formulario-roles">
                     <h1 className="form-title">Editar Talla</h1>
-                    <p className="form-info">
-                        Modifica los datos de la talla y guarda los cambios 👩🏻‍💻
-                    </p><br/>
-                    <p className="form-info">
-                        Talla: {tallaData.nombre_Talla}
-                    </p>
-                    <br /><br />
+                    <p className="form-info">Modifica los datos de la talla y guarda los cambios 👩🏻‍💻</p><br />
+
+                    {fieldErrors.global && (
+                        <p className="error-message-rol">{fieldErrors.global}</p>
+                    )}
 
                     <form onSubmit={handleSubmit} className="role-form">
                         {/* ID */}
@@ -131,16 +136,20 @@ export default function EditTalla() {
                                 name="nombre_Talla"
                                 value={tallaData.nombre_Talla}
                                 onChange={handleChange}
-                                required
-                                maxLength={100}
                                 disabled={submitting}
                                 className="input-field"
+                                maxLength={100}
                             />
+                            {fieldErrors.nombre_Talla && (
+                                <p className="error-talla">{fieldErrors.nombre_Talla}</p>
+                            )}
                         </div>
 
                         {/* Descripción */}
                         <div className="form-group">
-                            <label htmlFor="descripcion" className="label-heading">Descripción: <span className="required-asterisk">*</span></label>
+                            <label htmlFor="descripcion" className="label-heading">
+                                Descripción: <span className="required-asterisk">*</span>
+                            </label>
                             <textarea
                                 id="descripcion"
                                 name="descripcion"
@@ -155,22 +164,22 @@ export default function EditTalla() {
                         </div>
 
                         {/* Botones */}
-                        <button type="button" className="cancel-button" onClick={() => navigate('/tallas')} disabled={submitting}>
-                            Cancelar
-                        </button>
-                        <button type="submit" className="save-button" disabled={submitting}>
-                            <FaSave style={{ marginRight: '8px' }} />
-                            {submitting ? 'Actualizando...' : 'Actualizar Talla'}
-                        </button>
+                        <div className="form-buttons">
+                            <button type="button" className="cancel-button" onClick={() => navigate('/tallas')} disabled={submitting}>
+                                Cancelar
+                            </button>
+                            <button type="submit" className="save-button" disabled={submitting}>
+                                <FaSave style={{ marginRight: '8px' }} />
+                                {submitting ? 'Actualizando...' : 'Actualizar Talla'}
+                            </button>
+                        </div>
                     </form>
                 </div>
-
-
             </div>
 
             {/* Toasts */}
             <ToastNotification message={successMessage} type="success" onClose={() => setSuccessMessage(null)} />
-            <ToastNotification message={errorMessage} type="error" onClose={() => setErrorMessage(null)} />
+            <ToastNotification message={fieldErrors.global} type="error" onClose={() => setFieldErrors(prev => ({ ...prev, global: '' }))} />
         </div>
     );
 }

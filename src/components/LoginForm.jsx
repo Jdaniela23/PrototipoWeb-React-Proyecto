@@ -41,7 +41,7 @@ function LoginForm() {
       // ⭐️ Obtén la clave del rol y el nombre directamente del token decodificado ⭐️
       const roleKey = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
       const nameKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
-      
+
       // ⭐ Guardar el rol, el nombre/email y el email del usuario en localStorage ⭐
       // Se guarda el email de manera explícita para asegurar que esté disponible.
       localStorage.setItem('userRole', decodedToken[roleKey]);
@@ -57,7 +57,7 @@ function LoginForm() {
         setEmailFor2FA(email);
         setIs2FAModalOpen(true);
       } else {
-        setMessage('¡Inicio de sesión exitoso!');
+        //setMessage('¡Inicio de sesión exitoso!');
         setTimeout(() => {
           navigate('/loading');
         }, 1500);
@@ -96,7 +96,7 @@ function LoginForm() {
   return (
     <div className="layout-principal-split">
       <div className="boton-login">
-        <Link to="/" ><FaHome/></Link>
+        <Link to="/" ><FaHome /></Link>
       </div>
       <div className="izquierda-con-imagen">
         <img src={miImagen} alt="Ilustración de bienvenida" />
@@ -107,7 +107,7 @@ function LoginForm() {
           <h4>Bienvenido - Iniciar Sesión</h4>
           <FaUserCircle color='#9d6d28' size={50} />
           <form onSubmit={handleSubmit}>
-            <div>
+            <div className="password-input-container-login">
               <label htmlFor="email">Email:</label>
               <input
                 type="email"
@@ -117,31 +117,47 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                  className="password-input"
               />
             </div>
-            <div className="password-input-container-login">
+            <div className="password-field-wrapper">
               <label htmlFor="password">Contraseña:</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                placeholder='Ingrese su Contraseña'
-                name="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <span
-                className="password-toggle-icon-login"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
+
+              <div className="password-input-container-login">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  placeholder='Ingrese su Contraseña'
+                  name="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="password-input"
+                />
+                <span
+                  className="password-toggle-icon-login"
+                  onClick={togglePasswordVisibility}
+                  aria-label="Mostrar contraseña"
+                  role="button"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
             </div>
+
             {message && (
-              <p className={message.includes('exitoso') || message.includes('requerida') ? 'mensaje-exito' : 'mensaje-error'}>
+              <p
+                className={`mensaje-base ${message.includes('exitoso')
+                  ? 'mensaje-exito'
+                  : message.includes('requerida')
+                    ? 'mensaje-info'
+                    : 'mensaje-error-login'
+                  }`}
+              >
                 {message}
               </p>
             )}
+
             <button type="submit" disabled={isLoggingIn}>
               {isLoggingIn ? 'Iniciando...' : 'Iniciar sesión'}
             </button>

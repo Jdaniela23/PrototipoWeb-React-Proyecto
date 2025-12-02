@@ -6,10 +6,11 @@ import Footer from '../components/Footer.jsx';
 import Detalles from '../components/Detalles.jsx';
 import DeleteProducts from './DeleteProductos.jsx';
 import { useLocation, Link } from 'react-router-dom';
-import { getProductsAdmin , changeProductState, deleteProduct } from '../api/productsService';
+import { getProductsAdmin, changeProductState, deleteProduct } from '../api/productsService';
 import ToastNotification from '../components/ToastNotification.jsx';
 
 export default function ProductosPage() {
+
     const location = useLocation();
     const navSuccessMessage = location.state?.successMessage;
 
@@ -55,22 +56,64 @@ export default function ProductosPage() {
         )
     );
 
-    // === TOGGLE ESTADO PRODUCTO ===
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 7;
+
+    // === LÓGICA DE PAGINACIÓN ===
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredProductos.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(filteredProductos.length / recordsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
+
+
+
     const toggleEstadoProducto = async (idProducto, estadoActual) => {
         setLoadingAction(true);
+        const nuevoEstado = !estadoActual;
+        const productoTarget = productos.find(p => p.id_Producto === idProducto);
+        const nombreProducto = productoTarget ? productoTarget.nombre_Producto : `ID ${idProducto}`;
+
         try {
-            await changeProductState(idProducto, !estadoActual);
+            // La llamada al servicio
+            const responseData = await changeProductState(idProducto, nuevoEstado);
+
+
             setProductos(prev =>
                 prev.map(p =>
-                    p.id_Producto === idProducto ? { ...p, estado_Producto: !estadoActual } : p
+                    p.id_Producto === idProducto ? { ...p, estado_Producto: nuevoEstado } : p
                 )
             );
-            setSuccessMessage(`Estado del producto ID ${idProducto} actualizado correctamente.`);
+            setSuccessMessage(responseData.message || `Producto '${nombreProducto}' ${nuevoEstado ? 'activado' : 'inactivo'} correctamente.`);
             setErrorMessage(null);
+
         } catch (err) {
             console.error(err);
-            setErrorMessage("Error al cambiar el estado del producto.");
+
+            let backendMessage = "Error desconocido al cambiar el estado.";
+
+            // Capturar el mensaje de error específico del backend (409 Conflict o 400 Bad Request)
+            if (err.response && err.response.data && err.response.data.message) {
+                backendMessage = err.response.data.message;
+            } else if (err.message) {
+                // Manejar errores de red o del servicio antes de la respuesta del servidor
+                backendMessage = err.message.includes("401") ? "Sesión expirada o no autorizado." : "Error de red o conexión.";
+            }
+
+            setErrorMessage(backendMessage);
             setSuccessMessage(null);
+
         } finally {
             setLoadingAction(false);
         }
@@ -94,13 +137,32 @@ export default function ProductosPage() {
             setErrorMessage(null);
         } catch (err) {
             console.error(err);
-            setErrorMessage(`No se pudo eliminar el producto '${producto.nombre_Producto}'.`);
+
+            const backendMessage = err.response?.data?.message;
+
+            setErrorMessage(
+                backendMessage
+                    ? backendMessage
+                    : `No se pudo eliminar el producto '${producto.nombre_Producto}'.`
+            );
+
             setSuccessMessage(null);
-        } finally {
-            setLoadingAction(false);
         }
+
     };
 
+
+
+    const formatPrice = (price) => {
+        // Aseguramos que el valor sea un número y no nulo. Si es nulo, devolvemos 0 o un valor por defecto.
+        if (price === null || price === undefined) return 'N/A';
+
+        // Usamos el locale 'es-CO' (o 'es-ES', 'es-AR', etc.) para forzar el punto como separador de miles.
+        return new Intl.NumberFormat('es-CO', {
+            style: 'decimal',
+            minimumFractionDigits: 0 // Ajusta si se quiere mostrar decimales (ej: 2)
+        }).format(price);
+    };
     return (
         <div className="container">
             <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
@@ -118,10 +180,13 @@ export default function ProductosPage() {
                             type="text"
                             placeholder="Buscar Productos"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
                         />
                         <button className="search-button">
-                            <FaSearch size={15} /> 
+                            <FaSearch size={15} />
                         </button>
                     </div>
                     <Link className="add-button" to="/formproduct">
@@ -152,16 +217,16 @@ export default function ProductosPage() {
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredProductos.length === 0 ? (
+                            ) : currentRecords.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron productos.</td>
                                 </tr>
                             ) : (
-                                filteredProductos.map(p => (
+                                currentRecords.map(p => (
                                     <tr key={p.id_Producto}>
                                         <td>{p.nombre_Producto}</td>
                                         <td>{p.stock_Total}</td>
-                                        <td>{p.precio}</td>
+                                        <td>COP {formatPrice(p.precio)} $</td>
                                         <td>
                                             <label className="switch" title={p.estado_Producto ? 'Activo' : 'Inactivo'}>
                                                 <input
@@ -186,10 +251,10 @@ export default function ProductosPage() {
                                             </Link>
                                             <button
                                                 className="icon-button red"
-                                                disabled={loadingAction}
+
                                                 onClick={() => handleAbrirModalEliminar(p)}
                                             >
-                                                { <FaTrash />}
+                                                {<FaTrash />}
                                             </button>
                                         </td>
                                     </tr>
@@ -197,11 +262,38 @@ export default function ProductosPage() {
                             )}
                         </tbody>
                     </table>
+                    {filteredProductos.length > recordsPerPage && (
+                        <div className="pagination-container">
+                            <button
+                                className="pagination-arrow"
+                                onClick={handlePrevPage}
+                                disabled={currentPage === 1}
+                            >
+                                ‹
+                            </button>
+
+                            {[...Array(totalPages)].map((_, index) => (
+                                <button
+                                    key={index + 1}
+                                    className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                                    onClick={() => handlePageChange(index + 1)}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))}
+
+                            <button
+                                className="pagination-arrow"
+                                onClick={handleNextPage}
+                                disabled={currentPage === totalPages}
+                            >
+                                ›
+                            </button>
+                        </div>
+                    )}
                 </div>
 
-                <div className="footer-page">
-                    <Footer />
-                </div>
+           
             </div>
 
             {/* MODAL DETALLES */}

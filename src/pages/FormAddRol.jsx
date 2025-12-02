@@ -38,6 +38,7 @@ function FormAdd() {
     const [permisosDisponibles, setPermisosDisponibles] = useState({});
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
+    const [permisoError, setPermisoError] = useState('');
 
     // Estructura de permisos predefinidos para roles existentes
     const permisosPorRol = {
@@ -67,6 +68,11 @@ function FormAdd() {
 
     const [nuevoRol, setNuevoRol] = useState('');
     const [permisosSeleccionados, setPermisosSeleccionados] = useState([]);
+    
+    //ESTADO PARA ERRORES ESPECÍFICOS DE CAMPO 
+    const [fieldErrors, setFieldErrors] = useState({
+        nuevoRol: '', 
+    });
 
     // 1. Cargar Permisos al Montar el Componente
     useEffect(() => {
@@ -82,39 +88,51 @@ function FormAdd() {
         loadPermisos();
     }, []);
 
-    // Manejar cambio inputs formulario
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+   // Manejar cambio inputs formulario
+const handleChange = (e) => {
+    const { name, value } = e.target;
 
-        if (name === 'nombreRol') {
-            setRoleData({
-                ...roleData,
-                nombreRol: value,
-            });
-            setPermisosSeleccionados([]);
+    setMessage(null);
+    const onlyLettersAndSpaces = /^[a-zA-Z\s]*$/; 
 
-            if (value === 'Administrador' || value === 'Cliente') {
-                setNuevoRol('');
-            }
-            else if (value === 'Agregar Nuevo rol') {
-                setNuevoRol('');
-            }
+    if (name === 'nombreRol') {
+        setRoleData({
+            ...roleData,
+            nombreRol: value,
+        });
+        setPermisosSeleccionados([]);
+        setFieldErrors(prev => ({ ...prev, nuevoRol: '' })); 
+
+        if (value === 'Administrador' || value === 'Cliente') {
+            setNuevoRol('');
         }
-        else if (name === 'nuevoRolInput') {
+        else if (value === 'Agregar Nuevo rol') {
+            setNuevoRol('');
+        }
+    }
+    else if (name === 'nuevoRolInput') {
+        setNuevoRol(value);
+        if (value === '' || onlyLettersAndSpaces.test(value)) {
             setNuevoRol(value);
-            if (roleData.nombreRol !== 'Agregar Nuevo rol') {
-                setRoleData({
-                    ...roleData,
-                    nombreRol: 'Agregar Nuevo rol',
-                });
-            }
+            setFieldErrors(prev => ({ ...prev, nuevoRol: '' })); 
         } else {
+            setFieldErrors(prev => ({ ...prev, nuevoRol: 'El nombre del rol solo puede contener letras y espacios.' })); 
+            return; 
+        }
+        
+        if (roleData.nombreRol !== 'Agregar Nuevo rol') {
             setRoleData({
                 ...roleData,
-                [name]: value,
+                nombreRol: 'Agregar Nuevo rol',
             });
         }
-    };
+    } else {
+        setRoleData({
+            ...roleData,
+            [name]: value,
+        });
+    }
+};
 
     // Toggle permisos seleccionados (Solo aplica para "Agregar Nuevo rol")
     const togglePermiso = (permiso) => {
@@ -127,11 +145,14 @@ function FormAdd() {
         );
     };
 
-    // 2. Enviar formulario (usando la API) - ¡Payload CORREGIDO a C# DTO NAMES!
+    // 2. Enviar formulario
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage(null);
         setLoading(true);
+        setPermisoError('');
+        // Limpiamos el error de campo antes de intentar enviar
+        setFieldErrors({ nuevoRol: '' }); 
 
         // 1. Determinar el nombre final y limpio del rol.
         const rolFinal = roleData.nombreRol === 'Agregar Nuevo rol' ? nuevoRol.trim() : roleData.nombreRol;
@@ -144,28 +165,36 @@ function FormAdd() {
 
         // 2. Determinar la lista de permisos a enviar.
         let permisosParaEnviar = [];
+        const onlyLettersAndSpaces = /^[a-zA-Z\s]*$/;
+        if (roleData.nombreRol === 'Agregar Nuevo rol' && rolFinal && !onlyLettersAndSpaces.test(rolFinal)) {
+            const errorMsg = 'El nombre del nuevo rol no puede contener números. Solo letras y espacios.';
+            setFieldErrors(prev => ({ ...prev, nuevoRol: errorMsg }));
+            setLoading(false);
+            setMessage(errorMsg); 
+            return;
+        }
 
         if (roleData.nombreRol === 'Agregar Nuevo rol') {
-            if (permisosSeleccionados.length === 0) {
-                setMessage('Debe seleccionar al menos un permiso para el nuevo rol.');
-                setLoading(false);
-                return;
-            }
-            permisosParaEnviar = permisosSeleccionados;
-        }
+            if (permisosSeleccionados.length === 0) {
+
+                setPermisoError('Debe seleccionar al menos un permiso para el nuevo rol.');
+                setLoading(false);
+                return;
+            }
+            permisosParaEnviar = permisosSeleccionados;
+        }
         else if (roleData.nombreRol && permisosPorRol[roleData.nombreRol]) {
             permisosParaEnviar = Object.values(permisosPorRol[roleData.nombreRol]).flat();
         }
 
         // 3. Construcción del Payload FINAL. 
-        // 🚨 CAMBIO CRUCIAL: Usamos los nombres de propiedad EXACTOS del DTO de C#
-
         const payloadParaServicio = {
-            "nombreRol": rolFinal, // <-- CamelCase
-            "descripcionRol": roleData.descripcionRol, // <-- CamelCase
-            "estadoRol": roleData.estadoRol || ESTADO_ROL.ACTIVO, // <-- CamelCase
-            "permisos": permisosParaEnviar, // <-- CamelCase
+            "nombreRol": rolFinal,
+            "descripcionRol": roleData.descripcionRol,
+            "estadoRol": roleData.estadoRol || ESTADO_ROL.ACTIVO,
+            "permisos": permisosParaEnviar,
         };
+        
         try {
             // 4. Llamada a la API de Creación
             const result = await createNewRole(payloadParaServicio);
@@ -176,8 +205,6 @@ function FormAdd() {
                 }
             });
 
-
-
             setRoleData({
                 nombreRol: '',
                 descripcionRol: '',
@@ -187,9 +214,25 @@ function FormAdd() {
             setPermisosSeleccionados([]);
 
         } catch (error) {
-            // Muestra el mensaje de error detallado que viene desde rolesService.js
             const errorMessage = error.message || 'Error desconocido al guardar el rol.';
-            setMessage(`Error al guardar el rol: ${errorMessage}`);
+            
+            let isConflictError = false;
+            
+        
+            if (errorMessage.includes('Error:') || errorMessage.toLowerCase().includes('ya existe')) {
+                const nuevoMensajeDeError = `⚠️ El nombre de rol "${rolFinal}" ya está en uso, elige uno diferente.`;
+
+        setFieldErrors(prev => ({ ...prev, nuevoRol: nuevoMensajeDeError }));
+        isConflictError = true;
+              
+            }
+
+            if (!isConflictError) {
+                 setMessage(`Error al guardar el rol: ${errorMessage}`);
+            } else {
+                 setMessage(null); 
+            }
+            
             console.error("Error al guardar el rol:", error);
         } finally {
             setLoading(false);
@@ -215,12 +258,12 @@ function FormAdd() {
 
                     {/* Mensajes de feedback (éxito/error) */}
                     {message && (
-                        <div className={`alert ${message.includes('Error') || message.includes('Conflicto') || message.includes('No autorizado') ? 'alert-error' : 'alert-success'}`}>
+                        <div className={`alert ${message.includes('Error') || message.includes('No autorizado') ? 'alert-error' : 'alert-success'}`}>
                             {message}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="role-form">
+                    <form onSubmit={handleSubmit} className="role-form ">
                         {/* Selector de Rol */}
                         <div className="form-group">
                             <label htmlFor="nombreRol" className="label-heading">Nombre del Rol<span className="required-asterisk">*</span></label>
@@ -237,6 +280,7 @@ function FormAdd() {
                                 <option value="Cliente">Cliente</option>
                                 <option value="Agregar Nuevo rol">-- Agregar Nuevo rol +</option>
                             </select>
+                    
                         </div>
 
                         {/* Campo para nuevo rol, visible solo si se selecciona "Agregar Nuevo rol +" */}
@@ -253,6 +297,8 @@ function FormAdd() {
                                     required
                                     className="input-field"
                                 />
+                        
+                                {fieldErrors.nuevoRol && <p className="error-message-rol">{fieldErrors.nuevoRol}</p>}
                             </div>
                         )}
 
@@ -265,9 +311,8 @@ function FormAdd() {
                                 placeholder="Descripción Rol"
                                 value={roleData.descripcionRol}
                                 onChange={handleChange}
-                                rows="3"
                                 required
-                                className="input-field-categoria-producto"
+                                className="input-field"
                             />
                         </div>
 
@@ -297,27 +342,35 @@ function FormAdd() {
                                                             onChange={() => togglePermiso(permiso)}
                                                         />
                                                         {permiso}
+                                                      
                                                     </label>
+                                                    
                                                 );
+                                                
                                             })}
                                         </div>
+
                                     ))}
                                 </div>
                                 {roleData.nombreRol !== 'Agregar Nuevo rol' && roleData.nombreRol !== '' && (
                                     <p className="advertencia-permisos">
                                         Los permisos para el rol **{roleData.nombreRol}** están predefinidos y no son editables.
+                                        
                                     </p>
                                 )}
+                                  {permisoError && <p className="error-message-rol">{permisoError}</p>}
                             </div>
+                            
                         ) : roleData.nombreRol === 'Agregar Nuevo rol' && !isReady ? (
                             <div className="form-group"><p>Cargando lista de permisos...</p></div>
                         ) : null}
 
-                        <button className="cancel-button" onClick={() => navigate(-1)} disabled={loading}>Cancelar</button>
+
                         <button type="submit" className="save-button" disabled={loading}>
                             {loading ? 'Guardando...' : 'Guardar Rol'}
                         </button>
                     </form>
+                    <button className="cancel-button" onClick={() => navigate(-1)} disabled={loading}>Cancelar</button>
                 </div>
             </div>
         </div>

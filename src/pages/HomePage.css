@@ -1,56 +1,63 @@
-.container-home{
+.container-home {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
+    height: 80%;
     font-family: 'DM Sans', sans-serif;
-    /* ¡CUIDADO! Quitamos el overflow: hidden para que el body pueda hacer scroll */
     box-sizing: border-box;
     color: white;
+    background-color: #fff;
 }
 
 /* ESTILOS DE BARRA DE NAVEGACIÓN FIJA Y FLEXIBLE */
 .nav-home {
-    position: static;
-    top: 0; /* Lo pega al borde superior */
-    left: 0; /* Lo pega al borde izquierdo */
-    width: 100%; 
+    position: fixed;
+    top: 0;
+    /* Lo pega al borde superior */
+    left: 0;
+    /* Lo pega al borde izquierdo */
+    width: 100%;
     z-index: 2;
-    background-color: #9d6d28;
+    background-color: #b59b64;
     color: var(--color-black);
     padding: 15px 20px;
-    z-index: 1000; /* Asegura que la barra esté por encima de otros elementos */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil para levantarla */
-   color: #fff;
+    z-index: 1000;
+    /* Asegura que la barra esté por encima de otros elementos */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Sombra sutil para levantarla */
+    color: #fff;
     /* Distribución interna: Flexbox maneja la posición de los hijos */
     display: flex;
-    justify-content: space-between; /* Espacia el logo y los botones */
+    justify-content: space-between;
+    /* Espacia el logo y los botones */
     align-items: center;
 }
 
 .container-titulo {
-    /* CORRECCIÓN CLAVE: Eliminamos position: absolute y dejamos que Flexbox lo posicione */
     margin: 0;
     z-index: 100;
     color: #fff;
     font-size: 100%;
     font-weight: bold;
-    /* Mantenemos el display: flex para alinear el logo y el texto */
     display: flex;
-    align-items: center; 
+    align-items: center;
     gap: 10px;
-    /* Eliminamos left: 20px; y margin-left: 50px; ya que el padding del nav-home lo controla */
 }
 
 .logo-home {
-    width: 80px;
-    height: auto;
+    width: 40px;
 }
-
+.logo-home-parrafo{
+    width: 8%;
+    margin-left: 15%;
+    margin-bottom: -5%;
+}
 .Titulo-home {
-    color: var(--color-gold); /* Usamos la variable dorada */
+    color: var(--color-gold);
+    /* Usamos la variable dorada */
     font-weight: bold;
-    font-size: 1.2rem; /* Usamos 1.2rem para que se vea bien junto al logo */
+    font-size: 1rem;
+    /* Usamos 1.2rem para que se vea bien junto al logo */
     margin: 0;
     white-space: nowrap;
 }
@@ -59,39 +66,41 @@
     /* CORRECCIÓN CLAVE: Eliminamos position: absolute y dejamos que Flexbox lo posicione */
     display: flex;
     /* Usamos el gap adecuado para separar los enlaces */
-    gap: 20px; 
+    gap: 20px;
     z-index: 100;
-    font-size: small;
+    font-size: 15px;
 }
 
 .enlace-con-icono {
-    display: flex; /* Habilitamos Flexbox */
+    display: flex;
+    /* Habilitamos Flexbox */
     align-items: center;
-    gap: 5px; 
-    text-decoration: none; 
-    color: var(--color-black); /* Color base del texto negro */
+    gap: 5px;
+
+    color: var(--color-black);
+    /* Color base del texto negro */
     /* Estilos de botones que usabas en el bloque de código que proporcionaste */
-    background-color: #9d6d28;
+    background-color: #b59b64;
     color: white;
     border: none;
     padding: 10px 15px;
-    font-weight: bold;
+
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
 
 .enlace-con-icono:hover {
-    background-color: #81571f; /* Un tono más oscuro al pasar el mouse */
-    color: var(--color-white); /* Aseguramos que el texto siga blanco */
+
+    color: var(--color-white);
+    /* Aseguramos que el texto siga blanco */
 }
 
-/* Estilos adicionales que proporcionaste */
 .container-welcome {
     margin-left: 5%;
     text-align: start;
     color: black;
-    margin-top: 20%;
+    margin-top: 15%;
 }
 
 .titulo-secundario {
@@ -99,16 +108,18 @@
     color: black;
     margin-bottom: 0;
     font-weight: bold;
-    margin-top: -130px;
+    margin-top: -150px;
 }
 
 .titulo-h1 {
     color: #9d6d28;
-    margin-top: 5px;
+    margin-top: -10px;
     margin-bottom: 20px;
     letter-spacing: 2px;
     font-weight: bold;
     font-size: 40px;
+    
+
 }
 
 .parrafo-principal-home {
@@ -131,21 +142,21 @@
 }
 
 .video {
-    width: 45%;
-    max-width: 700px;
+    width: 44%;
     position: static;
     float: left;
-    margin-left: 55%;
+    margin-left: 53%;
     transform: translateY(-39%);
     margin-bottom: -25%;
-    margin-top: -16%; 
+    margin-top: -23%;
+    height: 30%;
 }
 
-.span-home{
-    color:#81571f;
+.span-home {
+    color: #81571f;
 }
 
-hr{
+hr {
     border-color: #9d6d28;
     border-width: 2px;
 }

@@ -1,434 +1,509 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import { FaSave } from 'react-icons/fa';
 import { updateUser } from '../api/usersService.js';
-import ToastNotification from '../components/ToastNotification.jsx';
-//  IMPORTACIÓN DE SERVICIOS
 import { getRoles } from '../api/rolesService.js';
-import { getBarrios } from '../api/authService.js';
+import { getBarrios } from '../api/authService';
 
+function EditUsuario() {
 
-export default function EditUsuario() {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // 1️⃣ Obtén el usuario y su ID
   const usuarioEdit = location.state?.usuario;
   const userId = usuarioEdit?.id;
-
-  // Redirige si no hay datos de usuario
-  useEffect(() => {
-    if (!usuarioEdit) {
-      console.warn("No hay datos de usuario para editar. Redirigiendo.");
-      navigate('/usuarios', { replace: true });
-    }
-  }, [usuarioEdit, navigate]);
+  console.log("Usuario recibido para editar:", usuarioEdit);
 
 
-  // 2️⃣ ESTADOS PRINCIPALES: Inicializados con la información actual del usuario
   const [usuarioData, setUsuarioData] = useState({
-    // Datos básicos
     nombre_Completo: usuarioEdit?.nombre_Completo || '',
     apellido: usuarioEdit?.apellido || '',
-
-    // Identificación
     tipo_Identificacion: usuarioEdit?.tipo_Identificacion || '',
     documento: usuarioEdit?.numero_Identificacion || '',
-
-    // Contacto
     email: usuarioEdit?.correo || '',
     numeroContacto: usuarioEdit?.numero_Contacto || '',
-
-    // Ubicación
-    // Guardamos los IDs como String para inicializar correctamente el <select>
-    Id_Barrio: usuarioEdit?.idBarrio ? String(usuarioEdit.idBarrio) : '',
+    Id_Barrio: usuarioEdit?.id_Barrio ? String(usuarioEdit.id_Barrio) : '',
     direccion: usuarioEdit?.direccion || '',
-
-    // Perfil y Rol
-    Id_Rol: usuarioEdit?.idRol ? String(usuarioEdit.idRol) : '',
+    Id_Rol: usuarioEdit?.id_Rol ? String(usuarioEdit.id_Rol) : '',
     nombre_Usuario: usuarioEdit?.nombreUsuario || '',
-
-    // Foto
-    foto: usuarioEdit?.foto || '', // URL actual de la foto (Cloudinary)
-    fotoFile: null, // Objeto File para subir
+    foto: usuarioEdit?.foto || null,
+    fotoFile: null,
   });
 
-  // 3️⃣ ESTADOS DE UI Y SERVICIO
   const [fotoPreview, setFotoPreview] = useState(usuarioEdit?.foto || '');
-  const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Estados para los dropdowns
   const [roles, setRoles] = useState([]);
   const [barrios, setBarrios] = useState([]);
-  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [menuCollapsed, setMenuCollapsed] = useState(false);
 
-  // Función de limpieza de URL (memoria)
-  const cleanupPreview = useCallback(() => {
-    if (fotoPreview && fotoPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(fotoPreview);
-    }
-  }, [fotoPreview]);
-
-
-  // 4️⃣ Efecto para cargar roles y barrios de la API y limpiar la preview
+  // Cargar roles y barrios
   useEffect(() => {
     const fetchDropdownData = async () => {
-      setLoadingOptions(true);
       try {
         const [fetchedRoles, fetchedBarrios] = await Promise.all([getRoles(), getBarrios()]);
-        setRoles(fetchedRoles);
-        setBarrios(fetchedBarrios);
+        console.log("Roles recibidos:", fetchedRoles);
+        console.log("Barrios recibidos:", fetchedBarrios);
+        console.log("Ejemplo de Rol:", fetchedRoles[0]);
+        console.log("Ejemplo de Barrio:", fetchedBarrios[0]);
+
+        const rolesData = Array.isArray(fetchedRoles)
+          ? fetchedRoles.map(r => ({ ...r, id_Rol: String(r.id_Rol) }))
+          : fetchedRoles.data?.map(r => ({ ...r, id_Rol: String(r.id_Rol) })) || [];
+
+        const barriosData = Array.isArray(fetchedBarrios)
+          ? fetchedBarrios.map(b => ({
+            id_Barrio: String(b.id_Barrio || b.id),
+            nombre: b.nombre
+          }))
+          : fetchedBarrios.data?.map(b => ({
+            id_Barrio: String(b.id_Barrio || b.id),
+            nombre: b.nombre
+          })) || [];
+
+        console.log("ID_Barrio usuario:", usuarioEdit?.id_Barrio);
+        console.log("Barrios cargados:", barriosData.map(b => b.id));
+
+        setRoles(rolesData);
+        setBarrios(barriosData);
+
+
       } catch (err) {
-        console.error("Error al cargar roles o barrios:", err);
-        setErrorMessage(err.message || "Error al cargar opciones de roles/barrios.");
-      } finally {
-        setLoadingOptions(false);
+        console.error("Error cargando roles/barrios:", err);
+        setErrorMessage("Error al cargar opciones de roles y barrios.");
       }
     };
     fetchDropdownData();
-
-    return () => {
-      cleanupPreview(); // Limpia al desmontar
-    };
-  }, [cleanupPreview]);
+  }, []);
 
 
-  // 5️⃣ Handlers
+  //  Sincronizar barrio y rol después de que se carguen los datos
+  useEffect(() => {
+    if (usuarioEdit && barrios.length > 0 && roles.length > 0) {
+      const barrioEncontrado = barrios.find(
+        b => b.nombre.toLowerCase().includes(usuarioEdit.barrio.toLowerCase().trim())
+      );
+
+      const rolEncontrado = roles.find(
+        r => r.nombre_Rol.toLowerCase().trim() === usuarioEdit.rol.toLowerCase().trim()
+      );
+
+      console.log("Barrio encontrado:", barrioEncontrado);
+      console.log("Rol encontrado:", rolEncontrado);
+
+      setUsuarioData(prev => ({
+        ...prev,
+        Id_Barrio: barrioEncontrado ? barrioEncontrado.id_Barrio : '',
+        Id_Rol: rolEncontrado ? rolEncontrado.id_Rol : '',
+      }));
+    }
+  }, [usuarioEdit, barrios, roles]);
+
   const toggleMenu = () => setMenuCollapsed(!menuCollapsed);
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+    const { name, value, files } = e.target;
 
-    if (type === 'file') {
+    if (name === 'fotoFile') {
       const file = files[0];
-      cleanupPreview(); // Limpiar la URL de blob anterior
-
       if (file) {
         setFotoPreview(URL.createObjectURL(file));
         setUsuarioData(prev => ({ ...prev, fotoFile: file }));
       } else {
-        // Si la selección se cancela, volvemos a la foto URL original
         setFotoPreview(usuarioData.foto);
         setUsuarioData(prev => ({ ...prev, fotoFile: null }));
       }
     } else {
-      // Actualización general para todos los demás campos
       setUsuarioData(prev => ({ ...prev, [name]: value }));
+      setFieldErrors(prev => ({ ...prev, [name]: null }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setSuccessMessage(null);
-    setErrorMessage(null);
+    setSuccessMessage('');
+    setErrorMessage('');
 
-    if (!userId) {
-      setErrorMessage("ID de usuario no encontrado.");
+    const requiredFields = {
+      tipo_Identificacion: 'Tipo Identificación',
+      documento: 'Número Identificación',
+      email: 'Correo Electrónico',
+      nombre_Completo: 'Nombre',
+      apellido: 'Apellido',
+      numeroContacto: 'Número de contacto',
+      Id_Barrio: 'Barrio',
+      direccion: 'Dirección',
+      Id_Rol: 'Rol',
+      nombre_Usuario: 'Nombre de Usuario'
+    };
+
+    const emptyFieldErrors = {};
+    Object.keys(requiredFields).forEach(key => {
+      if (!usuarioData[key] || String(usuarioData[key]).trim() === '') {
+        emptyFieldErrors[key] = `El campo ${requiredFields[key]} es obligatorio.`;
+      }
+    });
+
+    const documentoValue = String(usuarioData.documento || '').trim();
+    const nombreValue = String(usuarioData.nombre_Completo || '').trim();
+    const apellidoValue = String(usuarioData.apellido || '').trim();
+    const contactoValue = String(usuarioData.numeroContacto || '').trim();
+    const emailValue = String(usuarioData.email || '').trim();
+
+    const formatErrors = {};
+    if (!emptyFieldErrors.documento && documentoValue && /[^0-9]/.test(documentoValue))
+      formatErrors.documento = 'El Número de Identificación solo debe contener dígitos (0-9).';
+    if (!emptyFieldErrors.numeroContacto && contactoValue && /[^0-9]/.test(contactoValue))
+      formatErrors.numeroContacto = 'El Número  solo debe contener dígitos (0-9).';
+    if (!emptyFieldErrors.numeroContacto && contactoValue && /\s/.test(contactoValue))
+      formatErrors.numeroContacto = 'El Número no debe tener espacios.';
+    const regexLetras = /[^a-zA-ZñÑáéíóúÁÉÍÓÚ\s]/;
+    if (!emptyFieldErrors.nombre_Completo && nombreValue && regexLetras.test(nombreValue))
+      formatErrors.nombre_Completo = 'El Nombre solo debe contener letras.';
+    if (!emptyFieldErrors.apellido && apellidoValue && regexLetras.test(apellidoValue))
+      formatErrors.apellido = 'El Apellido solo debe contener letras.';
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emptyFieldErrors.email && emailValue && !regexEmail.test(emailValue))
+      formatErrors.email = 'Formato de correo electrónico inválido.';
+
+    const allErrors = { ...emptyFieldErrors, ...formatErrors };
+    setFieldErrors(allErrors);
+
+    if (Object.keys(allErrors).length > 0) {
       setLoading(false);
+      setErrorMessage('Por favor, corrige los errores antes de actualizar.');
       return;
     }
 
     try {
-      // ⭐ CLAVE: Usamos FormData para enviar datos y, potencialmente, el archivo de la foto
       const formData = new FormData();
+      const nombreActual = String(usuarioData.nombre_Usuario || '').trim();
+      const nombreOriginal = String(usuarioEdit.nombreUsuario || '').trim();
 
-      // 🚨 CORRECCIÓN DE CASING: Usamos PascalCase para coincidir con el DTO de C#
-      // DTO: NombreCompleto, Apellido, Tipo_Documento, Documento, etc.
+      if (nombreActual !== nombreOriginal) {
+        formData.append('NombreUsuario', usuarioData.nombre_Usuario);
+      }
 
-      // Campos OBLIGATORIOS (texto/número)
-      formData.append('NombreCompleto', usuarioData.nombre_Completo);
-      formData.append('Apellido', usuarioData.apellido);
-      formData.append('Tipo_Documento', usuarioData.tipo_Identificacion);
-      formData.append('Documento', usuarioData.documento);
-      formData.append('Email', usuarioData.email);
-      formData.append('NumeroContacto', usuarioData.numeroContacto);
-      formData.append('Direccion', usuarioData.direccion);
-      formData.append('NombreUsuario', usuarioData.nombre_Usuario);
+      if (usuarioData.nombre_Completo !== usuarioEdit.nombre_Completo)
+        formData.append('NombreCompleto', usuarioData.nombre_Completo);
 
-      // IDs opcionales (Solo se agregan si tienen un valor)
-      if (usuarioData.Id_Barrio) {
+      if (usuarioData.apellido !== usuarioEdit.apellido)
+        formData.append('Apellido', usuarioData.apellido);
+      if (usuarioData.documento !== usuarioEdit.numero_Identificacion)
+        formData.append('Documento', usuarioData.documento);
+      if (usuarioData.tipo_Identificacion !== usuarioEdit.tipo_Identificacion)
+        formData.append('Tipo_Documento', usuarioData.tipo_Identificacion);
+      if (usuarioData.email !== usuarioEdit.correo)
+        formData.append('Email', usuarioData.email);
+      if (usuarioData.numeroContacto !== usuarioEdit.numero_Contacto)
+        formData.append('NumeroContacto', usuarioData.numeroContacto);
+      if (usuarioData.direccion !== usuarioEdit.direccion)
+        formData.append('Direccion', usuarioData.direccion);
+      if (usuarioData.Id_Barrio && usuarioData.Id_Barrio !== String(usuarioEdit.id_Barrio))
         formData.append('Id_Barrio', usuarioData.Id_Barrio);
-      }
-      if (usuarioData.Id_Rol) {
+      if (usuarioData.Id_Rol && usuarioData.Id_Rol !== String(usuarioEdit.id_Rol))
         formData.append('Id_Rol', usuarioData.Id_Rol);
-      }
-
-      // Gestión de la Foto (para el backend C#)
-      if (usuarioData.fotoFile) {
-        // Si hay archivo nuevo, lo enviamos con la clave 'File' que C# espera
+      if (usuarioData.fotoFile)
         formData.append('File', usuarioData.fotoFile);
-      }
-      else if (usuarioData.foto) {
-        // Si NO hay archivo nuevo, enviamos la URL actual para que C# la conserve
+      else if (usuarioData.foto && !usuarioData.fotoFile)
         formData.append('Foto', usuarioData.foto);
-      }
 
-
-      // ⭐ Ejecutar la actualización con FormData.
       await updateUser(userId, formData);
 
       setSuccessMessage(`Usuario '${usuarioData.nombre_Usuario}' actualizado con éxito.`);
-
-      setTimeout(() => {
-        navigate('/usuarios', { state: { successMessage: `Usuario '${usuarioData.nombre_Usuario}' actualizado.` } });
-      }, 1500);
+      setTimeout(() => navigate('/usuarios', { state: { successMessage: `Usuario '${usuarioData.nombre_Usuario}' actualizado.` } }), 1500);
 
     } catch (error) {
-      console.error("Fallo al actualizar el usuario:", error);
-      const detail = error.response?.data?.message || error.response?.data?.title || error.message;
-      setErrorMessage(`Error al actualizar el usuario. Detalles: ${detail || "Revisa la consola."}`);
+      console.error("Error al actualizar:", error);
+      const backendMessage = (error.response?.data?.message || error.message || '').toLowerCase();
+      const newErrors = {};
+
+
+      if (backendMessage.match(/\b(correo|email|e-mail)\b/) && backendMessage.includes('registrado')) {
+        newErrors.email = 'El correo ya está registrado.';
+      }
+
+      if (backendMessage.match(/\b(documento|identificación|cedula)\b/) && backendMessage.includes('registrado')) {
+        newErrors.documento = 'El número de identificación ya está registrado.';
+      }
+
+      if (backendMessage.match(/\bnombre.*usuario\b/) && backendMessage.includes('uso')) {
+        newErrors.nombre_Usuario = 'El nombre de usuario ya está en uso.';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setFieldErrors(prev => ({ ...prev, ...newErrors }));
+      } else {
+        setErrorMessage(backendMessage || 'Error al actualizar el usuario. Revisa la consola.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  if (!usuarioEdit) return null;
 
-  if (!usuarioEdit) {
-    return null;
-  }
-
-  if (loadingOptions) {
-    return (
-      <div className="page-wrapper">
-        <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
-        <div className={`main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
-          <div className="loading-message">Cargando opciones de barrios y roles...</div>
-        </div>
-      </div>
-    );
-  }
-
-
-  // 6️⃣ RENDERIZADO DEL FORMULARIO
   return (
     <div className="role-form-container">
       <Nav menuCollapsed={menuCollapsed} toggleMenu={toggleMenu} />
-
       <div className={`formulario-rol-main-content-area ${menuCollapsed ? 'expanded-margin' : ''}`}>
         <div className="formulario-roles">
-          <h1 className="form-title">Editar Usuario 👩🏻‍💻 (ID: {userId})</h1>
-          <p className="form-info">Modifica los datos del usuario. Solo los campos con asterisco (*) son obligatorios.</p>
-          <br /><br />
+          <h1 className="form-title">Editar Usuario 👩🏻‍💻</h1>
+          {successMessage && <div className="form-message success">{successMessage}</div>}
+          {errorMessage && <div className="form-message error">{errorMessage}</div>}
 
-          <form onSubmit={handleSubmit} className="role-form">
-
-            {/* Campos de Nombre y Apellido */}
+          <form onSubmit={handleSubmit} className="role-form two-columns">
+            {/* Tipo de Identificación */}
             <div className="form-group">
-              <label htmlFor="nombre_Completo" className="label-heading">Nombre Completo:<span className="required-asterisk">*</span></label>
-              <input
-                id="nombre_Completo"
-                name="nombre_Completo"
-                className="input-field"
-                placeholder="Ingresar nombre completo"
-                value={usuarioData.nombre_Completo}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="apellido" className="label-heading">Apellido:<span className="required-asterisk">*</span></label>
-              <input
-                id="apellido"
-                name="apellido"
-                className="input-field"
-                placeholder="Ingresar apellidos"
-                value={usuarioData.apellido}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* Tipo y Número de Identificación */}
-            <div className="form-group">
-              <label className="label-heading">Tipo de Identificación<span className="required-asterisk">*</span></label>
+              <label className="label-heading">
+                Tipo de Identificación <span className="required-asterisk">*</span>
+              </label>
               <div className="identification-type-buttons">
-                {['C.C', 'T.I'].map((tipo) => (
-                  // ✅ CORRECCIÓN DE KEY DE RADIO BUTTONS
-                  <div key={tipo}>
+                {[
+                  { codigo: 'C.C', nombre: 'Cédula de Ciudadanía' },
+                  { codigo: 'T.I', nombre: 'Tarjeta de Identidad' },
+                  { codigo: 'C.E', nombre: 'Cédula de Extranjería' },
+                  { codigo: 'P.P', nombre: 'Pasaporte' },
+                ].map(({ codigo, nombre }) => (
+                  <React.Fragment key={codigo}>
                     <input
                       type="radio"
-                      id={tipo}
+                      id={`edit-${codigo}`}
                       name="tipo_Identificacion"
-                      value={tipo}
-                      checked={usuarioData.tipo_Identificacion === tipo}
+                      value={codigo}
+                      checked={usuarioData.tipo_Identificacion === codigo}
                       onChange={handleChange}
-                      required
                     />
-                    <label htmlFor={tipo} className="id-type-button" data-tooltip={tipo === 'C.C' ? 'Cédula de Ciudadanía' : 'Tarjeta de Identidad'}>
-                      {tipo}
+                    <label htmlFor={`edit-${codigo}`} className="id-type-button" data-tooltip={nombre}>
+                      {codigo}
                     </label>
-                  </div>
+                  </React.Fragment>
                 ))}
               </div>
+              {fieldErrors.tipo_Identificacion && <p className="error-message-rol">{fieldErrors.tipo_Identificacion}</p>}
             </div>
+
+            {/* Documento */}
             <div className="form-group">
-              <label htmlFor="documento" className="label-heading">Numero de Identificación: <span className="required-asterisk">*</span></label>
+              <label htmlFor="documento" className="label-heading">
+                Número de Identificación <span className="required-asterisk">*</span>
+              </label>
               <input
                 id="documento"
                 name="documento"
                 className="input-field"
-                placeholder="Ingresar número de identificación"
                 value={usuarioData.documento}
                 onChange={handleChange}
-                required
               />
+              {fieldErrors.documento && <p className="error-message-rol">{fieldErrors.documento}</p>}
             </div>
 
-            {/* Correo y Celular */}
+            {/* Nombre */}
             <div className="form-group">
-              <label htmlFor="email" className="label-heading">Correo Electrónico:<span className="required-asterisk">*</span></label>
+              <label htmlFor="nombre_Completo" className="label-heading">
+                Nombre <span className="required-asterisk">*</span>
+              </label>
               <input
-                type="email"
+                id="nombre_Completo"
+                name="nombre_Completo"
+                className="input-field"
+                value={usuarioData.nombre_Completo}
+                onChange={handleChange}
+              />
+              {fieldErrors.nombre_Completo && <p className="error-message-rol">{fieldErrors.nombre_Completo}</p>}
+            </div>
+
+            {/* Apellido */}
+            <div className="form-group">
+              <label htmlFor="apellido" className="label-heading">
+                Apellido <span className="required-asterisk">*</span>
+              </label>
+              <input
+                id="apellido"
+                name="apellido"
+                className="input-field"
+                value={usuarioData.apellido}
+                onChange={handleChange}
+              />
+              {fieldErrors.apellido && <p className="error-message-rol">{fieldErrors.apellido}</p>}
+            </div>
+
+            {/* Correo */}
+            <div className="form-group">
+              <label htmlFor="email" className="label-heading">
+                Correo Electrónico <span className="required-asterisk">*</span>
+              </label>
+              <input
                 id="email"
                 name="email"
+                type="email"
                 className="input-field"
-                placeholder="Ingresar email@"
                 value={usuarioData.email}
                 onChange={handleChange}
-                required
               />
+              {fieldErrors.email && <p className="error-message-rol">{fieldErrors.email}</p>}
             </div>
+
+            {/* Número de contacto */}
             <div className="form-group">
-              <label htmlFor="numeroContacto" className="label-heading">Número de contacto:<span className="required-asterisk">*</span></label>
+              <label htmlFor="numeroContacto" className="label-heading">
+                Número de contacto <span className="required-asterisk">*</span>
+              </label>
               <input
                 id="numeroContacto"
                 name="numeroContacto"
                 className="input-field"
-                placeholder="Ingresar número"
                 value={usuarioData.numeroContacto}
                 onChange={handleChange}
-                required
               />
+              {fieldErrors.numeroContacto && <p className="error-message-rol">{fieldErrors.numeroContacto}</p>}
             </div>
 
-            {/* Barrio (Opcional) y Dirección (Obligatoria) */}
+            {/* Barrio */}
             <div className="form-group">
-              <label htmlFor="Id_Barrio" className="label-heading">Barrio: <span className="optional-label">(Opcional)</span></label>
+              <label htmlFor="Id_Barrio" className="label-heading">
+                Barrio <span className="required-asterisk">*</span>
+              </label>
               <select
                 id="Id_Barrio"
                 name="Id_Barrio"
-                value={usuarioData.Id_Barrio || ''}
-                onChange={handleChange}
                 className="input-field"
+                value={usuarioData.Id_Barrio}
+                onChange={handleChange}
+                disabled={barrios.length === 0}
               >
-                {/* ⭐ CORRECCIÓN FINAL: Añadir key a la opción estática */}
-                <option key="default-barrio" value="">Selecciona un Barrio:</option>
-                {barrios.map(b => (
-                  // ✅ Opción mapeada con key
-                  <option key={b.id} value={String(b.id)}>
-                    {b.nombre}
+                <option value="">Seleccione un rol</option>
+                {barrios.map(barrio => (
+                  <option key={barrio.id_Barrio} value={barrio.id_Barrio}>
+                    {barrio.nombre}
                   </option>
                 ))}
+
               </select>
+
+              {fieldErrors.Id_Barrio && <p className="error-message-rol">{fieldErrors.Id_Barrio}</p>}
             </div>
+
+            {/* Dirección */}
             <div className="form-group">
-              <label htmlFor="direccion" className="label-heading">Dirección:<span className="required-asterisk">*</span></label>
+              <label htmlFor="direccion" className="label-heading">
+                Dirección <span className="required-asterisk">*</span>
+              </label>
               <input
                 id="direccion"
                 name="direccion"
                 className="input-field"
-                placeholder="Ingresar dirección"
                 value={usuarioData.direccion}
                 onChange={handleChange}
-                required
               />
+              {fieldErrors.direccion && <p className="error-message-rol">{fieldErrors.direccion}</p>}
             </div>
 
-            {/* Rol (Opcional) y Nombre de Usuario (Obligatorio) */}
+            {/* Rol */}
             <div className="form-group">
-              <label htmlFor="Id_Rol" className="label-heading">Rol: <span className="optional-label">(Opcional)</span></label>
+              <label htmlFor="Id_Rol" className="label-heading">
+                Rol <span className="required-asterisk">*</span>
+              </label>
               <select
                 id="Id_Rol"
                 name="Id_Rol"
-                value={usuarioData.Id_Rol || ''}
-                onChange={handleChange}
                 className="input-field"
+                value={usuarioData.Id_Rol}
+                onChange={handleChange}
+                disabled={roles.length === 0}
               >
-                <option key="default-rol" value="">Selecciona un Rol:</option>
-                {roles.map((r) => (
-                  <option key={r.id_Rol} value={String(r.id_Rol)}>
+                <option value="">Seleccione un rol</option>
+                {roles.map(r => (
+                  <option key={r.id_Rol} value={r.id_Rol}>
                     {r.nombre_Rol}
                   </option>
                 ))}
               </select>
+              {fieldErrors.Id_Rol && <p className="error-message">{fieldErrors.Id_Rol}</p>}
             </div>
 
-
-            {/* Foto de perfil (Con previsualización de Cloudinary o Blob) */}
+            {/* Nombre de usuario */}
             <div className="form-group">
+              <label htmlFor="nombre_Usuario" className="label-heading">
+                Nombre de Usuario <span className="required-asterisk">*</span>
+              </label>
+              <input
+                id="nombre_Usuario"
+                name="nombre_Usuario"
+                className="input-field"
+                value={usuarioData.nombre_Usuario}
+                onChange={handleChange}
+              />
+              {fieldErrors.nombre_Usuario && <p className="error-message-rol">{fieldErrors.nombre_Usuario}</p>}
+            </div>
+
+            {/* Foto */}
+            <div className="form-group full-width">
               <label className="label-heading">Foto de Perfil (opcional)</label>
-              <div className="image-upload-container">
+              {fotoPreview && <img src={fotoPreview} alt="Previsualización" className="preview-image" />}
+              <br />
+              <label htmlFor="fotoFile" className="custom-file">
+                {fotoPreview ? 'Cambiar Foto ✅' : 'Añadir Foto'}
+              </label>
+              {fotoPreview && (
+                <button
+                  type="button"
+                  className="btn-quitar-foto"
+                  onClick={async () => {
+                    try {
+                      // Eliminar en backend si el usuario tenía una foto guardada
+                      if (usuarioEdit.foto) {
+                        await updateUser(userId, { Foto: '' }); // Envía campo vacío para borrarla
+                      }
 
-                <div className="photo-preview-wrapper">
-                  {/* Muestra la previsualización (Blob URL o Cloudinary URL) */}
-                  {fotoPreview && (
-                    <img
-                      src={fotoPreview}
-                      alt="Previsualización"
-                      className="foto-preview-large"
-                      style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover' }}
-                    />
-                  )}
-                </div>
-
-
-                <label htmlFor="fotoFile" className="custom-file">
-                  {fotoPreview ? 'Cambiar Foto ✅' : (usuarioData.foto ? 'Actualizar Foto' : 'Añadir Foto')}
-                </label>
-                <input
-                  id="fotoFile"
-                  name="fotoFile"
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handleChange}
-                />
-
-                {/* Botón para Quitar la foto actual de Cloudinary (si existe) */}
-                {usuarioData.foto && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUsuarioData(prev => ({ ...prev, foto: '', fotoFile: null }));
+                      // Actualiza el estado local
                       setFotoPreview(null);
-                      cleanupPreview();
-                    }}
-                    className="remove-photo-button"
-                    disabled={loading}
-                  >
-                   ❌ Quitar Foto Actual 
-                  </button>
-                )}
-              </div>
+                      setUsuarioData((prev) => ({
+                        ...prev,
+                        foto: '',
+                        fotoFile: null,
+                      }));
+
+                      setSuccessMessage('Foto eliminada correctamente.');
+                      setTimeout(() => setSuccessMessage(''), 2500);
+                    } catch (error) {
+                      console.error("Error al eliminar foto:", error);
+                      setErrorMessage('Error al eliminar la foto.');
+                      setTimeout(() => setErrorMessage(''), 3000);
+                    }
+                  }}
+                >
+                  Quitar Foto
+                </button>
+              )}
+
+              <input
+                id="fotoFile"
+                name="fotoFile"
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleChange}
+              />
             </div>
 
             {/* Botones */}
             <div className="form-buttons">
-              <button type="button" className="cancel-button" onClick={() => navigate(-1)} disabled={loading}>Cancelar</button>
               <button type="submit" className="save-button" disabled={loading}>
-                {loading ? 'Actualizando...' : <><FaSave style={{ marginRight: '8px' }} /> Actualizar Usuario</>}
+                {loading ? 'Actualizando...' : 'Actualizar Usuario'}
               </button>
             </div>
           </form>
+
+          <button type="button" className="cancel-button" onClick={() => navigate(-1)} disabled={loading}>
+            Cancelar
+          </button>
         </div>
       </div>
-
-      {/* Notificaciones */}
-      <ToastNotification
-        message={successMessage}
-        type="success"
-        onClose={() => setSuccessMessage(null)}
-      />
-      <ToastNotification
-        message={errorMessage}
-        type="error"
-        onClose={() => setErrorMessage(null)}
-      />
     </div>
   );
 }
+
+export default EditUsuario;

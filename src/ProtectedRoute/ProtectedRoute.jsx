@@ -1,12 +1,23 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-const ProtectedRoute = () => {
-  // ⭐ Verifica si el token y el rol del usuario existen en el almacenamiento local ⭐
+const ProtectedRoute = ({ isAuthPage = false }) => { 
+  //  Verifica si el usuario tiene sesión activa 
   const isAuthenticated = localStorage.getItem('userToken');
 
-  // Si el usuario está autenticado, permite el acceso a la ruta hija.
-  // Si no, lo redirige a la página de login.
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
+  if (isAuthenticated && isAuthPage) {
+    // Si el usuario está autenticado Y está intentando acceder a la página de login/registro
+    // Lo redirigimos al dashboard para evitar que "inicie sesión" de nuevo.
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (!isAuthenticated && !isAuthPage) {
+    // Si el usuario NO está autenticado Y está intentando acceder a una ruta protegida a login.
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Si pasa las verificaciones 
+  // Permite el acceso a la ruta hija.
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

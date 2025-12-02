@@ -10,7 +10,7 @@ function LoadingPage() {
   useEffect(() => {
     const handleNavigation = async () => {
       // ⭐ Simula el tiempo de carga, puedes ajustarlo si necesitas
-      await new Promise(resolve => setTimeout(resolve, 3000)); 
+      await new Promise(resolve => setTimeout(resolve, 2000)); 
       
       // ⭐ Obtiene el rol del usuario desde el almacenamiento local
       const userRole = localStorage.getItem('userRole'); 

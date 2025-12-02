@@ -4,6 +4,29 @@ import miImagen from '../assets/img/imagen-principal.png';
 import { FaEyeSlash, FaEye, FaHome } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser, getBarrios } from '../api/authService';
+import Swal from 'sweetalert2';
+
+
+// 🔒 Validación de contraseña fuerte 
+const validatePassword = (password, confirm) => {
+    const failed = [];
+    if (!/.{8,}/.test(password)) failed.push("Debe tener al menos 8 caracteres.");
+    if (!/[A-Z]/.test(password)) failed.push("Incluir mayúsculas.");
+    if (!/[a-z]/.test(password)) failed.push("Incluir minúsculas.");
+    if (!/[0-9]/.test(password)) failed.push("números.");
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) failed.push("caracteres especiales.");
+
+    const errors = {
+        contrasena: failed.length ? "• La contraseña debe: " + failed.join(" ") : "",
+        confirmPassword: ""
+    };
+
+    if (password && confirm && password !== confirm) {
+        errors.confirmPassword = "Las contraseñas no coinciden.";
+    }
+
+    return errors;
+};
 
 
 export default function CreateCount() {
@@ -19,24 +42,31 @@ export default function CreateCount() {
         nombre: '',
         apellido: '',
         celular: '',
-        barrio: '', // Guardará el ID del barrio
+        barrio: '',
         direccion: '',
         nombreUsuario: '',
         contrasena: '',
-        fotoPerfil: null, // Será el objeto File
+        fotoPerfil: null,
         aceptoCondiciones: false,
     });
 
     /* ▶️ Estados auxiliares */
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
-    const [passwordError, setPasswordError] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [confirmError, setConfirmError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [barrios, setBarrios] = useState([]); // Estado para guardar la lista de los barrios 
+    const [barrios, setBarrios] = useState([]);
 
-    // ⭐ El useEffect para cargar los barrios al inicio ⭐
+    // ⭐ ESTADO DE ERRORES: Para manejar errores de frontend y duplicados de backend ⭐
+    const [fieldErrors, setFieldErrors] = useState({
+        contrasena: '',
+        confirmPassword: '',
+        documento: '', // Mapea a numeroIdentificacion
+        correoElectronico: '',
+        nombreUsuario: '',
+    });
+
+    // Carga de barrios al inicio
     useEffect(() => {
         const fetchBarrios = async () => {
             try {
@@ -57,67 +87,90 @@ export default function CreateCount() {
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
 
-        if (type === 'checkbox') {
-            setFormData(prev => ({ ...prev, [name]: checked }));
-        } else if (type === 'file') {
-            const file = files[0];
-            if (file) {
-                setFormData(prev => ({ ...prev, [name]: file }));
-                const reader = new FileReader();
-                reader.onloadend = () => setImagePreviewUrl(reader.result);
-                reader.readAsDataURL(file); // Usado solo para la vista previa
-            } else {
-                setFormData(prev => ({ ...prev, [name]: null }));
-                setImagePreviewUrl(null);
-            }
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                // Convertir el ID del barrio a número si el nombre del campo es 'barrio'
-                [name]: name === 'barrio' ? Number(value) : value
-            }));
-        }
+        setFormData(prev => {
+            let newFormData = { ...prev };
 
-        // limpia errores al escribir
-        if (name === 'contrasena') setPasswordError('');
+            if (type === 'checkbox') {
+                newFormData[name] = checked;
+            } else if (type === 'file') {
+                const file = files[0];
+                newFormData[name] = file || null;
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setImagePreviewUrl(reader.result);
+                    reader.readAsDataURL(file);
+                } else {
+                    setImagePreviewUrl(null);
+                }
+            } else {
+                // El campo 'barrio' debe ser un número (Id_Barrio)
+                newFormData[name] = name === 'barrio' ? Number(value) : value;
+            }
+
+            // Lógica de validación de contraseña/confirmación en tiempo real
+            if (name === 'contrasena') {
+                const errors = validatePassword(newFormData.contrasena, confirmPassword);
+                setFieldErrors(prevErrors => ({
+                    ...prevErrors,
+                    contrasena: errors.contrasena,
+                    confirmPassword: errors.confirmPassword
+                }));
+            } else {
+                // Limpia el error de CUALQUIERA de los campos cuando se edita
+                // Manejo especial para el campo de documento
+                const errorKey = name === 'numeroIdentificacion' ? 'documento' : name;
+                // Limpiamos los errores de correo, documento y usuario cuando se editan
+                if (errorKey === 'correoElectronico' || errorKey === 'documento' || errorKey === 'nombreUsuario') {
+                    // Solo limpiamos si el campo tenía un error previo del backend
+                    setFieldErrors(prevErrors => {
+                        if (prevErrors[errorKey]) {
+                            return { ...prevErrors, [errorKey]: '' };
+                        }
+                        return prevErrors;
+                    });
+                }
+            }
+
+            return newFormData;
+        });
     };
 
     /* 📌 Confirmar contraseña */
     const handleConfirmChange = (e) => {
         const value = e.target.value;
         setConfirmPassword(value);
-        if (formData.contrasena && value !== formData.contrasena) {
-            setConfirmError('Las contraseñas no coinciden');
-        } else {
-            setConfirmError('');
-        }
+
+        const errors = validatePassword(formData.contrasena, value);
+
+        setFieldErrors(prevErrors => ({
+            ...prevErrors,
+            confirmPassword: errors.confirmPassword
+        }));
     };
 
-    /* 🔒 Validación de contraseña fuerte */
-    const validatePassword = (pwd) => {
-        const minLen = 8;
-        const tests = [
-            /.{8,}/,            // 8+ caracteres
-            /[A-Z]/,            // mayúscula
-            /[a-z]/,            // minúscula
-            /[0-9]/,            // número
-            /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/ // especial
-        ];
-        return tests.every(t => t.test(pwd));
-    };
-
-    /* 📤 Enviar formulario (CORREGIDO) */
+    /* 📤 Enviar formulario (VERSIÓN FINALIZADA) */
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. Validaciones
-        if (!validatePassword(formData.contrasena)) {
-            setPasswordError('• La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales.');
+        // 1. Validaciones de Contraseña
+        const errorsBeforeSubmit = validatePassword(formData.contrasena, confirmPassword);
+        setFieldErrors(prev => ({
+            ...prev,
+            contrasena: errorsBeforeSubmit.contrasena,
+            confirmPassword: errorsBeforeSubmit.confirmPassword
+        }));
+
+        if (errorsBeforeSubmit.contrasena || errorsBeforeSubmit.confirmPassword) {
+            alert('Por favor, corrige los errores de contraseña.');
             return;
         }
 
-        if (formData.contrasena !== confirmPassword) {
-            setConfirmError('Las contraseñas no coinciden');
+        // Validación simple de campos requeridos
+        if (!formData.tipoIdentificacion || !formData.numeroIdentificacion || !formData.correoElectronico ||
+            !formData.nombre || !formData.apellido || !formData.celular || !formData.barrio ||
+            !formData.direccion || !formData.nombreUsuario) {
+            alert('Por favor, complete todos los campos obligatorios.');
             return;
         }
 
@@ -128,10 +181,8 @@ export default function CreateCount() {
 
         setLoading(true);
 
-        // ⭐ INICIO DEL CAMBIO: USAR FORM DATA PARA ENVIAR EL ARCHIVO ⭐
+        // 2. Crear FormData para la petición (Mapeando a los nombres que espera el backend)
         const formDataToSend = new FormData();
-
-        // Mapeo de datos al formato de C# (RegisterRequestDto)
         formDataToSend.append('Nombre_Usuario', formData.nombreUsuario);
         formDataToSend.append('Email', formData.correoElectronico);
         formDataToSend.append('Password', formData.contrasena);
@@ -141,53 +192,83 @@ export default function CreateCount() {
         formDataToSend.append('Documento', formData.numeroIdentificacion);
         formDataToSend.append('Tipo_Documento', formData.tipoIdentificacion);
         formDataToSend.append('Direccion', formData.direccion);
-        formDataToSend.append('Id_Rol', 2); // Asumiendo que el rol 2 es para Clientes
+        formDataToSend.append('Id_Rol', 2); // Asumiendo que 2 es el rol de cliente/usuario regular
+        formDataToSend.append('Id_Barrio', formData.barrio);
 
-        // Asegurarse de que el barrio sea un número, si está seleccionado
-        if (formData.barrio) {
-            formDataToSend.append('Id_Barrio', formData.barrio);
-        } else {
-            // Manejar si el barrio es requerido y no está seleccionado
-            setLoading(false);
-            alert("Debe seleccionar un barrio.");
-            return;
-        }
-
-        // ⭐ EL CAMPO DE ARCHIVO CRÍTICO: Debe llamarse 'File' para coincidir con C#
         if (formData.fotoPerfil) {
+            // El backend espera el nombre 'File' para el IFormFile
             formDataToSend.append('File', formData.fotoPerfil);
         }
-        // ⭐ FIN DEL CAMBIO ⭐
 
         try {
-            // ⭐ Petición POST a tu API enviando el objeto FormData ⭐
-            const response = await registerUser(formDataToSend);
+            await registerUser(formDataToSend);
 
-            console.log('Respuesta de la API:', response.data);
-            alert('¡Cuenta creada correctamente! Serás redirigido al inicio de sesión.');
+            Swal.fire({
+                title: '¡Cuenta creada con éxito! 🎉',
+                text: 'Serás redirigido al inicio de sesión en unos segundos.',
+                icon: 'success',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                iconColor: '#c89b3c'
+            });
 
             navigate('/login');
 
         } catch (error) {
-            console.error('Error al registrar el usuario:', error.response ? error.response.data : error.message);
 
-            const errorMessage = error.response && error.response.data.message
-                ? error.response.data.message
+            // ⭐ 3. AJUSTE CRÍTICO: El mensaje ahora viene de error.message
+            const backendMessage = error.message
+                ? error.message
                 : 'Hubo un problema al crear tu cuenta. Inténtalo de nuevo.';
-            alert(errorMessage);
+
+            console.error('Error al registrar el usuario:', backendMessage);
+
+            // ⭐ 4. Lógica para detectar errores de "ya en uso" mediante palabras clave ⭐
+            const newErrors = {};
+            let isErrorDetected = false;
+
+            // Busca palabras clave que indiquen duplicado
+            if (backendMessage.toLowerCase().includes('email') || backendMessage.toLowerCase().includes('correo')) {
+                newErrors.correoElectronico = 'El correo electrónico ya está registrado. ❌';
+                isErrorDetected = true;
+            }
+            if (backendMessage.toLowerCase().includes('documento') || backendMessage.toLowerCase().includes('identificacion')) {
+                newErrors.documento = 'El Número de identificación ya está registrado. ❌';
+                isErrorDetected = true;
+            }
+            if (backendMessage.toLowerCase().includes('usuario')) {
+                newErrors.nombreUsuario = 'El nombre de usuario ya está en uso. ❌';
+                isErrorDetected = true;
+            }
+
+            if (isErrorDetected) {
+                // Si encontramos un error de campo repetido, actualizamos el estado y se muestra debajo del campo.
+                setFieldErrors(prev => ({
+                    ...prev,
+                    ...newErrors,
+                    // Mantenemos los errores de contraseña
+                    contrasena: errorsBeforeSubmit.contrasena,
+                    confirmPassword: errorsBeforeSubmit.confirmPassword
+                }));
+                // No mostramos alert, confiamos en la UI.
+            } else {
+                // Si el error NO es de campo repetido, mostramos el alert genérico con el mensaje del backend.
+                alert(backendMessage);
+            }
+
         } finally {
             setLoading(false);
         }
     };
+
 
     /* 🖼️ Texto dinámico del label de archivo */
     const fileLabel = formData.fotoPerfil ? `Archivo: ${formData.fotoPerfil.name}` : 'Foto de Perfil (opcional)';
 
     /* 🖥️ Render */
     return (
-
         <div className="registration-container">
-      
             <div className="registration-form-section">
                 <h2 className="welcome-title">¡Bienvenido!</h2>
                 <h3 className="create-account-title">Crear una cuenta 👩🏻‍💻</h3>
@@ -198,28 +279,40 @@ export default function CreateCount() {
                     {/* Grid de campos organizados en 2 columnas */}
                     <div className="form-grid">
 
-                        {/* Tipo de identificación  */}
-                        <div className="form-group ">
-                            <label className="tipoIdentificacion">Tipo de Identificación: <span className="required-asterisk">*</span></label>
+                        {/* Tipo de identificación */}
+                        <div className="form-group">
+                            <label className="label-heading">
+                                Tipo de Identificación <span className="required-asterisk">*</span>
+                            </label>
                             <p className='parrafo-explicacion-createcount'>Selecciona una de las opciones: </p>
                             <div className="identification-type-buttons">
-                                {['C.C', 'T.I'].map((tipo) => (
-                                    <React.Fragment key={tipo}>
+                                {[
+                                    { codigo: 'C.C', nombre: 'Cédula de Ciudadanía' },
+                                    { codigo: 'T.I', nombre: 'Tarjeta de Identidad' },
+                                    { codigo: 'C.E', nombre: 'Cédula de Extranjería' }, // ¡Nueva opción!
+                                    { codigo: 'P.P', nombre: 'Pasaporte' }, // ¡Nueva opción!
+                                ].map(({ codigo, nombre }) => (
+                                    <React.Fragment key={codigo}>
                                         <input
                                             type="radio"
-                                            id={tipo}
+                                            id={codigo}
                                             name="tipoIdentificacion"
-                                            value={tipo}
-                                            checked={formData.tipoIdentificacion === tipo}
+                                            value={codigo}
+                                            // ⭐ Usamos formData.tipoIdentificacion para mantener consistencia ⭐
+                                            checked={formData.tipoIdentificacion === codigo}
                                             onChange={handleChange}
                                             required
                                         />
-                                        <label htmlFor={tipo} className="id-type-button" data-tooltip={tipo === 'C.C' ? 'Cédula de Ciudadanía' : 'Tarjeta de Identidad'}>
-                                            {tipo}
+                                        <label htmlFor={codigo} className="id-type-button" data-tooltip={nombre}>
+                                            {codigo}
                                         </label>
                                     </React.Fragment>
                                 ))}
                             </div>
+                            {/* He quitado la línea {fieldErrors.tipoIdentificacion && <p className="error-message">{fieldErrors.tipoIdentificacion}</p>}
+                                Ya que el campo radio es obligatorio y el error se maneja con la propiedad required de HTML.
+                            */}
+
                         </div>
 
                         {/* Número de identificación - Columna 1 */}
@@ -234,6 +327,8 @@ export default function CreateCount() {
                                 onChange={handleChange}
                                 required
                             />
+                            {/* ⭐ ERROR DE DUPLICADO (Documento) ⭐ */}
+                            {fieldErrors.documento && <p className="error-message">{fieldErrors.documento}</p>}
                         </div>
 
                         {/* Correo - Columna 2 */}
@@ -249,6 +344,8 @@ export default function CreateCount() {
                                 onChange={handleChange}
                                 required
                             />
+                            {/* ⭐ ERROR DE DUPLICADO (Correo) ⭐ */}
+                            {fieldErrors.correoElectronico && <p className="error-message">{fieldErrors.correoElectronico}</p>}
                         </div>
 
                         {/* Nombre - Columna 1 */}
@@ -313,7 +410,7 @@ export default function CreateCount() {
                             </select>
                         </div>
 
-                        {/* Dirección - Fila completa:  se pone full-width al lado de form-group */}
+                        {/* Dirección - Fila completa */}
                         <div className="form-group ">
                             <label htmlFor="direccion">Dirección: <span className="required-asterisk">*</span></label>
                             <input
@@ -339,16 +436,18 @@ export default function CreateCount() {
                                 onChange={handleChange}
                                 required
                             />
+                            {/* ⭐ ERROR DE DUPLICADO (Nombre de Usuario) ⭐ */}
+                            {fieldErrors.nombreUsuario && <p className="error-message">{fieldErrors.nombreUsuario}</p>}
                         </div>
 
                         {/* Foto de perfil - Columna 2 */}
-                        <div className="form-group "    >
+                        <div className="form-group" >
                             <label htmlFor="fotoPerfil" className="file-upload-label">{fileLabel}</label>
                             <input id="fotoPerfil" name="fotoPerfil" type="file" accept="image/*" className="file-input" onChange={handleChange} />
                             {imagePreviewUrl && <img src={imagePreviewUrl} alt="preview" className="preview-image-create-count" />}
                         </div>
 
-                        {/* Contraseña - Fila completa (por el ícono y validación) */}
+                        {/* Contraseña - Fila completa se pone full-width*/}
                         <div className="form-group ">
                             <label htmlFor="contrasena">Contraseña: <span className="required-asterisk">*</span></label>
                             <div style={{ position: 'relative' }}>
@@ -367,8 +466,9 @@ export default function CreateCount() {
                                     {showPassword ? <FaEyeSlash color="black" /> : <FaEye color="black" />}
                                 </span>
                             </div>
-                            {passwordError && <p className="password-validation-message error-message">{passwordError}</p>}
-                            {!passwordError && <p className="password-validation-message">• La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales.</p>}
+                            {/* Mantiene el error de fortaleza o el mensaje de guía */}
+                            {fieldErrors.contrasena && <p className="password-validation-message error-message">{fieldErrors.contrasena}</p>}
+                            {!fieldErrors.contrasena && <p className="password-validation-message">• La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales.</p>}
                         </div>
 
                         {/* Confirmar contraseña - Fila completa */}
@@ -382,7 +482,8 @@ export default function CreateCount() {
                                 required
                                 placeholder="Repetir contraseña"
                             />
-                            {confirmError && <p className="password-validation-message error-message">{confirmError}</p>}
+                            {/* Mantiene el error de coincidencia */}
+                            {fieldErrors.confirmPassword && <p className="password-validation-message error-message">{fieldErrors.confirmPassword}</p>}
                         </div>
 
                     </div>
@@ -395,7 +496,6 @@ export default function CreateCount() {
 
                     {/* Botón - Fuera del grid */}
                     <div className="botones-container">
-
                         <button type="button" className="submit-regresar" onClick={() => { navigate('/login') }}>
                             ⬅️Regresar
                         </button>
@@ -407,13 +507,10 @@ export default function CreateCount() {
                 </form>
             </div>
             <div className="derecha-con-imagen">
-                
                 <img src={miImagen} alt="Ilustración de bienvenida" />
-                      <div className="boton-createcount">
-
-                <Link to="/"><FaHome /></Link>
-            </div>
-
+                <div className="boton-createcount">
+                    <Link to="/"><FaHome /></Link>
+                </div>
             </div>
         </div>
     );

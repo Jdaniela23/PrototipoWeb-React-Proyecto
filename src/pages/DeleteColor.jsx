@@ -1,9 +1,21 @@
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import './DeleteModal.css';
+import { useState } from 'react';
 
 export default function DeleteColor({ color, onClose, onConfirm }) {
+    const [isDeleting, setIsDeleting] = useState(false);
     if (!color) return null;
+
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await onConfirm(color);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     return (
         <div className="delete-overlay">
@@ -24,8 +36,13 @@ export default function DeleteColor({ color, onClose, onConfirm }) {
                     <button className="cancel-button" onClick={onClose}>
                         No, Cancelar
                     </button>
-                    <button className="confirm-delete-button" onClick={() => onConfirm(color)}>
-                        Sí, Eliminar Definitivamente <FaTrash />
+                    <button
+                        className="confirm-delete-button"
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? 'Eliminando...' : 'Sí, Eliminar Definitivamente'} <FaTrash />
                     </button>
                 </div>
             </div>

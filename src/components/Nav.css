@@ -2,18 +2,14 @@
   display: flex;
   min-height: 100vh;
 }
-
-/* Sidebar colapsable */
 .sidebar {
   width: 220px;
   padding: 20px;
- background-color:#916811;
+ background-color: #b59b64;
   border-right: 1px solid #e0e0e0;
   color: #333;
   position: fixed;
-  /* Mantiene el sidebar en su lugar */
   height: 100vh;
-  /* Ocupa toda la altura de la ventana */
   overflow-y: auto;
   /* Permite scroll si el contenido es largo */
   transition: all 0.3s ease;
@@ -21,14 +17,12 @@
   z-index: 1000;
   /* Asegura que esté por encima de otros elementos */
   box-sizing: border-box;
-  /* Incluye padding y border en el width */
 }
 
 .sidebar.collapsed {
   width: 60px;
   /* Ancho reducido al colapsar */
   padding: 20px 10px;
-  /* Ajuste de padding */
   overflow-x: hidden;
   /* Oculta el contenido horizontal al colapsar */
 }
@@ -65,14 +59,11 @@
 
 /* Estilos para los items del menú dentro del sidebar */
 .sidebar-menu-items p {
-  /* Se elimina el padding, ya que el contenedor padre lo manejará */
   margin: 0;
   cursor: pointer;
   transition: color 0.2s ease, background-color 0.2s ease;
   border-radius: 4px;
 }
-
-
 
 .sidebar-menu-items p strong {
   color: #ffffff;
@@ -81,29 +72,22 @@
   letter-spacing: 0.5px;
 }
 
-/* ⚠️ Se elimina la clase .logout y se integran los estilos a .link-menu */
-
-/* ⚠️ CAMBIO CLAVE: Usa Flexbox para alinear la flecha y el texto */
 .menu-header {
   display: flex;
   justify-content: space-between;
-  /* Distribuye el espacio entre los elementos */
   align-items: center;
   /* Centra los elementos verticalmente */
   cursor: pointer;
-  padding: 10px; /* <--- Se agrega el padding para el espaciado correcto */
+  padding: 10px;
   gap: 10%;
 }
 
 /* Estilo para los íconos de flecha dentro del menú */
 .menu-header svg {
-  color: #c89b3c;
-  /* Color dorado para las flechas */
+  color: #fff; /*color de las flechas*/
   transition: transform 0.3s ease;
-  /* Añade una transición si la flecha cambia de dirección */
 }
 
-/* Main content ajustable */
 .main {
   margin-left: 220px;
   /* Empuja el contenido principal para que el sidebar tenga espacio */
@@ -120,7 +104,6 @@
   margin-left: 60px;
   /* Ajusta el margen cuando el sidebar está colapsado */
   width: calc(100% - 60px);
-  /* Ocupa más ancho cuando el sidebar está colapsado */
 }
 
 /* Botón de menú para móviles (oculto por defecto en desktop) */
@@ -200,7 +183,6 @@ table {
   table-layout: fixed;
 }
 
-/* ⚠️ CAMBIO CLAVE: Estilos para todos los enlaces del menú */
 .link-menu {
    color: #fff;
   font-family: 'DM Sans', sans-serif;
@@ -259,7 +241,6 @@ table {
 /* Estilos para cuando el menú está colapsado (en desktop) */
 .sidebar.collapsed .sidebar-header {
   justify-content: center;
-  /* Centra el LOGO/botón cuando el menú está colapsado */
 }
 
 /* Ocultar el texto de los items cuando el menú está colapsado en desktop */
@@ -286,4 +267,5 @@ table {
 
 .nombre-modulo{
   color: #fff;
+  margin-left: 8px;
 }

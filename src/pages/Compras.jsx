@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaFilePdf, FaEye, FaPlus, FaSearch, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import Nav from '../components/Nav.jsx';
-import DetallesCompras from '../components/DetallesCompras.jsx'; 
+import DetallesCompras from '../components/DetallesCompras.jsx';
+import { generarPDFCompra } from '../components/PDFcompras.jsx';
 import './Page.css';
 import Footer from '../components/Footer.jsx';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { getCompras, anularCompra } from "../api/comprasService.js";
+import { getDetalleCompras } from '../api/detallescomprasService.js';
 
 const ComprasForm = () => {
   const [menuCollapsed, setMenuCollapsed] = useState(false);
@@ -18,7 +18,10 @@ const ComprasForm = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [cargandoDetalles, setCargandoDetalles] = useState(false);
-  const pdfRef = useRef();
+  const [generandoPDF, setGenerandoPDF] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 7;
 
   const cargarCompras = async () => {
     try {
@@ -78,26 +81,34 @@ const ComprasForm = () => {
     }
   };
 
-  const generarPDFConCierreAutomatico = async (compra) => {
-    const input = pdfRef.current;
-    const pdf = new jsPDF('p', 'mm', 'a4', true);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
+  const handleGenerarPDF = async (compra) => {
+    try {
+      setGenerandoPDF(true);
+      console.log("📄 Generando PDF para compra ID:", compra.id_Compra);
 
-    const canvas = await html2canvas(input, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true
-    });
+      // Obtener todos los detalles de compras
+      const todosLosDetalles = await getDetalleCompras();
 
-    const imgData = canvas.toDataURL('image/png');
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Filtrar solo los detalles de esta compra
+      const detallesFiltrados = todosLosDetalles.filter(
+        detalle => detalle.idCompra == compra.id_Compra
+      );
 
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`compra_${compra.numeroCompra || compra.id_Compra}.pdf`);
+      console.log("📦 Detalles encontrados:", detallesFiltrados);
+
+      // Generar el PDF
+      await generarPDFCompra(compra, detallesFiltrados);
+
+      console.log("✅ PDF generado exitosamente");
+    } catch (error) {
+      console.error("❌ Error al generar PDF:", error);
+      alert("Error al generar el PDF: " + error.message);
+    } finally {
+      setGenerandoPDF(false);
+    }
   };
 
-  // ✅ Filtro corregido
+  // Filtro corregido
   const filteredCompras = compras.filter(compra => {
     const term = searchTerm.toLowerCase();
 
@@ -109,6 +120,23 @@ const ComprasForm = () => {
       (compra.estado || "").toLowerCase().includes(term)
     );
   });
+  // === LÓGICA DE PAGINACIÓN ===
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredCompras.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredCompras.length / recordsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
     <div className="container">
@@ -125,17 +153,20 @@ const ComprasForm = () => {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Buscar Compras"
+              placeholder="Buscar Compras "
               className="form-control"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ color: "black" }}  
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{ color: "black" }}
             />
-            <button 
+            <button
               className="search-button"
               onClick={() => setSearchTerm(searchTerm)}
             >
-              <FaSearch color="#fff" />
+              <FaSearch color="#fff" /> Buscar
             </button>
           </div>
           <Link to='/comprasform' className="add-button">
@@ -158,12 +189,12 @@ const ComprasForm = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="5" >
-                      Cargando Compras..
+                    <td colSpan="5" style={{ textAlign: "center", padding: 20 }}>
+                      Cargando...
                     </td>
                   </tr>
-                ) : filteredCompras.length > 0 ? (
-                  filteredCompras.map((compra) => (
+                ) : currentRecords.length > 0 ? (
+                  currentRecords.map((compra) => (
                     <tr key={compra.id_Compra}>
                       <td>
                         {new Date(compra.fecha_Compra_Proveedor).toLocaleDateString()}
@@ -172,16 +203,15 @@ const ComprasForm = () => {
                       <td>${compra.total?.toLocaleString("es-CO")}</td>
                       <td>
                         <span
-                          className={`badge ${
-                            compra.estado === "Activo" ? "bg-success" : "bg-danger"
-                          }`}
+                          className={`badge ${compra.estado === "Activo" ? "bg-success" : "bg-danger"
+                            }`}
                         >
                           {compra.estado || "Activo"}
                         </span>
                       </td>
                       <td className="icons">
                         <button
-                     
+                          style={{ color: "#fbbf24" }}
                           className="icon-button black"
                           onClick={() => verDetalles(compra)}
                           title="Ver detalles"
@@ -192,12 +222,13 @@ const ComprasForm = () => {
 
                         <button
                           className="icon-button blue"
-                          onClick={() => generarPDFConCierreAutomatico(compra)}
+                          onClick={() => handleGenerarPDF(compra)}
                           title="Generar PDF"
+                          disabled={generandoPDF}
                         >
                           <FaFilePdf />
                         </button>
-                        
+
                         {compra.estado === "Activo" && (
                           <button
                             className="icon-button red"
@@ -219,11 +250,36 @@ const ComprasForm = () => {
                 )}
               </tbody>
             </table>
-          </div>
-        </div>
+            {filteredCompras.length > recordsPerPage && (
+              <div className="pagination-container">
+                <button
+                  className="pagination-arrow"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  ‹
+                </button>
 
-        <div className='footer-page'>
-          <Footer />
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index + 1}
+                    className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+
+                <button
+                  className="pagination-arrow"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  ›
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {cargandoDetalles && (
@@ -234,10 +290,18 @@ const ComprasForm = () => {
           </div>
         )}
 
+        {generandoPDF && (
+          <div className="modal-overlay">
+            <div className="modal-content" style={{ textAlign: 'center', padding: '40px' }}>
+              <p>📄 Generando PDF...</p>
+            </div>
+          </div>
+        )}
+
         {compraSeleccionadaId && !cargandoDetalles && (
-          <DetallesCompras 
-            compraId={compraSeleccionadaId} 
-            onClose={cerrarModal} 
+          <DetallesCompras
+            compraId={compraSeleccionadaId}
+            onClose={cerrarModal}
           />
         )}
       </div>
